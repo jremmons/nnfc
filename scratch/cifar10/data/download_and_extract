@@ -1,0 +1,10 @@
+#!/bin/bash
+
+MD5SUM=c58f30108f718f92721af3b95e74349a
+
+wget -O cifar10.tgz https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz
+
+echo -e "$MD5SUM  cifar10.tgz" > check.txt
+md5sum --check check.txt
+
+tar xf cifar10.tgz
