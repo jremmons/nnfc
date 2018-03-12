@@ -2,6 +2,7 @@ import argparse
 import h5py
 import os
 import json
+import six
 import time
 
 import numpy as np
@@ -67,17 +68,20 @@ def main(args):
     test_data = data_preprocess(test_filenames)
 
     d = {
-        b'train_data_raw' : train_data['raw_data'],
-        b'train_data_labels' : train_data['labels'],
-        b'test_data_raw' : test_data['raw_data'],
-        b'test_data_labels' : test_data['labels'],
-        b'num2label' : json.dumps(NUM2LABEL, indent=4, sort_keys=True),
-        b'description' : 'The CIFAR-10 dataset consists of 60000 32x32 colour images in 10 classes, with 6000 images per class. There are 50000 training images and 10000 test images.',
-        b'url' : 'http://www.cs.toronto.edu/~kriz/cifar.html',
-        b'datetime_created' : time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()),
-        b'preprocess_author' : 'John R. Emmons',
-        b'preprocess_email' : 'jemmons@cs.stanford.edu',
-        b'comments' : 
+        'train_data_raw' : train_data['raw_data'],
+        'train_data_labels' : train_data['labels'],
+        'test_data_raw' : test_data['raw_data'],
+        'test_data_labels' : test_data['labels'],
+        }
+
+    a = {
+        'num2label' : json.dumps(NUM2LABEL, indent=4, sort_keys=True),
+        'description' : 'The CIFAR-10 dataset consists of 60000 32x32 colour images in 10 classes, with 6000 images per class. There are 50000 training images and 10000 test images.',
+        'url' : 'http://www.cs.toronto.edu/~kriz/cifar.html',
+        'datetime_created' : time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()),
+        'preprocess_author' : 'John R. Emmons',
+        'preprocess_email' : 'jemmons@cs.stanford.edu',
+        'comments' : 
 '''
 The train and test arrays are RGB format.
 Use the num2label dictionary to see the label_number to label_string correspondence.
@@ -86,9 +90,17 @@ The datetime_created is the time the preprocessing script was run in GMT time.''
 
     with h5py.File(args.output_hdf5, 'w') as f:
 
+        # add data members
         for varname in d.keys():
             f.create_dataset(varname, data=d[varname])
 
+        # add attributes (stored as datasets for ease of use on cli with h5utils)
+        for varname in a.keys():
+            f.create_dataset(varname, data=a[varname])
+
+        f.create_dataset('HDF5_Version', data=six.u(h5py.version.hdf5_version))
+        f.create_dataset('h5py_version', data=six.u(h5py.version.version))
+            
     print('done!')
         
 if __name__ == '__main__':
