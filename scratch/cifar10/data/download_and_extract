@@ -1,6 +1,7 @@
-#!/bin/bash
+#!/bin/bash -ex
 
-MD5SUM=c58f30108f718f92721af3b95e74349a
+readonly MD5SUM=c58f30108f718f92721af3b95e74349a
+readonly DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 wget -O cifar10.tgz https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz
 
@@ -9,4 +10,4 @@ md5sum --check check.txt
 
 tar xf cifar10.tgz
 
-python preprocess.py cifar-10-batches-py cifar10.h5
+python $DIR/preprocess.py cifar-10-batches-py cifar10.h5
