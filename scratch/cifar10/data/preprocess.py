@@ -98,7 +98,7 @@ The datetime_created is the time the preprocessing script was run in GMT time.''
         for varname in a.keys():
             f.create_dataset(varname, data=a[varname])
 
-        f.create_dataset('HDF5_Version', data=six.u(h5py.version.hdf5_version))
+        f.create_dataset('hdf5_version', data=six.u(h5py.version.hdf5_version))
         f.create_dataset('h5py_version', data=six.u(h5py.version.version))
             
     print('done!')
