@@ -8,3 +8,5 @@ echo -e "$MD5SUM  cifar10.tgz" > check.txt
 md5sum --check check.txt
 
 tar xf cifar10.tgz
+
+python preprocess.py cifar-10-batches-py cifar10.h5
