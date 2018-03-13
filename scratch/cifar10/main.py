@@ -14,7 +14,7 @@ NUM_EPOCHS = 1000
 logging.basicConfig(level=logging.DEBUG)
 
 
-def train(model, optimizer, batch_size, _data, _data_labels):
+def train(model, loss_fn, optimizer, batch_size, _data, _data_labels):
 
     model.train()
 
@@ -37,7 +37,7 @@ def train(model, optimizer, batch_size, _data, _data_labels):
         
         optimizer.zero_grad()
         output = model(batch_data)
-        loss = F.nll_loss(output, batch_labels)
+        loss = loss_fn(output, batch_labels)
         loss.backward()
         optimizer.step()
 
@@ -50,7 +50,7 @@ def train(model, optimizer, batch_size, _data, _data_labels):
     logging.info('Train Epoch took {} seconds'.format(t2-t1))
     
     
-def test(model, batch_size, data, data_labels):
+def test(model, loss_fn, batch_size, data, data_labels):
 
     model.eval()
 
@@ -68,7 +68,7 @@ def test(model, batch_size, data, data_labels):
         batch_labels = torch.autograd.Variable(torch.from_numpy(data_labels[i:i+batch_size].astype(np.int64))).cuda()
         
         output = model(batch_data)
-        test_loss += F.nll_loss(output, batch_labels, size_average=False).data[0]
+        test_loss += loss_fn(output, batch_labels).data[0]
         pred = output.data.max(1, keepdim=True)[1]
         correct += pred.eq(batch_labels.data.view_as(pred)).long().cpu().sum()
         
@@ -94,14 +94,15 @@ def main(args):
     net.cuda()
 
     optimizer = optim.Adam(net.parameters(), lr=args.lr)
+    loss_fn = torch.nn.CrossEntropyLoss()
     
     for epoch in range(1, NUM_EPOCHS+1):
 
         logging.info('begin training epoch: {}'.format(epoch))
-        train(net, optimizer, args.batch_size, train_data_raw, train_data_labels)
+        train(net, loss_fn, optimizer, args.batch_size, train_data_raw, train_data_labels)
         
         logging.info('begin testing epoch: {}'.format(epoch))
-        test(net, args.batch_size, test_data_raw, test_data_labels)
+        test(net, loss_fn, args.batch_size, test_data_raw, test_data_labels)
 
         # save model params here
         
