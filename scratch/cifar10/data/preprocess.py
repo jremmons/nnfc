@@ -50,6 +50,7 @@ def data_preprocess(filenames):
     data_blue = np.reshape(raw_data[:, 2048:], (count, 32,32,1))
 
     raw_data = np.concatenate([data_red, data_green, data_blue], axis=-1).astype(np.uint8)
+    raw_data = np.moveaxis(raw_data, -1, 1)
     labels = np.asarray(labels).astype(np.uint32)
 
     return {
