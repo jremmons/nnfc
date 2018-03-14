@@ -185,7 +185,7 @@ if __name__ == '__main__':
     parser.add_argument('--compaction_factor', type=float, default=1.0)
     parser.add_argument('--lr', type=float, default=0.001, 
                         help='learning rate (default: 0.001)')
-    parser.add_argument('--batch_size', type=int, default=1000,
+    parser.add_argument('--batch_size', type=int, default=500,
                         help='train/test batch_size (default: 1000)')
     
     args = parser.parse_args()
