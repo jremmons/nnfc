@@ -1,0 +1,16 @@
+NOTES: libbpg using a vanilla Makefile for compilation and it doesn't
+work out of the box on ubuntu. To install it, you should do the
+following:
+
+# compile libpng
+$ tar xf libpng-1.6.34.tar.xz
+$ mkdir -p libpng-1.6.34/build && pushd . && cd libpng-1.6.34
+$ ./configure --prefix=$(pwd)/build && make -j && make -j install
+$ popd
+
+# compile libbpg
+# I have edited the makefile to look for ../libpng-1.6.34/build/{include,lib}
+$ tar xf libbpg-0.9.5.tar.gz
+$ make -j -C libbpg-0.9.5
+
+
