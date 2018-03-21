@@ -1,0 +1,3 @@
+#!/bin/bash
+
+python add_jpeg_artifacts.py '../../../codecs/jpeg-9c/cjpeg -quality 25' '../../../codecs/jpeg-9c/djpeg' cifar10.h5 cifar10.unoptimized.h5

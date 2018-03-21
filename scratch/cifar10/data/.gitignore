@@ -2,3 +2,4 @@
 !preprocess.py
 !download_and_extract
 !add_jpeg_artifacts.py
+!generate_datasets
