@@ -1,0 +1,8 @@
+*
+!.gitignore
+!(bbb.bmp)
+!jpegsrc.v9c.tar.gz
+!libbpg-0.9.5.tar.gz
+!libpng-1.6.34.tar.xz
+!README
+!sourceme.sh
