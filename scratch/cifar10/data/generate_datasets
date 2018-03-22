@@ -1,3 +1,19 @@
 #!/bin/bash
 
-python add_jpeg_artifacts.py '../../../codecs/jpeg-9c/cjpeg -quality 25' '../../../codecs/jpeg-9c/djpeg' cifar10.h5 cifar10.unoptimized.h5
+#python add_compression_artifacts.py '../../../codecs/jpeg-9c/cjpeg -quality 30' '../../../codecs/jpeg-9c/djpeg' cifar10.h5 cifar10.jpeg_unoptimized_q30.h5 & 
+#python add_compression_artifacts.py '../../../codecs/jpeg-9c/cjpeg -quality 30 -optimize' '../../../codecs/jpeg-9c/djpeg' cifar10.h5 cifar10.jpeg_optimized_q30.h5 & 
+#python add_compression_artifacts.py '../../../codecs/jpeg-9c/cjpeg -quality 30 -arithmetic' '../../../codecs/jpeg-9c/djpeg' cifar10.h5 cifar10.jpeg_arithmetic_q30.h5 &
+
+python add_compression_artifacts.py '../../../codecs/jpeg-9c/cjpeg -quality 100 -arithmetic' '../../../codecs/jpeg-9c/djpeg' cifar10.h5 cifar10.jpeg_optimized_q100.h5 & 
+python add_compression_artifacts.py '../../../codecs/jpeg-9c/cjpeg -quality 80 -arithmetic' '../../../codecs/jpeg-9c/djpeg' cifar10.h5 cifar10.jpeg_optimized_q80.h5 & 
+python add_compression_artifacts.py '../../../codecs/jpeg-9c/cjpeg -quality 60 -arithmetic' '../../../codecs/jpeg-9c/djpeg' cifar10.h5 cifar10.jpeg_optimized_q60.h5 & 
+python add_compression_artifacts.py '../../../codecs/jpeg-9c/cjpeg -quality 50 -arithmetic' '../../../codecs/jpeg-9c/djpeg' cifar10.h5 cifar10.jpeg_optimized_q50.h5 & 
+python add_compression_artifacts.py '../../../codecs/jpeg-9c/cjpeg -quality 40 -arithmetic' '../../../codecs/jpeg-9c/djpeg' cifar10.h5 cifar10.jpeg_optimized_q40.h5 & 
+python add_compression_artifacts.py '../../../codecs/jpeg-9c/cjpeg -quality 35 -arithmetic' '../../../codecs/jpeg-9c/djpeg' cifar10.h5 cifar10.jpeg_optimized_q35.h5 & 
+python add_compression_artifacts.py '../../../codecs/jpeg-9c/cjpeg -quality 30 -arithmetic' '../../../codecs/jpeg-9c/djpeg' cifar10.h5 cifar10.jpeg_optimized_q30.h5 & 
+python add_compression_artifacts.py '../../../codecs/jpeg-9c/cjpeg -quality 25 -arithmetic' '../../../codecs/jpeg-9c/djpeg' cifar10.h5 cifar10.jpeg_optimized_q25.h5 & 
+python add_compression_artifacts.py '../../../codecs/jpeg-9c/cjpeg -quality 20 -arithmetic' '../../../codecs/jpeg-9c/djpeg' cifar10.h5 cifar10.jpeg_optimized_q20.h5 & 
+python add_compression_artifacts.py '../../../codecs/jpeg-9c/cjpeg -quality 15 -arithmetic' '../../../codecs/jpeg-9c/djpeg' cifar10.h5 cifar10.jpeg_optimized_q15.h5 & 
+python add_compression_artifacts.py '../../../codecs/jpeg-9c/cjpeg -quality 10 -arithmetic' '../../../codecs/jpeg-9c/djpeg' cifar10.h5 cifar10.jpeg_optimized_q10.h5 & 
+
+wait
