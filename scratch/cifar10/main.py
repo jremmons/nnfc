@@ -122,8 +122,11 @@ def main(args):
     logging.info('compute and subtract train_data mean pixel value; squash to 0-1 as well')
     train_data_raw_mean = np.mean(train_data_raw, axis=0)
 
-    train_data_raw = (train_data_raw.astype(np.float32) - train_data_raw_mean) / 255
-    test_data_raw = (test_data_raw.astype(np.float32) - train_data_raw_mean) / 255
+    train_data_raw = (train_data_raw.astype(np.float64) - train_data_raw_mean) / 255.0
+    test_data_raw = (test_data_raw.astype(np.float64) - train_data_raw_mean) / 255.0
+
+    train_data_raw = train_data_raw.astype(np.float32)
+    test_data_raw = test_data_raw.astype(np.float32)
     logging.info('done! (compute and subtract train_data mean pixel value; squash to 0-1 as well)')
     
     shutil.copy(args.data_hdf5, args.checkpoint_dir)
