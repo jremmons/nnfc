@@ -37,7 +37,7 @@ def train(model, loss_fn, optimizer, batch_size, _data, _data_labels):
     t1 = timeit.default_timer()
     for i in range(0, data_len, batch_size):
 
-        batch_data = (data[i:i+batch_size, :, :, :].astype(np.float32) / 128.0) - 1
+        batch_data = data[i:i+batch_size, :, :, :]
         batch_data = torch.autograd.Variable(torch.from_numpy(batch_data)).cuda()
 
         batch_labels = torch.autograd.Variable(torch.from_numpy(data_labels[i:i+batch_size].astype(np.int64))).cuda()
@@ -80,7 +80,7 @@ def test(model, loss_fn, batch_size, data, data_labels):
     t1 = timeit.default_timer()
     for i in range(0, data_len, batch_size):
 
-        batch_data = (data[i:i+batch_size, :, :, :].astype(np.float32) / 128.0) - 1
+        batch_data = data[i:i+batch_size, :, :, :]
         batch_data = torch.autograd.Variable(torch.from_numpy(batch_data)).cuda()
         batch_labels = torch.autograd.Variable(torch.from_numpy(data_labels[i:i+batch_size].astype(np.int64))).cuda()
         
@@ -118,6 +118,14 @@ def main(args):
         test_data_labels = np.asarray(f['test_data_labels'])
     logging.info('done! (loading data into memory)')
 
+
+    logging.info('compute and subtract train_data mean pixel value; squash to 0-1 as well')
+    train_data_raw_mean = np.mean(train_data_raw, axis=0)
+
+    train_data_raw = (train_data_raw.astype(np.float32) - train_data_raw_mean) / 255
+    test_data_raw = (test_data_raw.astype(np.float32) - train_data_raw_mean) / 255
+    logging.info('done! (compute and subtract train_data mean pixel value; squash to 0-1 as well)')
+    
     shutil.copy(args.data_hdf5, args.checkpoint_dir)
 
     metadata = {
@@ -133,7 +141,13 @@ def main(args):
     with open(os.path.join(args.checkpoint_dir, 'metadata.json'), 'w') as f:
         f.write(json.dumps(metadata, indent=4, sort_keys=True))
     
-    net = torch.nn.DataParallel(resnet.AutoencoderResNet(compaction_factor=args.compaction_factor))
+    # resnet-18
+    resnet18_blocks = [2,2,2,2]
+    net = torch.nn.DataParallel(resnet.AutoencoderResNet(compaction_factor=args.compaction_factor, num_blocks=resnet18_blocks))
+
+    # resnet-34 
+    #resnet34_blocks = [3,4,6,3]
+    #net = torch.nn.DataParallel(resnet.AutoencoderResNet(compaction_factor=args.compaction_factor, num_blocks=resnet34_blocks))
     net.cuda()
 
     optimizer = optim.Adam(net.parameters(), lr=args.lr)
