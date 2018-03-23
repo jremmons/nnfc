@@ -136,6 +136,7 @@ def main(args):
         'data_hdf5' : os.path.abspath(args.data_hdf5),
         'checkpoint_dir' : os.path.abspath(args.checkpoint_dir),
         'batch_size' : args.batch_size,
+        'resnet_blocks' : args.resnet_blocks,
         'compaction_factor' : args.compaction_factor,
         'learning_rate' : args.lr,
         'training_epochs' : NUM_EPOCHS, 
@@ -145,8 +146,13 @@ def main(args):
         f.write(json.dumps(metadata, indent=4, sort_keys=True))
     
     # resnet-18
-    resnet18_blocks = [2,2,2,2]
-    net = torch.nn.DataParallel(resnet.AutoencoderResNet(compaction_factor=args.compaction_factor, num_blocks=resnet18_blocks))
+    resnet_blocks = [2,2,2,2]
+
+    if args.resnet_blocks:
+        resnet_blocks = eval(args.resnet_blocks)
+
+    logging.info('Using the following resnet block architecture: {}'.format(resnet_blocks))
+    net = torch.nn.DataParallel(resnet.AutoencoderResNet(compaction_factor=args.compaction_factor, num_blocks=resnet_blocks))
 
     # resnet-34 
     #resnet34_blocks = [3,4,6,3]
@@ -204,6 +210,8 @@ if __name__ == '__main__':
                         help='learning rate (default: 0.001)')
     parser.add_argument('--batch_size', type=int, default=500,
                         help='train/test batch_size (default: 1000)')
+    parser.add_argument('--resnet_blocks', type=str, default='[2,2,2,2]',
+                        help='ex. [2,2,2,2]')
     
     args = parser.parse_args()
     main(args)
