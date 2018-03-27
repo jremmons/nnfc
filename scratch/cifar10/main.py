@@ -83,8 +83,12 @@ def test(model, loss_fn, batch_size, data, data_labels):
         batch_data = data[i:i+batch_size, :, :, :]
         batch_data = torch.autograd.Variable(torch.from_numpy(batch_data)).cuda()
         batch_labels = torch.autograd.Variable(torch.from_numpy(data_labels[i:i+batch_size].astype(np.int64))).cuda()
-        
+
+        #t1 = timeit.default_timer()
         output = model(batch_data)
+        #t2 = timeit.default_timer()
+        #print('fwd:', t2-t1)
+        
         test_loss += loss_fn(output, batch_labels).data[0]
         pred = output.data.max(1, keepdim=True)[1]
         correct += pred.eq(batch_labels.data.view_as(pred)).long().cpu().sum()
@@ -153,11 +157,12 @@ def main(args):
 
     logging.info('Using the following resnet block architecture: {}'.format(resnet_blocks))
     net = torch.nn.DataParallel(resnet.AutoencoderResNet(compaction_factor=args.compaction_factor, num_blocks=resnet_blocks))
+    net.cuda()
 
     # resnet-34 
     #resnet34_blocks = [3,4,6,3]
     #net = torch.nn.DataParallel(resnet.AutoencoderResNet(compaction_factor=args.compaction_factor, num_blocks=resnet34_blocks))
-    net.cuda()
+    #net.cuda()
 
     optimizer = optim.Adam(net.parameters(), lr=args.lr)
     #optimizer = optim.Adagrad(net.parameters(), lr=args.lr, lr_decay=0.01)
