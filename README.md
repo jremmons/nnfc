@@ -2,6 +2,8 @@
 
 **Description**: a video and image compression method for machine learned features.
 
+**Paper references**: [https://github.com/jremmons/machine-feature-codec-papers](https://github.com/jremmons/machine-feature-codec-papers)
+
 ## Build from source instructions
 
 ### Prerequistes 
