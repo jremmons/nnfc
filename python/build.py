@@ -2,7 +2,7 @@ import os
 import torch
 from torch.utils.ffi import create_extension
 
-this_file = os.path.dirname(__file__)
+this_dir = os.path.abspath(os.path.dirname(__file__))
 
 sources = ['mfc/src/mfc_wrapper.cc']
 headers = ['mfc/src/mfc_wrapper.hh']
@@ -16,9 +16,9 @@ if torch.cuda.is_available():
     defines += [('WITH_CUDA', None)]
     with_cuda = True
 
-include_dirs = map(os.path.abspath, ['../src/modules'])
-library_dirs = map(os.path.abspath, ['../src/modules'])
-runtime_library_dirs = map(os.path.abspath, ['../src/modules'])
+include_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules'])
+library_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules'])
+runtime_library_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules'])
 libraries = ['noop']
 
 ffi = create_extension(
