@@ -1,3 +1,7 @@
+# binaries
+src/frontend/hello
+
+# other
 *.a
 *.o
 .deps
