@@ -29,6 +29,7 @@ AC_PROG_RANLIB
 
 AC_CONFIG_FILES([Makefile
          src/Makefile
+         src/modules/Makefile
          src/frontend/Makefile
 	 ])
 AC_OUTPUT
