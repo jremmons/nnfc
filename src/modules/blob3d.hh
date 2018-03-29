@@ -5,10 +5,10 @@
 #include <memory>
 
 template <typename T>
-class Array3D {
+class Blob3D {
 public:
 
-    Array3D(T* data, const size_t c, const size_t h, const size_t w) :
+    Blob3D(T* data, const size_t c, const size_t h, const size_t w) :
         channels_(c),
         height_(h),
         width_(w),
@@ -18,7 +18,7 @@ public:
         width_stride_(1),
         data_(data)
     { }    
-    ~Array3D() {}
+    ~Blob3D() {}
 
     inline T get(const size_t ci, const size_t hi, const size_t wi){
 

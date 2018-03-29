@@ -5,8 +5,9 @@ from .._ext import mfc_wrapper
 
 class NoopFunc(Function):
     def forward(self, inp):
-        output = inp.new()
+        output = torch.ByteTensor() # create reference that will be filled
         mfc_wrapper.add_forward(inp, output)
+
         return output
 
     def backward(self, grad_output):
