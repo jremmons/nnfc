@@ -8,7 +8,7 @@ template <typename T>
 class Blob3D {
 public:
 
-    Blob3D(T* data, const size_t c, const size_t h, const size_t w) :
+    Blob3D(T* data, size_t c, size_t h, size_t w) :
         channels_(c),
         height_(h),
         width_(w),
@@ -20,6 +20,8 @@ public:
     { }    
     ~Blob3D() {}
 
+    virtual void resize(size_t, size_t, size_t) = 0;
+    
     inline T get(const size_t ci, const size_t hi, const size_t wi){
 
         assert(0 <= ci and ci < channels_);
@@ -44,15 +46,15 @@ public:
         data_[offset] = value;
     }
     
-private:
-    const size_t channels_;
-    const size_t height_;
-    const size_t width_;
-    const size_t size_;
+protected:
+    size_t channels_;
+    size_t height_;
+    size_t width_;
+    size_t size_;
 
-    const size_t channels_stride_;
-    const size_t height_stride_;
-    const size_t width_stride_;
+    size_t channels_stride_;
+    size_t height_stride_;
+    size_t width_stride_;
 
     T* data_; // we don't allocate this data
 };
