@@ -1,5 +1,7 @@
 # MFC: the deep learning (machine) feature codec!
 
+[![Build Status](https://travis-ci.com/jremmons/machine-feature-codec.svg?token=KdZxgGzcW16Ms5dBx8kN&branch=master)](https://travis-ci.com/jremmons/machine-feature-codec)
+
 **Description**: a video and image compression method for machine learned features.
 
 **Paper references**: [https://github.com/jremmons/machine-feature-codec-papers](https://github.com/jremmons/machine-feature-codec-papers)
