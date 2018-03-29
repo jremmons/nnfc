@@ -1,3 +1,5 @@
+#pragma once
+
 #include <cassert>
 #include <cstring>
 #include <memory>
@@ -42,7 +44,6 @@ public:
         data_[offset] = value;
     }
     
-    
 private:
     const size_t channels_;
     const size_t height_;
@@ -53,5 +54,5 @@ private:
     const size_t height_stride_;
     const size_t width_stride_;
 
-    std::unique_ptr<T[]> data_;
+    T* data_; // we don't allocate this data
 };
