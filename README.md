@@ -4,6 +4,8 @@
 
 **Description**: a video and image compression method for machine learned features.
 
+**Travis-CI link**: [https://travis-ci.com/jremmons/machine-feature-codec](https://travis-ci.com/jremmons/machine-feature-codec)
+
 **Paper references**: [https://github.com/jremmons/machine-feature-codec-papers](https://github.com/jremmons/machine-feature-codec-papers)
 
 ## Build from source instructions
