@@ -17,4 +17,4 @@ x = torch.arange(0, 30000).view(3, 100, 100)
 #x = torch.arange(0, 10000).view(100, 100)
 
 inp = Variable(x)
-print(model(inp))
+out = model(inp)
