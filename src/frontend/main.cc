@@ -2,15 +2,17 @@
 
 #include "noop.hh"
 
-int main(int argc, char* argv[]){
+int main(){
 
-    std::cout << argc << " " << argv[0] << "\n";
-    std::cout << "hello world\n";
+    // std::cout << argc << " " << argv[0] << "\n";
+    // std::cout << "hello world\n";
 
-    Noop n;
+    // Noop n;
     
-    std::cout << "42 == " << n.encode(42) << "\n";
-    std::cout << "777 == " << n.decode(777) << "\n";
+    // std::cout << "42 == " << n.encode(42) << "\n";
+    // std::cout << "777 == " << n.decode(777) << "\n";
+
+    
     
     return 0;
 }

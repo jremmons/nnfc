@@ -9,17 +9,19 @@ headers = ['mfc/src/mfc_wrapper.hh']
 defines = []
 with_cuda = False
 
-if torch.cuda.is_available():
-    print('Including CUDA code.')
-    sources += ['mfc/src/mfc_wrapper_cuda.cc']
-    headers += ['mfc/src/mfc_wrapper_cuda.hh']
-    defines += [('WITH_CUDA', None)]
-    with_cuda = True
+# if torch.cuda.is_available():
+#     print('Including CUDA code.')
+#     sources += ['mfc/src/mfc_wrapper_cuda.cc']
+#     headers += ['mfc/src/mfc_wrapper_cuda.hh']
+#     defines += [('WITH_CUDA', None)]
+#     with_cuda = True
 
 include_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules'])
 library_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules'])
 runtime_library_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules'])
 libraries = ['noop']
+
+extra_compile_args = ['-std=c++14', '-pthread', '-Wall', '-Wextra']
 
 ffi = create_extension(
     'mfc._ext.mfc_wrapper',
@@ -31,6 +33,7 @@ ffi = create_extension(
     runtime_library_dirs=list(runtime_library_dirs),
     libraries=list(libraries),
     define_macros=list(defines),
+    extra_compile_args=extra_compile_args,
     relative_to=__file__,
     with_cuda=with_cuda
 )

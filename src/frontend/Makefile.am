@@ -1,5 +1,5 @@
 AM_CPPFLAGS = -I$(srcdir)/../modules
-AM_CXXFLAGS = $(PICKY_CXXFLAGS)
+AM_CXXFLAGS = $(PICKY_CXXFLAGS) $(CXX14_FLAGS)
 
 bin_PROGRAMS = hello
 hello_SOURCES = main.cc
