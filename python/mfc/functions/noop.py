@@ -12,9 +12,9 @@ class NoopEncoderFunc(Function):
         return output
 
     def backward(self, grad_output):
-        grad_input = grad_output.new()
-        mfc_wrapper.noop_encode_backward(grad_output, grad_input)
-        return grad_input
+        #grad_input = grad_output.new()
+        #mfc_wrapper.noop_encode_backward(grad_output, grad_input)
+        return grad_output
 
     
 class NoopDecoderFunc(Function):
@@ -26,7 +26,7 @@ class NoopDecoderFunc(Function):
         return output
 
     def backward(self, grad_output):
-        grad_input = grad_output.new()
-        mfc_wrapper.noop_decode_backward(grad_output, grad_input)
-        return grad_input
+        #grad_input = grad_output.new()
+        #mfc_wrapper.noop_decode_backward(grad_output, grad_input)
+        return grad_output
     
