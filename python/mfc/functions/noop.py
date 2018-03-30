@@ -7,13 +7,13 @@ class NoopEncoderFunc(Function):
 
     def forward(self, inp):
         output = torch.ByteTensor() # create reference that will be filled
-        mfc_wrapper.encode_forward(inp, output)
+        mfc_wrapper.noop_encode_forward(inp, output)
 
         return output
 
     def backward(self, grad_output):
         grad_input = grad_output.new()
-        mfc_wrapper.encode_backward(grad_output, grad_input)
+        mfc_wrapper.noop_encode_backward(grad_output, grad_input)
         return grad_input
 
     
@@ -21,12 +21,12 @@ class NoopDecoderFunc(Function):
 
     def forward(self, inp):
         output = torch.FloatTensor() # create reference that will be filled
-        mfc_wrapper.decode_forward(inp, output)
+        mfc_wrapper.noop_decode_forward(inp, output)
 
         return output
 
     def backward(self, grad_output):
         grad_input = grad_output.new()
-        mfc_wrapper.decode_backward(grad_output, grad_input)
+        mfc_wrapper.noop_decode_backward(grad_output, grad_input)
         return grad_input
     
