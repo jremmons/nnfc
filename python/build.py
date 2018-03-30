@@ -4,8 +4,8 @@ from torch.utils.ffi import create_extension
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
 
-sources = ['mfc/src/mfc_wrapper.cc']
-headers = ['mfc/src/mfc_wrapper.hh']
+sources = ['mfc/src/noop_wrapper.cc']
+headers = ['mfc/src/noop_wrapper.hh']
 defines = []
 with_cuda = False
 
