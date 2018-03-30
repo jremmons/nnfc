@@ -9,9 +9,12 @@ template <typename T>
 class Blob1D {
 public:
 
-    Blob1D(T* data, size_t size) :
-        size_(size),
-        data_(data)
+    const size_t &size;
+    
+    Blob1D(T* _data, size_t _size) :
+        size(size_),
+        size_(_size),
+        data_(_data) 
     { }
     ~Blob1D() {}
 
