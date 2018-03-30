@@ -19,7 +19,7 @@ class MyNetwork(nn.Module):
 
 model = MyNetwork()
 
-x = torch.arange(0, 30000).view(3, 100, 100)
+x = torch.arange(0, 400).view(4, 10, 10)
 
 inp = Variable(x)
 

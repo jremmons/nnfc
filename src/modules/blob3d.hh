@@ -8,7 +8,16 @@ template <typename T>
 class Blob3D {
 public:
 
+    const size_t &channels;
+    const size_t &height;
+    const size_t &width;
+    const size_t &size;
+    
     Blob3D(T* data, size_t c, size_t h, size_t w) :
+        channels(channels_),
+        height(height_),
+        width(width_),
+        size(size_),
         channels_(c),
         height_(h),
         width_(w),
