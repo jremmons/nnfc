@@ -10,9 +10,11 @@ class Blob1D {
 public:
 
     const size_t &size;
+    T* &data;
     
     Blob1D(T* _data, size_t _size) :
         size(size_),
+        data(data_),
         size_(_size),
         data_(_data) 
     { }

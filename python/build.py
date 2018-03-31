@@ -9,12 +9,12 @@ headers = ['mfc/src/noop_wrapper.hh']
 defines = []
 with_cuda = False
 
-# if torch.cuda.is_available():
-#     print('Including CUDA code.')
-#     sources += ['mfc/src/mfc_wrapper_cuda.cc']
-#     headers += ['mfc/src/mfc_wrapper_cuda.hh']
-#     defines += [('WITH_CUDA', None)]
-#     with_cuda = True
+if torch.cuda.is_available():
+    print('Including CUDA code.')
+    sources += ['mfc/src/cuda_functions.cc']
+    headers += ['mfc/src/cuda_functions.hh']
+    defines += [('WITH_CUDA', None)]
+    with_cuda = True
 
 include_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules'])
 library_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules'])

@@ -3,13 +3,11 @@
 #include <cstdint>
 
 #include "blob1d.hh"
-#include "blob3d.hh"
+#include "blob4d.hh"
 
-class Noop {
-public:
-    Noop();
-    ~Noop();
-    
-    void encode(Blob3D<float> &input, Blob1D<uint8_t> &output);
-    void decode(Blob1D<uint8_t> &input, Blob3D<float> &output);
-};
+namespace Noop {
+
+    void encode(Blob4D<float> &input, Blob1D<uint8_t> &output);
+    void decode(Blob1D<uint8_t> &input, Blob4D<float> &output);
+
+}
