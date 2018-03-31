@@ -187,21 +187,21 @@ def main(args):
             logging.info('begin testing epoch: {}'.format(epoch))
             test_log = test(net, loss_fn, args.batch_size, test_data_raw, test_data_labels)
 
-            # if epoch % 5 == 0 or epoch in [1,2,3,4,5]:
-            #     checkpoint_filename = os.path.abspath(os.path.join(args.checkpoint_dir,
-            #                                        'checkpoint-epoch{}.h5'.format(str(epoch).zfill(4))))
-            #     model_params = net.state_dict()
-            #     with h5py.File(checkpoint_filename, 'w') as f:
-            #         for param_name in model_params.keys():
-            #             f.create_dataset(param_name, data=model_params[param_name])
+            if epoch % 5 == 0 or epoch in [1,2,3,4,5]:
+                checkpoint_filename = os.path.abspath(os.path.join(args.checkpoint_dir,
+                                                   'checkpoint-epoch{}.h5'.format(str(epoch).zfill(4))))
+                model_params = net.state_dict()
+                with h5py.File(checkpoint_filename, 'w') as f:
+                    for param_name in model_params.keys():
+                        f.create_dataset(param_name, data=model_params[param_name])
 
-            #     logfile.write('{},{},{},{},{},{}\n'.format(epoch,
-            #                                                train_log['train_top1'],
-            #                                                train_log['train_loss'],
-            #                                                test_log['validation_top1'],
-            #                                                test_log['validation_loss'],
-            #                                                checkpoint_filename))
-            #     logfile.flush()
+                logfile.write('{},{},{},{},{},{}\n'.format(epoch,
+                                                           train_log['train_top1'],
+                                                           train_log['train_loss'],
+                                                           test_log['validation_top1'],
+                                                           test_log['validation_loss'],
+                                                           checkpoint_filename))
+                logfile.flush()
 
                     
 if __name__ == '__main__':
