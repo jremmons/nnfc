@@ -28,7 +28,7 @@ extern "C" int noop_encode_forward(THFloatTensor *input, THByteTensor *output)
     size_t h_size = THFloatTensor_size(input, 2);
     size_t w_size = THFloatTensor_size(input, 3);
     float* input_data = THFloatTensor_data(input);
-    Blob4DTorchFloat input_blob{input_data, n_size, c_size, h_size, w_size, input};
+    Blob4DTorchFloat input_blob{input_data, n_size, c_size, h_size, w_size};
 
     size_t b_size = THByteTensor_nElement(output);
     uint8_t *output_data = THByteTensor_data(output);
@@ -64,7 +64,7 @@ extern "C" int noop_decode_forward(THByteTensor *input, THFloatTensor *output)
     // munge the blobs
     size_t b_size = THByteTensor_nElement(input);
     uint8_t* input_data = THByteTensor_data(input);
-    Blob1DTorchByte input_blob{input_data, b_size, input};
+    Blob1DTorchByte input_blob{input_data, b_size};
     
     size_t n_size = THFloatTensor_nElement(output);
     float* output_data = THFloatTensor_data(output);
