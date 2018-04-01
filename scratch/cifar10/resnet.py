@@ -131,8 +131,9 @@ class Autoencoder(nn.Module):
     def forward(self, x):
         x = self.encoder(x)
 
-        x = self.noop_encoder(x)
-        x = self.noop_decoder(x)
+        use_gpu = x.is_cuda
+        x = self.noop_encoder(x, input_on_gpu=use_gpu)
+        x = self.noop_decoder(x, put_output_on_gpu=use_gpu)
         
         x = self.decoder(x)
         return x
