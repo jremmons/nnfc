@@ -7,7 +7,7 @@
 
 #include "blobs.hh"
 #include "common.hh"
-#include "noop.hh"
+#include "nnfc.hh"
 
 // functions must 'extern "C"' in order to be callable from within pytorch/python
 // https://github.com/torch/TH/blob/master/generic/THTensor.h
@@ -35,7 +35,7 @@ extern "C" int nnfc_encode_forward(THFloatTensor *input, THByteTensor *output)
     Blob1DTorchByte output_blob{output_data, b_size, output};
 
     // call the encoder
-    Noop::encode(input_blob, output_blob);
+    NNFC::encode(input_blob, output_blob);
     
     return _TORCH_SUCCESS;    
 }
@@ -71,7 +71,7 @@ extern "C" int nnfc_decode_forward(THByteTensor *input, THFloatTensor *output)
     Blob4DTorchFloat output_blob{output_data, n_size, 0, 0, 0, output};
 
     // call the decoder
-    Noop::decode(input_blob, output_blob);
+    NNFC::decode(input_blob, output_blob);
     
     return _TORCH_SUCCESS;    
 }

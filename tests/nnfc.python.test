@@ -4,20 +4,20 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 
-from nnfc.modules.noop import NoopEncoder
-from nnfc.modules.noop import NoopDecoder
+from nnfc.modules.nnfc import NnfcEncoder
+from nnfc.modules.nnfc import NnfcDecoder
 
 
 class MyNetwork(nn.Module):
     def __init__(self):
         super(MyNetwork, self).__init__()
-        self.noop_encoder = NoopEncoder()
-        self.noop_decoder = NoopDecoder()
+        self.nnfc_encoder = NnfcEncoder()
+        self.nnfc_decoder = NnfcDecoder()
 
     def forward(self, inp):
         use_gpu = inp.is_cuda
-        encoded = self.noop_encoder(inp, use_gpu)
-        decoded = self.noop_decoder(encoded, use_gpu)
+        encoded = self.nnfc_encoder(inp, use_gpu)
+        decoded = self.nnfc_decoder(encoded, use_gpu)
         return decoded
 
 model = MyNetwork()
@@ -29,7 +29,7 @@ inp = Variable(x)
 out = model(inp)
 print('input on gpu?', inp.is_cuda)
 print('output on gpu?', inp.is_cuda)
-print('noop success:', (inp == out).all() and inp.is_cuda == out.is_cuda)
+print('nnfc success:', (inp == out).all() and inp.is_cuda == out.is_cuda)
 
 print()
 print('gpu only test')
@@ -37,4 +37,4 @@ inp = Variable(x).cuda()
 out = model(inp)
 print('input on gpu?', inp.is_cuda)
 print('output on gpu?', inp.is_cuda)
-print('noop success:', (inp == out).all() and inp.is_cuda == out.is_cuda)
+print('nnfc success:', (inp == out).all() and inp.is_cuda == out.is_cuda)

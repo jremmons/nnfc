@@ -19,7 +19,7 @@ if torch.cuda.is_available():
 include_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules'])
 library_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules'])
 runtime_library_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules'])
-libraries = ['noop']
+libraries = ['nnfc', 'noop']
 
 extra_compile_args = ['-std=c++14', '-pthread', '-Wall', '-Wextra']
 
