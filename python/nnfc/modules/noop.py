@@ -3,7 +3,7 @@ from torch.nn.modules.module import Module
 from ..functions.noop import NoopEncoderFunc
 from ..functions.noop import NoopDecoderFunc
 
-from .._ext import mfc_wrapper
+from .._ext import nnfc_wrapper
 
 class NoopEncoder(Module):
 

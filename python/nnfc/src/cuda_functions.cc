@@ -1,7 +1,5 @@
 #include <TH/TH.h>
 #include <THC/THC.h>
-#include <THC/THCGeneral.h>
-#include <THC/THCTensor.h>
 
 #include <sys/mman.h>
 

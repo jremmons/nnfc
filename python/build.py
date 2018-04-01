@@ -4,15 +4,15 @@ from torch.utils.ffi import create_extension
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
 
-sources = ['mfc/src/noop_wrapper.cc']
-headers = ['mfc/src/noop_wrapper.hh']
+sources = ['nnfc/src/noop_wrapper.cc']
+headers = ['nnfc/src/noop_wrapper.hh']
 defines = []
 with_cuda = False
 
 if torch.cuda.is_available():
     print('Including CUDA code.')
-    sources += ['mfc/src/cuda_functions.cc']
-    headers += ['mfc/src/cuda_functions.hh']
+    sources += ['nnfc/src/cuda_functions.cc']
+    headers += ['nnfc/src/cuda_functions.hh']
     defines += [('WITH_CUDA', None)]
     with_cuda = True
 
@@ -24,7 +24,7 @@ libraries = ['noop']
 extra_compile_args = ['-std=c++14', '-pthread', '-Wall', '-Wextra']
 
 ffi = create_extension(
-    'mfc._ext.mfc_wrapper',
+    'nnfc._ext.nnfc_wrapper',
     package=True,
     headers=list(headers),
     sources=list(sources),

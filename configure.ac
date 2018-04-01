@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.68])
-AC_INIT([mfc], [0.1], [jemmons@cs.stanford.edu])
+AC_INIT([nnfc], [0.1], [jemmons@cs.stanford.edu])
 AM_INIT_AUTOMAKE([foreign])
 #AC_CONFIG_SRCDIR([src/display/display.hh])
 #AC_CONFIG_HEADERS([config.h])

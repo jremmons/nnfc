@@ -1,4 +1,4 @@
-# MFC: the deep learning (machine) feature codec!
+# NNFC: the neural network (machine) feature codec!
 
 [![Build Status](https://travis-ci.com/jremmons/machine-feature-codec.svg?token=KdZxgGzcW16Ms5dBx8kN&branch=master)](https://travis-ci.com/jremmons/machine-feature-codec)
 
@@ -33,5 +33,5 @@ make -j
 python python/setup.py bdist_wheel
 
 # Install the PyTorch wrapper
-pip install dist/mfc-*
+pip install dist/nnff-*
 ```
