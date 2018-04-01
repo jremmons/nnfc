@@ -1,8 +1,10 @@
 AM_CPPFLAGS = 
 AM_CXXFLAGS = $(PICKY_CXXFLAGS) $(CXX14_FLAGS) -fPIC
 
-noinst_LIBRARIES = libnoop.a
+noinst_LIBRARIES = libnnfc.a libnoop.a 
 
-libnoop_a_SOURCES = noop.hh noop.cc array3d.hh
+libnnfc_a_SOURCES = noop.hh noop.cc blob4d.hh blob1d.hh
+
+libnoop_a_SOURCES = noop.hh noop.cc blob4d.hh blob1d.hh
 
 
