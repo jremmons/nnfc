@@ -4,8 +4,8 @@ from torch.utils.ffi import create_extension
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
 
-sources = ['nnfc/src/noop_wrapper.cc']
-headers = ['nnfc/src/noop_wrapper.hh']
+sources = ['nnfc/src/nnfc_wrapper.cc', 'nnfc/src/noop_wrapper.cc']
+headers = ['nnfc/src/nnfc_wrapper.hh', 'nnfc/src/noop_wrapper.hh']
 defines = []
 with_cuda = False
 

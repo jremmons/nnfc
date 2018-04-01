@@ -1,0 +1,40 @@
+#!/usr/bin/env python
+
+import torch
+import torch.nn as nn
+from torch.autograd import Variable
+
+from nnfc.modules.nnfc import NnfcEncoder
+from nnfc.modules.nnfc import NnfcDecoder
+
+
+class MyNetwork(nn.Module):
+    def __init__(self):
+        super(MyNetwork, self).__init__()
+        self.nnfc_encoder = NnfcEncoder()
+        self.nnfc_decoder = NnfcDecoder()
+
+    def forward(self, inp):
+        use_gpu = inp.is_cuda
+        encoded = self.nnfc_encoder(inp, use_gpu)
+        decoded = self.nnfc_decoder(encoded, use_gpu)
+        return decoded
+
+model = MyNetwork()
+
+x = torch.arange(0, 4000).view(10, 4, 10, 10)
+
+print('cpu only test')
+inp = Variable(x)
+out = model(inp)
+print('input on gpu?', inp.is_cuda)
+print('output on gpu?', inp.is_cuda)
+print('nnfc success:', (inp == out).all() and inp.is_cuda == out.is_cuda)
+
+print()
+print('gpu only test')
+inp = Variable(x).cuda()
+out = model(inp)
+print('input on gpu?', inp.is_cuda)
+print('output on gpu?', inp.is_cuda)
+print('nnfc success:', (inp == out).all() and inp.is_cuda == out.is_cuda)
