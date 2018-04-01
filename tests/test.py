@@ -13,18 +13,26 @@ class MyNetwork(nn.Module):
         self.noop_decoder = NoopDecoder()
 
     def forward(self, inp):
-        encoded = self.noop_encoder(inp)
-        decoded = self.noop_decoder(encoded)
+        use_gpu = inp.is_cuda
+        encoded = self.noop_encoder(inp, use_gpu)
+        decoded = self.noop_decoder(encoded, use_gpu)
         return decoded
 
 model = MyNetwork()
 
 x = torch.arange(0, 4000).view(10, 4, 10, 10)
 
-inp = Variable(x).cuda()
-
-print(inp)
+print('cpu only test')
+inp = Variable(x)
 out = model(inp)
-print(out)
+print('input on gpu?', inp.is_cuda)
+print('output on gpu?', inp.is_cuda)
+print('noop success:', (inp == out).all() and inp.is_cuda == out.is_cuda)
 
-print('noop success:', (inp == out).all())
+print()
+print('gpu only test')
+inp = Variable(x).cuda()
+out = model(inp)
+print('input on gpu?', inp.is_cuda)
+print('output on gpu?', inp.is_cuda)
+print('noop success:', (inp == out).all() and inp.is_cuda == out.is_cuda)

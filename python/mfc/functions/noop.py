@@ -6,20 +6,19 @@ from .._ext import mfc_wrapper
 import timeit
 import sys
 
-_DEBUG = False
+_DEBUG = True
 
 class NoopEncoderFunc(Function):
 
     @staticmethod
-    def forward(ctx, inp, mem1, mem2):
+    def forward(ctx, inp, mem1, mem2, gpu):
 
         # copy tensor to the CPU if necessary
         t1 = timeit.default_timer()
 
-        inp_cpu = inp
-        if inp_cpu.is_cuda:
+        if gpu:
             mfc_wrapper.device_to_host_copy(mem1, inp)
-            inp_cpu = mem1
+            inp = mem1
 
         t2 = timeit.default_timer()
         if _DEBUG:
@@ -28,7 +27,7 @@ class NoopEncoderFunc(Function):
         # perform the computation
         t1 = timeit.default_timer()
 
-        mfc_wrapper.noop_encode_forward(inp_cpu, mem2)
+        mfc_wrapper.noop_encode_forward(inp, mem2)
 
         t2 = timeit.default_timer()
         if _DEBUG:
@@ -40,33 +39,33 @@ class NoopEncoderFunc(Function):
     def backward(ctx, grad_output):
         #grad_input = grad_output.new()
         #mfc_wrapper.noop_encode_backward(grad_output, grad_input)
-        return grad_output, None, None
+        return grad_output, None, None, None
 
     
 class NoopDecoderFunc(Function):
 
     @staticmethod
-    def forward(ctx, inp, mem1):
+    def forward(ctx, inp, mem1, gpu):
 
         t1 = timeit.default_timer()
-        inp = inp.cpu()
         mfc_wrapper.noop_decode_forward(inp, mem1)
         t2 = timeit.default_timer()
         if _DEBUG:
             sys.stderr.write('decode time: {}\n'.format(t2-t1))
-        
-        t1 = timeit.default_timer()
-        output_cuda = mem1.cuda()
-        t2 = timeit.default_timer()
-        if _DEBUG:
-            sys.stderr.write('copy to gpu time: {}\n\n'.format(t2-t1))
-        
-        return output_cuda
 
-    
+        # copy the data to the gpu isf necessary    
+        if gpu:
+            t1 = timeit.default_timer()
+            mem1 = mem1.cuda()
+            t2 = timeit.default_timer()
+            if _DEBUG:
+                sys.stderr.write('copy to gpu time: {}\n\n'.format(t2-t1))
+
+        return mem1
+        
     @staticmethod
     def backward(ctx, grad_output):
         #grad_input = grad_output.new()
         #mfc_wrapper.noop_decode_backward(grad_output, grad_input)
-        return grad_output, None
+        return grad_output, None, None
     
