@@ -21,7 +21,7 @@ model = MyNetwork()
 
 x = torch.arange(0, 4000).view(10, 4, 10, 10)
 
-inp = Variable(x)
+inp = Variable(x).cuda()
 
 print(inp)
 out = model(inp)

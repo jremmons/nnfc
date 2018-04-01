@@ -6,31 +6,51 @@
 
 class Blob1DTorchByte : public Blob1D<uint8_t> {
 public:
-    Blob1DTorchByte(uint8_t *data, size_t size, THByteTensor *tensor) :
+    Blob1DTorchByte(uint8_t *data, size_t size, THByteTensor *tensor=NULL) :
         Blob1D<uint8_t>(data, size),
         tensor_(tensor)
     { }
     
     void resize(size_t new_size) {
+        if(!tensor_){
+            throw;
+        }
+
+        if(new_size == size_){
+            return; // no change in size
+        }
+
         THByteTensor_resize1d(tensor_, new_size); // will realloc
         data_ = THByteTensor_data(tensor_);
         size_ = THByteTensor_size(tensor_, 0);
         
         ASSERT(size_ == new_size);
     }
-
+    
 private:
     THByteTensor *tensor_;
 };
 
 class Blob4DTorchFloat : public Blob4D<float> {
 public:
-    Blob4DTorchFloat(float *data, size_t n, size_t c, size_t h, size_t w, THFloatTensor *tensor) :
+    Blob4DTorchFloat(float *data, size_t n, size_t c, size_t h, size_t w, THFloatTensor *tensor=NULL) :
         Blob4D<float>(data, n, c, h, w),
         tensor_(tensor)
     { }
     
     void resize(size_t new_n, size_t new_c, size_t new_h, size_t new_w) {
+        if(!tensor_){
+            throw;
+        }
+
+        if(new_n == batch_size_ and
+           new_c == channels_ and
+           new_h == height_ and
+           new_w == width_){
+
+            return; // no change in size
+        }
+        
         THFloatTensor_resize4d(tensor_, new_n, new_c, new_h, new_w); // will realloc
         data_ = THFloatTensor_data(tensor_);
 

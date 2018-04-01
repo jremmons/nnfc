@@ -8,9 +8,16 @@
 
 static uint64_t magic_num = 0xDEADBEEF;
 
+// TODO(jremmons)
+// put header information at the beginning of the blob
+// add a get_size function
+// put the file in protobuf format
+// add a 'working memory' blob that can be pass into the function
+// 
+
 void Noop::encode(Blob4D<float> &input, Blob1D<uint8_t> &output) {
 
-    output.resize(4 * input.batch_size * input.channels * input.height * input.width + 5*8);
+    output.resize(4 * input.batch_size * input.channels * input.height * input.width + 5*sizeof(uint64_t));
         
     // for(size_t n = 0; n < input.batch_size; n++){
     //     for(size_t i = 0; i < input.channels; i++){
@@ -31,7 +38,7 @@ void Noop::encode(Blob4D<float> &input, Blob1D<uint8_t> &output) {
     //     }
     // }
 
-    std::memcpy(output.data, input.data, output.size - 5*8);
+    std::memcpy(output.data, input.data, output.size - 5*sizeof(uint64_t));
     
     uint64_t batch_size = input.batch_size;
     uint64_t channels = input.channels;
