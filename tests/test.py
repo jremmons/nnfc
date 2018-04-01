@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 
-from mfc.modules.noop import NoopEncoder
-from mfc.modules.noop import NoopDecoder
+from nnfc.modules.noop import NoopEncoder
+from nnfc.modules.noop import NoopDecoder
 
 
 class MyNetwork(nn.Module):

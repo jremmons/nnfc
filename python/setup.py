@@ -7,7 +7,7 @@ import build
 this_file = os.path.dirname(__file__)
 
 setup(
-    name='mfc',
+    name='nnfc',
     version='0.1',
     description='',
     long_description='',

@@ -1,7 +1,6 @@
-# functions/add.py
 import torch
 from torch.autograd import Function
-from .._ext import mfc_wrapper
+from .._ext import nnfc_wrapper
 
 import timeit
 import sys
@@ -17,7 +16,7 @@ class NoopEncoderFunc(Function):
         t1 = timeit.default_timer()
 
         if gpu:
-            mfc_wrapper.device_to_host_copy(mem1, inp)
+            nnfc_wrapper.device_to_host_copy(mem1, inp)
             inp = mem1
 
         t2 = timeit.default_timer()
@@ -27,7 +26,7 @@ class NoopEncoderFunc(Function):
         # perform the computation
         t1 = timeit.default_timer()
 
-        mfc_wrapper.noop_encode_forward(inp, mem2)
+        nnfc_wrapper.noop_encode_forward(inp, mem2)
 
         t2 = timeit.default_timer()
         if _DEBUG:
@@ -38,7 +37,7 @@ class NoopEncoderFunc(Function):
     @staticmethod
     def backward(ctx, grad_output):
         #grad_input = grad_output.new()
-        #mfc_wrapper.noop_encode_backward(grad_output, grad_input)
+        #nnfc_wrapper.noop_encode_backward(grad_output, grad_input)
         return grad_output, None, None, None
 
     
@@ -48,7 +47,7 @@ class NoopDecoderFunc(Function):
     def forward(ctx, inp, mem1, gpu):
 
         t1 = timeit.default_timer()
-        mfc_wrapper.noop_decode_forward(inp, mem1)
+        nnfc_wrapper.noop_decode_forward(inp, mem1)
         t2 = timeit.default_timer()
         if _DEBUG:
             sys.stderr.write('decode time: {}\n'.format(t2-t1))
@@ -66,6 +65,6 @@ class NoopDecoderFunc(Function):
     @staticmethod
     def backward(ctx, grad_output):
         #grad_input = grad_output.new()
-        #mfc_wrapper.noop_decode_backward(grad_output, grad_input)
+        #nnfc_wrapper.noop_decode_backward(grad_output, grad_input)
         return grad_output, None, None
     
