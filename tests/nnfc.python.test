@@ -7,7 +7,6 @@ from torch.autograd import Variable
 from nnfc.modules.nnfc import NnfcEncoder
 from nnfc.modules.nnfc import NnfcDecoder
 
-
 class MyNetwork(nn.Module):
     def __init__(self):
         super(MyNetwork, self).__init__()
