@@ -1,4 +1,4 @@
-AM_CPPFLAGS = I$(srcdir)/../../third_party/jpeg/libjpeg-turbo.compiled/include
+AM_CPPFLAGS = -I$(srcdir)/../../third_party/jpeg/libjpeg-turbo.compiled/include/
 AM_CXXFLAGS = $(PICKY_CXXFLAGS) $(CXX14_FLAGS) -fPIC
 
 noinst_LIBRARIES = libnnfc.a libnoop.a 
