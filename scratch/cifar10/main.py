@@ -38,9 +38,9 @@ def train(model, loss_fn, optimizer, batch_size, _data, _data_labels):
     for i in range(0, data_len, batch_size):
 
         batch_data = data[i:i+batch_size, :, :, :]
-        batch_data = torch.autograd.Variable(torch.from_numpy(batch_data)).cuda()
+        batch_data = torch.autograd.Variable(torch.from_numpy(batch_data))#.cuda()
 
-        batch_labels = torch.autograd.Variable(torch.from_numpy(data_labels[i:i+batch_size].astype(np.int64))).cuda()
+        batch_labels = torch.autograd.Variable(torch.from_numpy(data_labels[i:i+batch_size].astype(np.int64)))#.cuda()
         
         optimizer.zero_grad()
         output = model(batch_data)
@@ -81,14 +81,16 @@ def test(model, loss_fn, batch_size, data, data_labels):
     for i in range(0, data_len, batch_size):
 
         batch_data = data[i:i+batch_size, :, :, :]
-        batch_data = torch.autograd.Variable(torch.from_numpy(batch_data)).cuda()
-        batch_labels = torch.autograd.Variable(torch.from_numpy(data_labels[i:i+batch_size].astype(np.int64))).cuda()
+        batch_data = torch.autograd.Variable(torch.from_numpy(batch_data))#.cuda()
+        # batch_labels = torch.autograd.Variable(torch.from_numpy(data_labels[i:i+batch_size].astype(np.int64)))#.cuda()
 
-        #t1 = timeit.default_timer()
+        t1 = timeit.default_timer()
         output = model(batch_data)
-        #t2 = timeit.default_timer()
-        #print('fwd:', t2-t1)
-        
+        t2 = timeit.default_timer()
+        print('fwd:', t2-t1)
+
+        continue
+
         test_loss += loss_fn(output, batch_labels).data[0]
         pred = output.data.max(1, keepdim=True)[1]
         correct += pred.eq(batch_labels.data.view_as(pred)).long().cpu().sum()
@@ -157,7 +159,7 @@ def main(args):
 
     logging.info('Using the following resnet block architecture: {}'.format(resnet_blocks))
     net = torch.nn.DataParallel(resnet.AutoencoderResNet(compaction_factor=args.compaction_factor, num_blocks=resnet_blocks))
-    net.cuda()
+    # net.cuda()
 
     # resnet-34 
     #resnet34_blocks = [3,4,6,3]
@@ -181,27 +183,27 @@ def main(args):
         
         for epoch in range(1, NUM_EPOCHS+1):
             
-            logging.info('begin training epoch: {}'.format(epoch))
-            train_log = train(net, loss_fn, optimizer, args.batch_size, train_data_raw, train_data_labels)
+            # logging.info('begin training epoch: {}'.format(epoch))
+            # train_log = train(net, loss_fn, optimizer, args.batch_size, train_data_raw, train_data_labels)
 
             logging.info('begin testing epoch: {}'.format(epoch))
             test_log = test(net, loss_fn, args.batch_size, test_data_raw, test_data_labels)
 
-            if epoch % 5 == 0 or epoch in [1,2,3,4,5]:
-                checkpoint_filename = os.path.abspath(os.path.join(args.checkpoint_dir,
-                                                   'checkpoint-epoch{}.h5'.format(str(epoch).zfill(4))))
-                model_params = net.state_dict()
-                with h5py.File(checkpoint_filename, 'w') as f:
-                    for param_name in model_params.keys():
-                        f.create_dataset(param_name, data=model_params[param_name])
+            # if epoch % 5 == 0 or epoch in [1,2,3,4,5]:
+            #     checkpoint_filename = os.path.abspath(os.path.join(args.checkpoint_dir,
+            #                                        'checkpoint-epoch{}.h5'.format(str(epoch).zfill(4))))
+            #     model_params = net.state_dict()
+            #     with h5py.File(checkpoint_filename, 'w') as f:
+            #         for param_name in model_params.keys():
+            #             f.create_dataset(param_name, data=model_params[param_name])
 
-                logfile.write('{},{},{},{},{},{}\n'.format(epoch,
-                                                           train_log['train_top1'],
-                                                           train_log['train_loss'],
-                                                           test_log['validation_top1'],
-                                                           test_log['validation_loss'],
-                                                           checkpoint_filename))
-                logfile.flush()
+            #     logfile.write('{},{},{},{},{},{}\n'.format(epoch,
+            #                                                train_log['train_top1'],
+            #                                                train_log['train_loss'],
+            #                                                test_log['validation_top1'],
+            #                                                test_log['validation_loss'],
+            #                                                checkpoint_filename))
+            #     logfile.flush()
 
                     
 if __name__ == '__main__':

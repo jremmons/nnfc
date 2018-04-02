@@ -135,9 +135,9 @@ class Autoencoder(nn.Module):
     def forward(self, x):
         x = self.encoder(x)
 
-        use_gpu = x.is_cuda
-        x = self.noop_encoder(x, input_on_gpu=use_gpu)
-        x = self.noop_decoder(x, put_output_on_gpu=use_gpu)
+        # use_gpu = x.is_cuda
+        # x = self.noop_encoder(x, input_on_gpu=use_gpu)
+        # x = self.noop_decoder(x, put_output_on_gpu=use_gpu)
         
         x = self.decoder(x)
         return x
@@ -173,6 +173,7 @@ class AutoencoderResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, x):
+        return x
         out = F.relu(self.bn1(self.conv1(x)))
         out = self.layer1(out)
         out = self.layer2(out)

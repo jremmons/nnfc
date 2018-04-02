@@ -1,12 +1,16 @@
+#include "nnfc.hh"
+
+#include <turbojpeg.h>
+
 #include <cassert>
 #include <cstdint>
 #include <iostream>
 
-#include <turbojpeg.h>
-
-#include "nnfc.hh"
 #include "blob1d.hh"
 #include "blob4d.hh"
+
+const int JPEG_QUALITY = 98;
+const int COLOR_COMPONENTS = 1;
 
 static uint64_t magic_num = 0xDEADBEEF;
 
@@ -52,6 +56,7 @@ void NNFC::encode(Blob4D<float> &input, Blob1D<uint8_t> &output) {
     std::cerr << "min_val: " << min_valf  << " max_val: " << max_valf << std::endl;
 
     tjhandle _jpegCompressor = tjInitCompress();
+    //tjBufSize();
     tjDestroy(_jpegCompressor);
     
     for(size_t n = 0; n < input.batch_size; n++){
