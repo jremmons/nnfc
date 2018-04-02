@@ -12,8 +12,10 @@ import torch.nn.functional as F
 
 from torch.autograd import Variable
 
-from mfc.modules.noop import NoopEncoder
-from mfc.modules.noop import NoopDecoder
+from nnfc.modules.nnfc import NnfcEncoder
+from nnfc.modules.nnfc import NnfcDecoder
+# from nnfc.modules.noop import NoopEncoder
+# from nnfc.modules.noop import NoopDecoder
 
 import timeit
 
@@ -79,8 +81,10 @@ class Autoencoder(nn.Module):
         num_planes_layer2 = int(num_planes_layer1 // activation_compaction_factor)
         num_planes_layer3 = int(num_planes_layer2 // activation_compaction_factor)
 
-        self.noop_encoder = NoopEncoder()
-        self.noop_decoder = NoopDecoder()
+        self.noop_encoder = NnfcEncoder()
+        self.noop_decoder = NnfcDecoder()
+        # self.noop_encoder = NoopEncoder()
+        # self.noop_decoder = NoopDecoder()
         
         self.encoder = nn.Sequential(
             nn.Conv2d(num_planes_input, num_planes_input, 1, stride=1, padding=0),
