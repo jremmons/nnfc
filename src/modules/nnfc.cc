@@ -2,6 +2,8 @@
 #include <cstdint>
 #include <iostream>
 
+#include <turbojpeg.h>
+
 #include "nnfc.hh"
 #include "blob1d.hh"
 #include "blob4d.hh"
@@ -48,6 +50,9 @@ void NNFC::encode(Blob4D<float> &input, Blob1D<uint8_t> &output) {
     assert(max_valf > 0);
     assert(min_valf == 0);
     std::cerr << "min_val: " << min_valf  << " max_val: " << max_valf << std::endl;
+
+    tjhandle _jpegCompressor = tjInitCompress();
+    tjDestroy(_jpegCompressor);
     
     for(size_t n = 0; n < input.batch_size; n++){
         for(size_t i = 0; i < input.channels; i++){
