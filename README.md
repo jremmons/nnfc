@@ -1,12 +1,12 @@
 # NNFC: the neural network (machine) feature codec!
 
-[![Build Status](https://travis-ci.com/jremmons/machine-feature-codec.svg?token=KdZxgGzcW16Ms5dBx8kN&branch=master)](https://travis-ci.com/jremmons/machine-feature-codec)
+[![Build Status](https://travis-ci.com/jremmons/machine-feature-codec.svg?token=KdZxgGzcW16Ms5dBx8kN&branch=master)](https://travis-ci.com/jremmons/nnfc)
 
 **Description**: a video and image compression method for machine learned features.
 
-**Travis-CI link**: [https://travis-ci.com/jremmons/machine-feature-codec](https://travis-ci.com/jremmons/machine-feature-codec)
+**Travis-CI link**: [https://travis-ci.com/jremmons/machine-feature-codec](https://travis-ci.com/jremmons/nnfc)
 
-**Paper references**: [https://github.com/jremmons/machine-feature-codec-papers](https://github.com/jremmons/machine-feature-codec-papers)
+**Paper references**: [https://github.com/jremmons/machine-feature-codec-papers](https://github.com/jremmons/nnfc-papers)
 
 ## Build from source instructions
 
@@ -21,8 +21,8 @@ sudo apt-get install build-essential
 
 ```bash
 # Clone the repo
-git clone https://github.com/jremmons/machine-feature-codec.git
-cd machine-feature-codec
+git clone https://github.com/jremmons/nnfc.git
+cd nnfc
 
 # Build the library
 ./autogen.sh
