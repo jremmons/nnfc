@@ -27,7 +27,9 @@ AC_PROG_RANLIB
 
 # Checks for library functions.
 
-AC_CONFIG_FILES([Makefile
+AC_CONFIG_FILES([Makefile 
+         third_party/Makefile
+         third_party/jpeg/Makefile
          src/Makefile
          src/modules/Makefile
          src/frontend/Makefile
