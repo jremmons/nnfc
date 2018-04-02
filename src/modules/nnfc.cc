@@ -18,47 +18,75 @@ static uint64_t magic_num = 0xDEADBEEF;
 void NNFC::encode(Blob4D<float> &input, Blob1D<uint8_t> &output) {
 
     std::cerr << "nnfc encoder was called!" << std::endl;
+
+    static_assert(sizeof(double) == sizeof(uint64_t), "the current code assumes doubles are 64-bits long");
+    size_t metadata_length = 6*sizeof(uint64_t);
+    output.resize(sizeof(uint8_t) * input.batch_size * input.channels * input.height * input.width + metadata_length);
     
-    output.resize(4 * input.batch_size * input.channels * input.height * input.width + 5*sizeof(uint64_t));
-        
-    // for(size_t n = 0; n < input.batch_size; n++){
-    //     for(size_t i = 0; i < input.channels; i++){
-    //         for(size_t j = 0; j < input.height; j++){
-    //             for(size_t k = 0; k < input.width; k++){
+    float max_valf = 0.0;
+    float min_valf = 0.0;
 
-    //                 float num = input.get(n, i ,j ,k); uint8_t
-    //                 *bytes = reinterpret_cast<uint8_t*>(&num);
+    // get the min and the max values
+    for(size_t n = 0; n < input.batch_size; n++){
+        for(size_t i = 0; i < input.channels; i++){
+            for(size_t j = 0; j < input.height; j++){
+                for(size_t k = 0; k < input.width; k++){
 
-    //                 size_t offset = 4 * (input.channels*input.height*input.width*n + input.height*input.width*i + input.width*j + k);
-    //                 output.set(bytes[0], offset + 0);
-    //                 output.set(bytes[1], offset + 1);
-    //                 output.set(bytes[2], offset + 2);
-    //                 output.set(bytes[3], offset + 3);
+                    float num = input.get(n, i ,j ,k); 
+                    if(num > max_valf){
+                        max_valf = num;
+                    }
+                    if(num < min_valf){
+                        min_valf = num;
+                    }
 
-    //             }
-    //         }
-    //     }
-    // }
+                }
+            }
+        }
+    }
+    
+    assert(max_valf > 0);
+    assert(min_valf == 0);
+    std::cerr << "min_val: " << min_valf  << " max_val: " << max_valf << std::endl;
+    
+    for(size_t n = 0; n < input.batch_size; n++){
+        for(size_t i = 0; i < input.channels; i++){
+            for(size_t j = 0; j < input.height; j++){
+                for(size_t k = 0; k < input.width; k++){
 
-    std::memcpy(output.data, input.data, output.size - 5*sizeof(uint64_t));
+                    float num = input.get(n, i ,j ,k); 
+
+                    num = num / (max_valf/255.0); // squash between 0 and 255.0
+                    uint8_t quantized_val = static_cast<uint8_t>(num);
+                    
+                    size_t offset = input.channels*input.height*input.width*n + input.height*input.width*i + input.width*j + k;
+                    output.set(quantized_val, offset + 0);
+
+                }
+            }
+        }
+    }
     
     uint64_t batch_size = input.batch_size;
     uint64_t channels = input.channels;
     uint64_t height = input.height;
     uint64_t width = input.width;
-
+    double max_val = max_valf;
+    
     uint8_t *magic_num_bytes = reinterpret_cast<uint8_t*>(&magic_num);
     uint8_t *batch_size_bytes = reinterpret_cast<uint8_t*>(&batch_size);
     uint8_t *channels_bytes = reinterpret_cast<uint8_t*>(&channels);
     uint8_t *height_bytes = reinterpret_cast<uint8_t*>(&height);
     uint8_t *width_bytes = reinterpret_cast<uint8_t*>(&width);
-
+    uint8_t *max_val_bytes = reinterpret_cast<uint8_t*>(&max_val);
+    
     for(size_t i = 0; i < 8; i++){
         output.set(magic_num_bytes[i], output.size-8 + i);
         output.set(batch_size_bytes[i], output.size-16 + i);
         output.set(channels_bytes[i], output.size-24 + i);
         output.set(height_bytes[i], output.size-32 + i);
         output.set(width_bytes[i], output.size-40 + i);    
+        output.set(max_val_bytes[i], output.size-48 + i);            
     }
     
 }
@@ -72,12 +100,14 @@ void NNFC::decode(Blob1D<uint8_t> &input, Blob4D<float> &output) {
     uint64_t channels;
     uint64_t height;
     uint64_t width;
+    double max_val;
 
     uint8_t *magic_num_bytes = reinterpret_cast<uint8_t*>(&magic_num_read);
     uint8_t *batch_size_bytes = reinterpret_cast<uint8_t*>(&batch_size);
     uint8_t *channels_bytes = reinterpret_cast<uint8_t*>(&channels);
     uint8_t *height_bytes = reinterpret_cast<uint8_t*>(&height);
     uint8_t *width_bytes = reinterpret_cast<uint8_t*>(&width);
+    uint8_t *max_val_bytes = reinterpret_cast<uint8_t*>(&max_val);
     
     for(size_t i = 0; i < 8; i++){
         magic_num_bytes[i] = input.get(input.size-8 + i);
@@ -85,34 +115,28 @@ void NNFC::decode(Blob1D<uint8_t> &input, Blob4D<float> &output) {
         channels_bytes[i] = input.get(input.size-24 + i);
         height_bytes[i] = input.get(input.size-32 + i);
         width_bytes[i] = input.get(input.size-40 + i);    
+        max_val_bytes[i] = input.get(input.size-48 + i);    
     }
 
     assert(magic_num_read == magic_num);
 
     output.resize(batch_size, channels, height, width);
         
-    // for(size_t n = 0; n < output.batch_size; n++){
-    //     for(size_t i = 0; i < output.channels; i++){
-    //         for(size_t j = 0; j < output.height; j++){
-    //             for(size_t k = 0; k < output.width; k++){
+    for(size_t n = 0; n < output.batch_size; n++){
+        for(size_t i = 0; i < output.channels; i++){
+            for(size_t j = 0; j < output.height; j++){
+                for(size_t k = 0; k < output.width; k++){
 
-    //                 float num;
-    //                 uint8_t *bytes = reinterpret_cast<uint8_t*>(&num);
+                    size_t offset = output.channels*output.height*output.width*n + output.height*output.width*i + output.width*j + k;
+                    uint8_t quantized_val = input.get(offset);
+                    
+                    float uncompressed_val = (max_val * static_cast<double>(quantized_val)) / 255.0;
 
-    //                 size_t offset = 4 * (output.channels*output.height*output.width*n + output.height*output.width*i + output.width*j + k);
+                    output.set(uncompressed_val, n, i, j, k);
 
-    //                 bytes[0] = input.get(offset);
-    //                 bytes[1] = input.get(offset + 1);
-    //                 bytes[2] = input.get(offset + 2);
-    //                 bytes[3] = input.get(offset + 3);
+                }
+            }
+        }
+    }
 
-    //                 output.set(num, n, i, j, k);
-
-    //             }
-    //         }
-    //     }
-    // }
-
-    std::memcpy(output.data, input.data, 4*output.size);
-    
 }
