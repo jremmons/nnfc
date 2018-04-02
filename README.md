@@ -35,4 +35,3 @@ python python/setup.py bdist_wheel
 # Install the PyTorch wrapper
 pip install dist/nnff-*
 ```
-
