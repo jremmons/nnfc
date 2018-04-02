@@ -38,4 +38,3 @@ out = model(inp)
 print('input on gpu?', inp.is_cuda)
 print('output on gpu?', out.is_cuda)
 print('nnfc success:', (inp == out).all() and inp.is_cuda == out.is_cuda)
-
