@@ -17,9 +17,9 @@ if torch.cuda.is_available():
     with_cuda = True
 
 include_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules'])
-library_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules'])
+library_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules', '../third_party/jpeg/libjpeg-turbo.compiled/lib'])
 runtime_library_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules'])
-libraries = ['nnfc', 'noop']
+libraries = ['nnfc', 'noop', 'turbojpeg']
 
 extra_compile_args = ['-std=c++14', '-pthread', '-Wall', '-Wextra']
 
