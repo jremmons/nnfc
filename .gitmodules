@@ -1,0 +1,3 @@
+[submodule "third_party/jpeg/libjpeg-turbo"]
+	path = third_party/jpeg/libjpeg-turbo
+	url = https://github.com/jremmons/libjpeg-turbo.git
