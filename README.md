@@ -1,6 +1,6 @@
 # NNFC: the neural network (machine) feature codec!
 
-[![Build Status](https://travis-ci.com/jremmons/nnfc.svg?token=KdZxgGzcW16Ms5dBx8kN&branch=master)](https://travis-ci.com/jremmons/nnfc)
+[![Build Status](https://travis-ci.org/jremmon[![Build Status](https://travis-ci.org/jremmons/nnfc.svg?branch=master)](https://travis-ci.org/jremmons/nnfc)s/nnfc.svg?branch=master)](https://travis-ci.org/jremmons/nnfc)
 
 **Description**: a video and image compression method for machine learned features.
 
