@@ -10,6 +10,8 @@ addons:
     - g++-5
     - nasm
 
+before_install:
+
 install:
   # upgrade gcc
   - sudo apt-get update -q
