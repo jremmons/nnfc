@@ -11,7 +11,7 @@ addons:
     - nasm
 
 before_install:
-    - sudo add-apt-repository ppa:fkrull/deadsnakes
+    - sudo add-apt-repository ppa:fkrull/deadsnakes -y
     - sudo apt-get update -q
     - sudo apt-get install python3.5
     - cd /usr/bin
