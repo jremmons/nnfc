@@ -21,7 +21,7 @@ library_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules', '../t
 runtime_library_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules'])
 libraries = ['nnfc', 'noop', 'turbojpeg']
 
-extra_compile_args = ['-std=c++14', '-pthread', '-Wall', '-Wextra']
+extra_compile_args = ['-std=c++14', '-pthread', '-Wall', '-Wextra', '-static']
 
 ffi = create_extension(
     'nnfc._ext.nnfc_wrapper',
