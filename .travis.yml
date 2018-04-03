@@ -47,6 +47,7 @@ script:
   - make -j4
   - sudo make install
   - make check -C tests
+  - cat tests/test-suite.log
 
 notifications:
   email: false
