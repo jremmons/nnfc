@@ -36,6 +36,7 @@ install:
   - python3 -c "import torch; print(torch.__version__)"
   - sudo pip3 install cffi
   - sudo pip3 install torchvision
+  - sudo pip3 install --upgrade --force-reinstall setuptools distutils wheel
 
 script:
   - ./autogen.sh
