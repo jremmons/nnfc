@@ -1,6 +1,6 @@
 all-local:
 	cp -dR --preserve=timestamps $(srcdir)/libjpeg-turbo ./libjpeg-turbo.build
-	cd libjpeg-turbo.build && autoreconf -fiv && sh configure --prefix=$(shell pwd)/libjpeg-turbo.compiled && LDFLAGS=-fPIC CFLAGS=-fPIC $(MAKE) install
+	cd libjpeg-turbo.build && autoreconf -fiv && sh configure --prefix=$(shell pwd)/libjpeg-turbo.compiled && $(MAKE) install CFLAGS+=-fPIC
 
 check-local:
 
