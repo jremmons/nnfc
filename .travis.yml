@@ -45,8 +45,8 @@ script:
   - ./autogen.sh
   - ./configure
   - make -j3
-  - sudo ./python/install.sh
-  - make check
+  - sudo make install
+  - make check -C tests
 
 notifications:
   email: false
