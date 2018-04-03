@@ -1,3 +1,4 @@
+dist: xerus
 language: cpp
 sudo: required
 
