@@ -29,6 +29,8 @@ install:
   - sudo apt-get install python3-pip 
   - sudo pip3 install --upgrade pip
   - pip3 --version
+  - uname -a
+  - lsb_release -a
   # install python dependencies
   - sudo pip3 install http://download.pytorch.org/whl/cpu/torch-0.3.1-cp35-cp35m-linux_x86_64.whl
   - sudo pip3 install cffi torchvision
