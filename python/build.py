@@ -21,8 +21,9 @@ library_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules', '../t
 runtime_library_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules'])
 libraries = []
 
-extra_compile_args = ['-std=c++14', '-pthread', '-Wall', '-Wextra']
-extra_link_args = ['-Bstatic', '-lnnfc', '-Bstatic', '-lnoop', '-Bstatic', '-lturbojpeg']
+extra_compile_args = ['-std=c++14', '-Wall', '-Wextra']
+extra_link_args = ['-Wl,-Bstatic', '-lnoop', '-Wl,-Bstatic', '-lnnfc', '-Wl,-Bstatic', '-lturbojpeg', '-Wl,-Bdynamic', '-lpthread']
+extra_objects = []
 
 # TODO(jremmons) provide option for dynamic linking external libraries
 # Note: we currently statically link so that our experiments will always use identical libraries
@@ -38,6 +39,7 @@ ffi = create_extension(
     define_macros=list(defines),
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
+    extra_objects=extra_objects,
     relative_to=__file__,
     with_cuda=with_cuda
 )
