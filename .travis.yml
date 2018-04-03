@@ -45,7 +45,7 @@ script:
   - ./autogen.sh
   - ./configure
   - make -j3
-  - ./python/install.sh
+  - sudo make install
   - make check
 
 notifications:
