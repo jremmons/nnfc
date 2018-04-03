@@ -33,6 +33,7 @@ install:
   # install python dependencies
   - sudo pip3 install numpy
   - sudo pip3 install http://download.pytorch.org/whl/cpu/torch-0.3.1-cp35-cp35m-linux_x86_64.whl
+  - python3 -c "import torch; print(torch.__version__)"
   - sudo pip3 install cffi
   - sudo pip3 install torchvision
 
