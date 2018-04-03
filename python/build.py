@@ -19,10 +19,10 @@ if torch.cuda.is_available():
 include_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules'])
 library_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules', '../third_party/jpeg/libjpeg-turbo.compiled/lib'])
 runtime_library_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules'])
-libraries = ['nnfc', 'noop', 'turbojpeg']
+libraries = []
 
 extra_compile_args = ['-std=c++14', '-pthread', '-Wall', '-Wextra']
-extra_link_args = ['-static']
+extra_link_args = ['-Bstatic', '-lnnfc', '-Bstatic', '-lnoop', '-Bstatic', '-lturbojpeg']
 
 ffi = create_extension(
     'nnfc._ext.nnfc_wrapper',
