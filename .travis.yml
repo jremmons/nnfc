@@ -13,6 +13,8 @@ addons:
 before_install:
 
 install:
+  - uname -a
+  - lsb_release -a
   # upgrade gcc
   - sudo apt-get update -q
   - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 99
@@ -22,17 +24,12 @@ install:
   - sudo add-apt-repository ppa:fkrull/deadsnakes -y 
   - sudo apt-get update -q
   - sudo apt-get install --allow-unauthenticated python3.5-dev
-  - pushd .
-  - cd /usr/bin
-  - sudo rm python3
-  - sudo ln -s python3.5 python3
-  - popd
+  - sudo rm /usr/bin/python3
+  - sudo ln -s /usr/bin/python3.5 /usr/bin/python3
   - python3 --version
   - sudo apt-get install python3-pip 
   - sudo pip3 install --upgrade pip
   - pip3 --version
-  - uname -a
-  - lsb_release -a
   # install python dependencies
   - sudo pip3 install numpy
   - sudo pip3 install http://download.pytorch.org/whl/cpu/torch-0.3.1-cp35-cp35m-linux_x86_64.whl
