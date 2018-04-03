@@ -20,7 +20,7 @@ public:
     { }
     ~Blob1D() {}
 
-    virtual void resize(size_t) = 0; 
+    virtual void resize(size_t) { throw; } 
 
     inline T get(const size_t i){
 

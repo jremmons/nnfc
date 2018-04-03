@@ -36,7 +36,7 @@ public:
     { }    
     ~Blob4D() {}
 
-    virtual void resize(size_t, size_t, size_t, size_t) = 0;
+    virtual void resize(size_t, size_t, size_t, size_t) { throw; }
     
     inline T get(const size_t ni, const size_t ci, const size_t hi, const size_t wi){
 
