@@ -33,5 +33,6 @@ AC_CONFIG_FILES([Makefile
          src/Makefile
          src/modules/Makefile
          src/frontend/Makefile
+         python/Makefile
 	 ])
 AC_OUTPUT

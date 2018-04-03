@@ -1,1 +1,1 @@
-SUBDIRS = third_party src
+SUBDIRS = third_party src python
