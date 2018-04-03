@@ -13,5 +13,3 @@ install-data-local:
 install-exec-local:
 
 uninstall-local:
-
-EXTRA_DIST = libjpeg-turbo
