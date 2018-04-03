@@ -27,7 +27,7 @@ script:
   - ./autogen.sh
   - ./configure
   - make -j3
-  - make install
+  - make install -C python
   - make check
 
 notifications:
