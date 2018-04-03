@@ -30,7 +30,8 @@ install:
   - sudo apt-get install python3-pip 
   - sudo pip3 install --upgrade pip
   - pip3 --version
-  - sudo pip3 install --upgrade setuptools wheel
+  - sudo pip3 install --upgrade setuptools
+  - sudo pip3 install --upgrade wheel
   - python -c "import wheel; print('wheel', wheel.__version__)"
   - python -c "import setuptools; print('setuptools', setuptools.__version__)"
   # install python dependencies
