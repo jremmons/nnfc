@@ -19,9 +19,9 @@ install:
   - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 99
   - g++ -v
   # upgrade python version
-  - sudo add-apt-repository ppa:fkrull/deadsnakes -y --allow-unauthenticated
+  - sudo add-apt-repository ppa:fkrull/deadsnakes -y 
   - sudo apt-get update -q
-  - sudo apt-get install python3.5
+  - sudo apt-get install --allow-unauthenticated python3.5
   - cd /usr/bin
   - sudo rm python3
   - sudo ln -s python3.5 python3
