@@ -1,6 +1,5 @@
 language: cpp
 sudo: required
-#services: docker
 
 addons:
   apt:
@@ -10,19 +9,11 @@ addons:
     - gcc-5
     - g++-5
     - nasm
-    #- libogg-dev
-    #- libmpeg2-4-dev
-    #- libpqxx-dev
-    #- libssl-dev
-    #- libcrypto++-dev
-    #- libpng-dev
+    - python3-dev
+    - python3-pip
 
-#before_install:
-  # download a static-built ffmpeg from the official website
-  #- wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-64bit-static.tar.xz
-  #- tar -xf ffmpeg-release-64bit-static.tar.xz
-  #- sudo cp ffmpeg-3.4.2-64bit-static/ffmpeg /usr/bin/
-  #- sudo cp ffmpeg-3.4.2-64bit-static/ffprobe /usr/bin/
+before_install:
+    - sudo pip3 install http://download.pytorch.org/whl/cpu/torch-0.3.1-cp35-cp35m-linux_x86_64.whl
 
 install:
   # upgrade gcc
@@ -36,12 +27,8 @@ script:
   - ./autogen.sh
   - ./configure
   - make -j3
-  #- python python/setup.py bdist_wheel\
-  #- pip install dist/mfc-*
-  - echo 'run tests' # add test script here 
-  - echo 'done' # distcheck V=1 || (cat puffer-0.2/_build/src/tests/test-suite.log && exit 1)
+  - make install
+  - make check
 
 notifications:
   email: false
-  #webhooks:
-  #  - https://snr.zulipchat.com/api/v1/external/travis?api_key=AtzK5F9kaHRKDQKNbD4ujZCTQTm91B5j&stream=puffer-notification&topic=build-status

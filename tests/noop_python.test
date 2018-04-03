@@ -7,7 +7,6 @@ from torch.autograd import Variable
 from nnfc.modules.noop import NoopEncoder
 from nnfc.modules.noop import NoopDecoder
 
-
 class MyNetwork(nn.Module):
     def __init__(self):
         super(MyNetwork, self).__init__()
@@ -32,9 +31,11 @@ print('output on gpu?', out.is_cuda)
 print('noop success:', (inp == out).all() and inp.is_cuda == out.is_cuda)
 
 print()
-print('gpu only test')
-inp = Variable(x).cuda()
-out = model(inp)
-print('input on gpu?', inp.is_cuda)
-print('output on gpu?', out.is_cuda)
-print('noop success:', (inp == out).all() and inp.is_cuda == out.is_cuda)
+
+if torch.cuda.is_available():
+    print('gpu only test')
+    inp = Variable(x).cuda()
+    out = model(inp)
+    print('input on gpu?', inp.is_cuda)
+    print('output on gpu?', out.is_cuda)
+    print('noop success:', (inp == out).all() and inp.is_cuda == out.is_cuda)
