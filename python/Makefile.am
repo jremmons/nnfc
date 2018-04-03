@@ -10,6 +10,7 @@ clean-local:
 install-data-local:
 
 install-exec-local:
+	pip install --upgrade --force-reinstall dist/*.whl
 
 uninstall-local:
 
