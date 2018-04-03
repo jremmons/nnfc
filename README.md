@@ -1,4 +1,4 @@
-# NNFC: the neural network (machine) feature codec!
+# NNFC: the neural network feature codec!
 
 [![Build Status](https://travis-ci.org/jremmons/nnfc.svg?branch=master)](https://travis-ci.org/jremmons/nnfc)
 
