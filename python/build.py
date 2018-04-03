@@ -24,6 +24,8 @@ libraries = []
 extra_compile_args = ['-std=c++14', '-pthread', '-Wall', '-Wextra']
 extra_link_args = ['-Bstatic', '-lnnfc', '-Bstatic', '-lnoop', '-Bstatic', '-lturbojpeg']
 
+# TODO(jremmons) provide option for dynamic linking external libraries
+# Note: we currently statically link so that our experiments will always use identical libraries
 ffi = create_extension(
     'nnfc._ext.nnfc_wrapper',
     package=True,
