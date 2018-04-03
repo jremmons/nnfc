@@ -30,13 +30,16 @@ install:
   - sudo apt-get install python3-pip 
   - sudo pip3 install --upgrade pip
   - pip3 --version
+  - sudo pip3 install --upgrade setuptools distutils wheel
+  - python -c "import wheel; print('wheel', wheel.__version__)"
+  - python -c "import setuptools; print('setuptools', setuptools.__version__)"
+  - python -c "import distutils; print('distutils', distutils.__version__)"
   # install python dependencies
   - sudo pip3 install numpy
   - sudo pip3 install http://download.pytorch.org/whl/cpu/torch-0.3.1-cp35-cp35m-linux_x86_64.whl
-  - python3 -c "import torch; print(torch.__version__)"
+  - python3 -c "import torch; print('torch', torch.__version__)"
   - sudo pip3 install cffi
   - sudo pip3 install torchvision
-  - sudo pip3 install --upgrade --force-reinstall setuptools distutils wheel
 
 script:
   - ./autogen.sh
