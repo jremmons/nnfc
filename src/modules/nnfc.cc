@@ -1,6 +1,6 @@
 #include "nnfc.hh"
 
-#include "turbojpeg.h"
+#include <turbojpeg.h>
 
 #include <cassert>
 #include <cstdint>

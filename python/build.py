@@ -17,15 +17,12 @@ if torch.cuda.is_available():
     with_cuda = True
 
 include_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules'])
-library_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules', '../third_party/jpeg/libjpeg-turbo.compiled/lib'])
+library_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules'])
 runtime_library_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules'])
 libraries = []
 
 extra_compile_args = ['-std=c++14', '-Wall', '-Wextra']
-extra_link_args = ['-Wl,-Bstatic', '-lnoop',
-                   '-Wl,-Bstatic', '-lnnfc', 
-                   '-Wl,-Bstatic', '-lturbojpeg',
-                   '-Wl,-Bdynamic', '-lpthread']
+extra_link_args = ['-lnoop', '-lnnfc', '-lturbojpeg']
 extra_objects = []
 
 # TODO(jremmons) provide option for dynamic linking external libraries
