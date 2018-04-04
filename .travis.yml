@@ -44,7 +44,7 @@ install:
 
 script:
   - ./autogen.sh
-  - ./configure
+  - ./configure JPEG_CFLAGS=" " JPEG_LIBS="-lturbojpeg"
   - make -j4
   - sudo make install
   - make check -C tests
