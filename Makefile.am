@@ -1,1 +1,1 @@
-SUBDIRS = third_party src python tests
+SUBDIRS = src python tests

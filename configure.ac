@@ -4,11 +4,11 @@
 AC_PREREQ([2.68])
 AC_INIT([nnfc], [0.1], [jemmons@cs.stanford.edu])
 AM_INIT_AUTOMAKE([foreign])
-#AC_CONFIG_SRCDIR([src/display/display.hh])
-#AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_SRCDIR([src/modules/nnfc.hh])
+AC_CONFIG_HEADERS([config.h])
 
 # Add picky CXXFLAGS
-CXX14_FLAGS="-std=c++14 -pthread"
+CXX14_FLAGS="-std=c++14"
 PICKY_CXXFLAGS="-pedantic -Wall -Wextra -Werror -Wno-non-virtual-dtor"
 AC_SUBST([CXX14_FLAGS])
 AC_SUBST([PICKY_CXXFLAGS])
@@ -18,8 +18,7 @@ AC_PROG_CXX
 AC_PROG_RANLIB
 
 # Checks for libraries.
-#PKG_CHECK_MODULES([XCB], [xcb])
-#PKG_CHECK_MODULES([XCBPRESENT], [xcb-present])
+PKG_CHECK_MODULES([JPEG], [libturbojpeg])
 
 # Checks for header files.
 
@@ -28,12 +27,11 @@ AC_PROG_RANLIB
 # Checks for library functions.
 
 AC_CONFIG_FILES([Makefile 
-         third_party/Makefile
-         third_party/jpeg/Makefile
          src/Makefile
          src/modules/Makefile
          src/frontend/Makefile
          python/Makefile
          tests/Makefile
 ])
+
 AC_OUTPUT
