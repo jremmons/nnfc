@@ -14,10 +14,9 @@ install:
   - uname -a
   - lsb_release -a
   # install newer libjpegturbo-dev (with .so and .pc)
-  - sudo -E add-apt-repository -y 'deb http://ftp.us.debian.org/debian unstable main contrib non-free'
+  - sudo add-apt-repository -y ppa:keithw/libjpeg-turbo-backports
   - sudo apt-get update -qq
   - sudo apt-get install -y --allow-unauthenticated libturbojpeg0-dev
-  - sudo -E add-apt-repository --remove -y 'deb http://ftp.us.debian.org/debian unstable main contrib non-free'
   # upgrade gcc
   - sudo apt-get update -q
   - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 99
