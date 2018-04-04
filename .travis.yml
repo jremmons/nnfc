@@ -9,9 +9,6 @@ addons:
     - gcc-5
     - g++-5
     - nasm
-    - libjpeg-turbo8-dev
-
-before_install:
 
 install:
   - uname -a
@@ -41,10 +38,14 @@ install:
   - python3 -c "import torch; print('torch', torch.__version__)"
   - sudo pip3 install cffi
   - sudo pip3 install torchvision
+  # install newer libjpegturbo-dev (with .so and .pc)
+  - sudo -E add-apt-repository -y 'deb http://ftp.us.debian.org/debian unstable main contrib non-free'
+  - sudo apt-get update -qq
+  - sudo apt-get install -y --allow-unauthenticated libturbojpeg0-dev
 
 script:
   - ./autogen.sh
-  - ./configure JPEG_CFLAGS=" " JPEG_LIBS="-lturbojpeg"
+  - ./configure
   - make -j4
   - sudo make install
   - make check -C tests
