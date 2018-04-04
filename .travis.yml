@@ -9,7 +9,7 @@ addons:
     - gcc-5
     - g++-5
     - nasm
-    - libjpegturbo-dev
+    - libjpeg-turbo8-dev
 
 before_install:
 
