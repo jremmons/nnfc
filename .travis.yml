@@ -47,8 +47,7 @@ script:
   - ./autogen.sh
   - ./configure
   - make -j4
-  - sudo make install
-  - make check -C tests
+  - make check
   - cat tests/test-suite.log
 
 notifications:

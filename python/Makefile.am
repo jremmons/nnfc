@@ -1,6 +1,5 @@
 all-local:
-	python3 setup.py clean --all
-	python3 setup.py bdist_wheel
+	python3 setup.py build_ext
 
 check-local:
 
@@ -10,7 +9,7 @@ clean-local:
 install-data-local:
 
 install-exec-local:
-	pip3 install --upgrade --force-reinstall dist/*.whl
+	python3 setup.py install
 
 uninstall-local:
 
