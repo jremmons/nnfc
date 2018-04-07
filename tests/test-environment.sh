@@ -8,7 +8,7 @@ if [[ $lib_count != '1' ]]; then
     exit -1
 fi
 
-libdir=$(ls ../python/build/ | grep 'lib')
+libdir=../python/build/$(ls ../python/build/ | grep 'lib')
 
 export PYTHONPATH=$libdir:$PYTHONPATH
 exec "$@"

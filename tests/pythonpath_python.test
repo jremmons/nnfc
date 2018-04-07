@@ -1,0 +1,6 @@
+#!/usr/bin/env python3
+
+import os
+
+with open('pythonpath.txt', 'w') as f:
+    f.write('pythonpath: ' + os.environ['PYTHONPATH'])
