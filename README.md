@@ -13,8 +13,13 @@
 ### Prerequistes 
 
 ```bash
+sudo add-apt-repository -y ppa:keithw/libjpeg-turbo-backports  
+
+sudo apt-get update
+
 sudo apt-get install build-essential
-# sudo apt-get install ... add more build prereqs
+sudo apt-get install python3-dev
+sudo apt-get install libturbojpeg0-dev 
 ```
 
 ### Build
