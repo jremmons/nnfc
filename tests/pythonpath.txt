@@ -1,1 +1,0 @@
-pythonpath: lib.linux-x86_64-3.5:
