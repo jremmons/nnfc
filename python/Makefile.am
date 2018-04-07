@@ -1,5 +1,5 @@
 all-local:
-	python3 setup.py build_ext
+	python3 setup.py build
 
 check-local:
 
