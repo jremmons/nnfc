@@ -6,6 +6,8 @@ Reference:
 [1] Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun
     Deep Residual Learning for Image Recognition. arXiv:1512.03385
 '''
+import functools
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -187,7 +189,7 @@ class AutoencoderResNet(nn.Module):
     
 
 class ResNet(nn.Module):
-    def __init__(self, block, num_blocks, num_classes=10):
+    def __init__(self, term_layer, print_size, block, num_blocks, num_classes=10):
         super(ResNet, self).__init__()
         self.in_planes = 64
 
@@ -202,6 +204,10 @@ class ResNet(nn.Module):
         self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
         self.linear = nn.Linear(512*block.expansion, num_classes)
 
+        self.print_size = print_size
+        self.size_func = lambda x : functools.reduce(lambda a,b : a*b, x)
+        self.early_term = term_layer        
+        
     def _make_layer(self, block, planes, num_blocks, stride):
         strides = [stride] + [1]*(num_blocks-1)
         layers = []
@@ -211,15 +217,72 @@ class ResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, x):
+        layers = 0
+
+        if self.print_size:
+            print('input', x.shape, self.size_func(x.shape))
+        if self.early_term == layers:
+            return None
+        else:
+            layers += 1
+            
         out = F.relu(self.bn1(self.conv1(x)))
+        if self.print_size:
+            print('layer0', out.shape, self.size_func(out.shape))
+        if self.early_term == layers:
+            return None
+        else:
+            layers += 1
+
         out = self.layer1(out)
+        if self.print_size:
+            print('layer1', out.shape, self.size_func(out.shape))
+        if self.early_term == layers:
+            return None
+        else:
+            layers += 1
+
         out = self.layer2(out)
-        out = self.autoencoder(out)
+        if self.print_size:
+            print('layer2', out.shape, self.size_func(out.shape))
+        if self.early_term == layers:
+            return None
+        else:
+            layers += 1
+
         out = self.layer3(out)
+        if self.print_size:
+            print('layer3', out.shape, self.size_func(out.shape))
+        if self.early_term == layers:
+            return None
+        else:
+            layers += 1
+
         out = self.layer4(out)
+        if self.print_size:
+            print('layer4', out.shape, self.size_func(out.shape))
+        if self.early_term == layers:
+            return None
+        else:
+            layers += 1
+
         out = F.avg_pool2d(out, 4)
         out = out.view(out.size(0), -1)
+        if self.print_size:
+            print('pool', out.shape, self.size_func(out.shape))
+        if self.early_term == layers:
+            return None
+        else:
+            layers += 1
+
         out = self.linear(out)
+        if self.print_size:
+            print('output', out.shape, self.size_func(out.shape))
+        if self.early_term == layers:
+            return None
+        else:
+            layers += 1
+
         return out
 
 
