@@ -7,6 +7,9 @@ AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_SRCDIR([src/modules/nnfc.hh])
 AC_CONFIG_HEADERS([config.h])
 
+# include extra macros
+m4_include(m4/python.m4)
+
 # Add picky CXXFLAGS
 CXX14_FLAGS="-std=c++14"
 PICKY_CXXFLAGS="-pedantic -Wall -Wextra -Werror -Wno-non-virtual-dtor"
@@ -25,6 +28,17 @@ PKG_CHECK_MODULES([JPEG], [libturbojpeg])
 # Checks for typedefs, structures, and compiler characteristics.
 
 # Checks for library functions.
+
+# define macros for checking python libraries
+
+# check for python libraries
+AC_PATH_PROG([PYTHON],[python])
+AX_PROG_PYTHON_VERSION([3.5.0])
+
+AX_PYTHON_MODULE_VERSION([setuptools], [39.0.1], [python3])
+AX_PYTHON_MODULE_VERSION([wheel], [0.31.0], [python3])
+AX_PYTHON_MODULE_VERSION([torch], [0.3.1], [python3])
+AX_PYTHON_MODULE_VERSION([cffi], [1.11.5], [python3])
 
 AC_CONFIG_FILES([Makefile 
          src/Makefile
