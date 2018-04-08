@@ -1,6 +1,8 @@
 # binaries
 src/frontend/hello
 tests/pythonpath.txt
+tests/conv2d.bin
+tests/relu.bin
 
 # other
 *.a
