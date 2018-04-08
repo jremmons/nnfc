@@ -35,8 +35,8 @@ PKG_CHECK_MODULES([JPEG], [libturbojpeg])
 AC_PATH_PROG([PYTHON],[python])
 AX_PROG_PYTHON_VERSION([3.5.0])
 
-AX_PYTHON_MODULE_VERSION([setuptools], [39.0.1], [python3])
-AX_PYTHON_MODULE_VERSION([wheel], [0.31.0], [python3])
+AX_PYTHON_MODULE_VERSION([setuptools], [38.2.4], [python3])
+AX_PYTHON_MODULE_VERSION([wheel], [0.30.0], [python3])
 AX_PYTHON_MODULE_VERSION([torch], [0.3.1], [python3])
 AX_PYTHON_MODULE_VERSION([cffi], [1.11.5], [python3])
 
