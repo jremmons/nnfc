@@ -11,4 +11,8 @@ fi
 libdir=../python/build/$(ls ../python/build/ | grep 'lib')
 
 export PYTHONPATH=$libdir:$PYTHONPATH
+
+export NNFC_TEST_TMPDIR=/tmp/nnfc_test_tmpdir
+mkdir -p $NNFC_TEST_TMPDIR
+
 exec "$@"
