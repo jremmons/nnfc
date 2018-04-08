@@ -1,3 +1,42 @@
+AC_DEFUN([AX_WITH_PROG],[
+    AC_PREREQ([2.61])
+
+    pushdef([VARIABLE],$1)
+    pushdef([EXECUTABLE],$2)
+    pushdef([VALUE_IF_NOT_FOUND],$3)
+    pushdef([PATH_PROG],$4)
+
+    AC_ARG_VAR(VARIABLE,Absolute path to EXECUTABLE executable)
+
+    AS_IF(test -z "$VARIABLE",[
+        AC_MSG_CHECKING(whether EXECUTABLE executable path has been provided)
+        AC_ARG_WITH(EXECUTABLE,AS_HELP_STRING([--with-EXECUTABLE=[[[PATH]]]],absolute path to EXECUTABLE executable), [
+            AS_IF([test "$withval" != yes && test "$withval" != no],[
+                VARIABLE="$withval"
+                AC_MSG_RESULT($VARIABLE)
+            ],[
+                VARIABLE=""
+                AC_MSG_RESULT([no])
+                AS_IF([test "$withval" != no], [
+                  AC_PATH_PROG([]VARIABLE[],[]EXECUTABLE[],[]VALUE_IF_NOT_FOUND[],[]PATH_PROG[])
+                ])
+            ])
+        ],[
+            AC_MSG_RESULT([no])
+            AC_PATH_PROG([]VARIABLE[],[]EXECUTABLE[],[]VALUE_IF_NOT_FOUND[],[]PATH_PROG[])
+        ])
+    ])
+
+    popdef([PATH_PROG])
+    popdef([VALUE_IF_NOT_FOUND])
+    popdef([EXECUTABLE])
+    popdef([VARIABLE])
+])
+
+AC_DEFUN([AX_WITH_PYTHON],[
+    AX_WITH_PROG(PYTHON,python,$1,$2)
+])
+
 AC_DEFUN([AX_COMPARE_VERSION], [
   AC_REQUIRE([AC_PROG_AWK])
 

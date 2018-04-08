@@ -32,7 +32,8 @@ PKG_CHECK_MODULES([JPEG], [libturbojpeg])
 # define macros for checking python libraries
 
 # check for python libraries
-AC_PATH_PROG([PYTHON],[python])
+AC_PATH_PROG([PYTHON],[python3])
+AX_WITH_PYTHON([], [python3])
 AX_PROG_PYTHON_VERSION([3.5.0])
 
 AX_PYTHON_MODULE_VERSION([setuptools], [38.2.4], [python3])
