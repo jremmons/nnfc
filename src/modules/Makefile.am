@@ -7,4 +7,4 @@ libnnfc_a_SOURCES = nnfc.hh nnfc.cc blob4d.hh blob1d.hh
 
 libnoop_a_SOURCES = noop.hh noop.cc blob4d.hh blob1d.hh
 
-libnn_a_SOURCES = nn.hh nn.cc
+libnn_a_SOURCES = nn.hh nn.cc # convolution.hh convolution.cc
