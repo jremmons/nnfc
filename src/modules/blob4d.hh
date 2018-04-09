@@ -34,8 +34,11 @@ public:
         width_stride_(1),
         data_(data)
     { }    
+    Blob4D(const Blob4D<T>&) = delete;
     ~Blob4D() {}
 
+    Blob4D<T>& operator=(Blob4D<T> &rhs) = delete;
+    
     virtual void resize(size_t, size_t, size_t, size_t) { throw; }
     
     inline T get(const size_t ni, const size_t ci, const size_t hi, const size_t wi){

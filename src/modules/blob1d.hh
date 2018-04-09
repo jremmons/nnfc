@@ -17,8 +17,11 @@ public:
         data(data_),
         size_(_size),
         data_(_data) 
-    { }
+    { } 
+    Blob1D(const Blob1D<T>&) = delete;
     ~Blob1D() {}
+
+    Blob1D<T>& operator=(Blob1D<T> &rhs) = delete;
 
     virtual void resize(size_t) { throw; } 
 
