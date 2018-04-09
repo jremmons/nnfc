@@ -37,7 +37,7 @@ public:
 
     virtual void resize(size_t, size_t, size_t) { throw std::runtime_error("resize is not implemented in the base class"); }
     
-    inline T get(const size_t ci, const size_t hi, const size_t wi){
+    inline T get(const size_t ci, const size_t hi, const size_t wi) const {
 
         assert(0 <= ci and ci < channels_);
         assert(0 <= hi and hi < height_);
