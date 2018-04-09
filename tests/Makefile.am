@@ -1,10 +1,10 @@
-AM_CPPFLAGS = $(CXX14_FLAGS) $(JPEG_INCLUDES)
-AM_CXXFLAGS = $(PICKY_CXXFLAGS)
+AM_CPPFLAGS = $(CXX14_FLAGS) $(JPEG_INCLUDE) $(HDF5_CFLAGS) $(HDF5_CPPFLAGS)
+AM_CXXFLAGS = $(PICKY_CXXFLAGS) 
 
 check_PROGRAMS = conv2d.bin relu.bin
 
 conv2d_bin_SOURCES = conv2d_test.cc
-conv2d_bin_LDADD = -L ../src/modules -lnn ../src/modules/libnn.a
+conv2d_bin_LDADD = -L ../src/modules -lnn ../src/modules/libnn.a $(HDF5_LDFLAGS) $(HDF5_LIBS)
 
 relu_bin_SOURCES = relu_test.cc
 relu_bin_LDADD = -L ../src/modules -lnn ../src/modules/libnn.a

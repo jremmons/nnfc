@@ -9,6 +9,9 @@ addons:
     - gcc-5
     - g++-5
     - nasm
+    - libhdf5-dev
+    - libhdf5-cpp-11
+    - hdf5-helpers
 
 install:
   - uname -a
