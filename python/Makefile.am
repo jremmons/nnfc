@@ -1,4 +1,6 @@
 all-local:
+	CFLAGS+="$(PYWRAPPER_EXTRA_CFLAGS)" \
+	LDFLAGS+="$(PYWRAPPER_EXTRA_LDFLAGS)" \
 	python3 setup.py build
 
 check-local:
@@ -9,6 +11,8 @@ clean-local:
 install-data-local:
 
 install-exec-local:
+	CFLAGS+="$(PYWRAPPER_EXTRA_CFLAGS)" \
+	LDFLAGS+="$(PYWRAPPER_EXTRA_LDFLAGS)" \
 	python3 setup.py install
 
 uninstall-local:

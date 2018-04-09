@@ -21,12 +21,13 @@ library_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules'])
 runtime_library_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules'])
 libraries = []
 
-extra_compile_args = ['-std=c++14', '-Wall', '-Wextra']
+extra_compile_args = os.environ.get("CXXFLAGS", "").split() + []
 extra_link_args = ['-lnoop', '-lnnfc', '-lturbojpeg']
 extra_objects = []
 
 # TODO(jremmons) provide option for dynamic linking external libraries
 # Note: we currently statically link so that our experiments will always use identical libraries
+
 ffi = create_extension(
     'nnfc._ext.nnfc_wrapper',
     package=True,
