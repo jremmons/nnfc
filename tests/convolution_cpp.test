@@ -7,6 +7,7 @@ from torch.autograd import Variable
 import h5py
 import numpy as np
 import os
+import six
 import subprocess as sub
 
 TMPDIR = os.environ['NNFC_TEST_TMPDIR']
@@ -37,4 +38,6 @@ with h5py.File(hdf5_file, 'w') as f:
     f.create_dataset('padding', data=np.asarray([padding]))
     f.create_dataset('output', data=outputs.data.numpy())
 
+    f.create_dataset('hdf5_version', data=six.u(h5py.version.hdf5_version))
+    
 sub.check_call(['./conv2d.bin', hdf5_file])
