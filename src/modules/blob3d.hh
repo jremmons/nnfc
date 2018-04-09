@@ -30,7 +30,10 @@ public:
         width_stride_(1),
         data_(data)
     { }    
+    Blob3D(const Blob3D<T>&) = delete;
     ~Blob3D() {}
+
+    Blob3D<T>& operator=(Blob3D<T> &rhs) = delete;
 
     virtual void resize(size_t, size_t, size_t) { throw std::runtime_error("resize is not implemented in the base class"); }
     

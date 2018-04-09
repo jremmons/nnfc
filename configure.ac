@@ -12,7 +12,7 @@ m4_include(m4/python.m4)
 
 # Add picky CXXFLAGS
 CXX14_FLAGS="-std=c++14"
-PICKY_CXXFLAGS="-pedantic -Wall -Wextra -Werror -Wno-non-virtual-dtor"
+PICKY_CXXFLAGS="-pedantic -Wall -Wextra -Werror -Weffc++ -Wno-non-virtual-dtor"
 AC_SUBST([CXX14_FLAGS])
 AC_SUBST([PICKY_CXXFLAGS])
 
