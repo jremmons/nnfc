@@ -25,7 +25,7 @@ public:
 
     virtual void resize(size_t) { throw; } 
 
-    inline T get(const size_t i){
+    inline T get(const size_t i) const {
 
         assert(0 <= i and i < size_);
         return data_[i];

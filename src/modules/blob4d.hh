@@ -41,7 +41,7 @@ public:
     
     virtual void resize(size_t, size_t, size_t, size_t) { throw; }
     
-    inline T get(const size_t ni, const size_t ci, const size_t hi, const size_t wi){
+    inline T get(const size_t ni, const size_t ci, const size_t hi, const size_t wi) const {
 
         assert(0 <= ni and ni < batch_size_);
         assert(0 <= ci and ci < channels_);
