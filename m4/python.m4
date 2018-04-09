@@ -1,40 +1,12 @@
-AC_DEFUN([AX_WITH_PROG],[
-    AC_PREREQ([2.61])
-
-    pushdef([VARIABLE],$1)
-    pushdef([EXECUTABLE],$2)
-    pushdef([VALUE_IF_NOT_FOUND],$3)
-    pushdef([PATH_PROG],$4)
-
-    AC_ARG_VAR(VARIABLE,Absolute path to EXECUTABLE executable)
-
-    AS_IF(test -z "$VARIABLE",[
-        AC_MSG_CHECKING(whether EXECUTABLE executable path has been provided)
-        AC_ARG_WITH(EXECUTABLE,AS_HELP_STRING([--with-EXECUTABLE=[[[PATH]]]],absolute path to EXECUTABLE executable), [
-            AS_IF([test "$withval" != yes && test "$withval" != no],[
-                VARIABLE="$withval"
-                AC_MSG_RESULT($VARIABLE)
-            ],[
-                VARIABLE=""
-                AC_MSG_RESULT([no])
-                AS_IF([test "$withval" != no], [
-                  AC_PATH_PROG([]VARIABLE[],[]EXECUTABLE[],[]VALUE_IF_NOT_FOUND[],[]PATH_PROG[])
-                ])
-            ])
-        ],[
-            AC_MSG_RESULT([no])
-            AC_PATH_PROG([]VARIABLE[],[]EXECUTABLE[],[]VALUE_IF_NOT_FOUND[],[]PATH_PROG[])
-        ])
+AC_DEFUN([AX_PYTHON_VERSION], [
+    AC_MSG_CHECKING([for python version $1 or higher])
+    AX_PROG_PYTHON_VERSION([$1], [], [
+        exit -1
     ])
-
-    popdef([PATH_PROG])
-    popdef([VALUE_IF_NOT_FOUND])
-    popdef([EXECUTABLE])
-    popdef([VARIABLE])
-])
-
-AC_DEFUN([AX_WITH_PYTHON],[
-    AX_WITH_PROG(PYTHON,python,$1,$2)
+    AS_IF([test $? -eq 0], [], [
+        AC_MSG_RESULT([no])
+        AC_MSG_ERROR([You need at least version $1 of Python module.])
+    ])
 ])
 
 AC_DEFUN([AX_COMPARE_VERSION], [
@@ -138,11 +110,10 @@ AC_DEFUN([AX_PROG_PYTHON_VERSION],[
     AS_IF([test -n "$PYTHON"],[
         ax_python_version="$1"
 
-        AC_MSG_CHECKING([for python version])
         changequote(<<,>>)
         python_version=`$PYTHON -V 2>&1 | $GREP "^Python " | $SED -e 's/^.* \([0-9]*\.[0-9]*\.[0-9]*\)/\1/'`
         changequote([,])
-        AC_MSG_RESULT($python_version)
+        AC_MSG_RESULT($python_version found)
 
 	AC_SUBST([PYTHON_VERSION],[$python_version])
 
