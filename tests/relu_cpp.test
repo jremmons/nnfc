@@ -21,7 +21,7 @@ print('inputs.shape', inputs.shape)
 outputs = F.relu(inputs, inplace=False)
 print('output.shape', outputs.shape)
 
-hdf5_file = os.path.join(TMPDIR, 'convolution_test.h5')
+hdf5_file = os.path.join(TMPDIR, 'relu_test.h5')
 with h5py.File(hdf5_file, 'w') as f:
     f.create_dataset('input', data=inputs.data.numpy())
     f.create_dataset('output', data=outputs.data.numpy())
