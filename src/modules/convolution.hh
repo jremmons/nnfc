@@ -3,8 +3,11 @@
 #include "blob1d.hh"
 #include "blob4d.hh"
 
-namespace NN {
+// namespace NN {
 
-    void conv2d(Blob4D<float> &input, Blob1D<uint64_t> &labels);
+// void NN::conv2d(const Blob4D<float> &input, const Blob3D<float> &kernel,
+//                 Blob4D<uint64_t> &output,
+//                 const size_t stride = 0,
+//                 const size_t zero_padding = 0);
     
-}
+// }
