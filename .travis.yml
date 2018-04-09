@@ -38,8 +38,8 @@ install:
   # install and upgrade pip
   - sudo apt-get install python3-pip 
   - sudo pip3 install --upgrade pip
-  - sudo rm -f /usr/loca/bin/pip
-  - sudo ln -s /usr/loca/bin/pip3 /usr/loca/bin/pip
+  - sudo rm -f /usr/local/bin/pip
+  - sudo ln -s /usr/local/bin/pip3 /usr/local/bin/pip
   - pip --version
   - pip3 --version
 
