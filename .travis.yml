@@ -50,6 +50,8 @@ install:
   - python -c "import setuptools; print('setuptools', setuptools.__version__)"
   - sudo pip3 install --upgrade wheel
   - python -c "import wheel; print('wheel', wheel.__version__)"
+  - sudo pip3 install --upgrade six
+  - python -c "import six; print('six', six.__version__)"  
 
   # install python dependencies
   - sudo pip3 install numpy
