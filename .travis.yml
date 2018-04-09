@@ -13,36 +13,54 @@ addons:
 install:
   - uname -a
   - lsb_release -a
+
   # install newer libjpegturbo-dev (with .so and .pc)
   - sudo add-apt-repository -y ppa:keithw/libjpeg-turbo-backports
   - sudo apt-get update -q
   - sudo apt-get install -y libturbojpeg0-dev
+
   # upgrade gcc
   - sudo apt-get update -q
   - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 99
   - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 99
   - g++ -v
+
   # upgrade python version
   - sudo add-apt-repository ppa:fkrull/deadsnakes -y 
   - sudo apt-get update -q
   - sudo apt-get install --allow-unauthenticated python3.5-dev
-  - sudo rm /usr/bin/python3
+  - sudo rm -f /usr/bin/python3 /usr/bin/python
+  - sudo ln -s /usr/bin/python3.5 /usr/bin/python
   - sudo ln -s /usr/bin/python3.5 /usr/bin/python3
+  - python --version
   - python3 --version
+
+  # install and upgrade pip
   - sudo apt-get install python3-pip 
   - sudo pip3 install --upgrade pip
+  - sudo rm -f /usr/loca/bin/pip
+  - sudo ln -s /usr/loca/bin/pip3 /usr/loca/bin/pip
+  - pip --version
   - pip3 --version
+
+  # upgrade python build tools
   - sudo pip3 install --upgrade setuptools
+  - python -c "import setuptools; print('setuptools', setuptools.__version__)"
   - sudo pip3 install --upgrade wheel
   - python -c "import wheel; print('wheel', wheel.__version__)"
-  - python -c "import setuptools; print('setuptools', setuptools.__version__)"
+
   # install python dependencies
   - sudo pip3 install numpy
+  - python3 -c "import numpy; print('numpy', numpy.__version__)"
   - sudo pip3 install http://download.pytorch.org/whl/cpu/torch-0.3.1-cp35-cp35m-linux_x86_64.whl
   - python3 -c "import torch; print('torch', torch.__version__)"
   - sudo pip3 install cffi
+  - python3 -c "import cffi; print('cffi', cffi.__version__)"
   - sudo pip3 install torchvision
-
+  - python3 -c "import torchvision; print('torchvision', torchvision.__version__)"
+  - sudo pip3 install h5py
+  - python3 -c "import h5py; print('h5py', h5py.__version__)"
+  
 script:
   - ./autogen.sh
   - ./configure
