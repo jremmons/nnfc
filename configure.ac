@@ -16,6 +16,13 @@ PICKY_CXXFLAGS="-pedantic -Wall -Wextra -Werror -Weffc++ -Wno-non-virtual-dtor"
 AC_SUBST([CXX14_FLAGS])
 AC_SUBST([PICKY_CXXFLAGS])
 
+# add flags for python wrapper compilation
+PYWRAPPER_EXTRA_CFLAGS="-std=c++14 -Wall -Wextra -Weffc++"
+PYWRAPPER_EXTRA_LDFLAGS=""
+
+AC_SUBST([PYWRAPPER_EXTRA_CFLAGS])
+AC_SUBST([PYWRAPPER_EXTRA_LDFLAGS])
+
 # Checks for programs.
 AC_PROG_CXX
 AC_PROG_RANLIB
