@@ -1,0 +1,29 @@
+#!/usr/bin/env python3
+
+import torch
+import torch.nn.functional as F
+from torch.autograd import Variable
+from torch.nn.parameter import Parameter
+
+import h5py
+import numpy as np
+import os
+import subprocess as sub
+
+TMPDIR = os.environ['NNFC_TEST_TMPDIR']
+
+batch_size = 13
+num_channels = 128
+height = 7
+width = 5
+inputs = Variable(torch.randn(batch_size, num_channels, height, width))
+print('inputs.shape', inputs.shape)
+
+outputs = F.avg_pool2d(inputs, (height, width))
+
+hdf5_file = os.path.join(TMPDIR, 'avgpool.h5')
+with h5py.File(hdf5_file, 'w') as f:
+    f.create_dataset('input', data=inputs.data.numpy())
+    f.create_dataset('output', data=outputs.data.numpy())
+
+sub.check_call(['./avgpool.bin', hdf5_file])
