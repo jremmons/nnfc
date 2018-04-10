@@ -1,6 +1,5 @@
 #pragma once
 
-#include "blob1d.hh"
 #include "blob4d.hh"
 
 namespace NN {
