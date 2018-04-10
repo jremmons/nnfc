@@ -10,4 +10,5 @@ libnoop_a_SOURCES = noop.hh noop.cc blob4d.hh blob1d.hh
 libnn_a_SOURCES = nn.hh nn.cc \
                   activation.hh activation.cc \
                   convolution.hh convolution.cc \
+                  pool.hh pool.cc \
                   normalization.hh normalization.cc 
