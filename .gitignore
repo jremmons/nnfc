@@ -3,6 +3,7 @@ src/frontend/hello
 tests/pythonpath.txt
 tests/conv2d.bin
 tests/relu.bin
+tests/batchnorm.bin
 
 # other
 *.a
