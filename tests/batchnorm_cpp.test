@@ -38,7 +38,7 @@ bn.bias = bias
 bn.running_mean = means
 bn.running_var = variances
 
-outputs_nn = bn.forward(inputs)
+outputs_nn = bn(inputs)
 outputs_f = F.batch_norm(inputs, means, variances, weight, bias, False, 0.0, EPSILON)
 
 assert outputs_nn.equal(outputs_f)
