@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+
+import torch
+import torch.nn.functional as F
+from torch.autograd import Variable
+from torch.nn.parameter import Parameter
+
+import h5py
+import numpy as np
+import os
+import subprocess as sub
+
+TMPDIR = os.environ['NNFC_TEST_TMPDIR']
+
+batch_size = 13
+in_channels = 121
+out_channels = 63
+height = 1
+width = 1
+inputs = Variable(torch.randn(batch_size, in_channels, height, width))
+print('inputs.shape', inputs.shape)
+
+weights = Parameter(torch.randn(out_channels, in_channels))
+
+fc = torch.nn.Linear(in_channels, out_channels, bias=False)
+fc.weight = weights
+print('weights', weights.shape)
+
+inputs_ = inputs.view(inputs.size(0), -1)
+outputs_ = fc(inputs_) 
+outputs = outputs_.view(batch_size, out_channels, height, width)
+print('output', outputs.shape)
+
+hdf5_file = os.path.join(TMPDIR, 'fc.h5')
+with h5py.File(hdf5_file, 'w') as f:
+    f.create_dataset('input', data=inputs.data.numpy())
+    f.create_dataset('weights', data=weights.data.numpy())
+    f.create_dataset('output', data=outputs.data.numpy())
+
+sub.check_call(['./fc.bin', hdf5_file])
