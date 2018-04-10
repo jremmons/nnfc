@@ -6,6 +6,8 @@
 #include "blob4d.hh"
 #include "normalization.hh"
 
+const double tolerance = 1e-10;
+
 int main(int argc, char* argv[]){
 
     if(argc != 2){
@@ -72,7 +74,7 @@ int main(int argc, char* argv[]){
     for(size_t i = 0; i < input_size; i++) {
         const float error = output_data.get()[i] - output_data_correct.get()[i];
         const float squared_error = error*error;
-        if( squared_error >= 0.1  ){
+        if( squared_error > tolerance ){
             std::cerr << "expected:" << output_data_correct.get()[i] << " but got computed:" << output_data.get()[i] << "\n"; 
             throw std::runtime_error("There was a discrepancy between the PyTorch and the nnfc output.");
         }
