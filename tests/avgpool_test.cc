@@ -6,7 +6,7 @@
 #include "blob4d.hh"
 #include "pool.hh"
 
-const double tolerance = 1e-10;
+const double tolerance = 1e-6;
 
 int main(int argc, char* argv[]){
 
