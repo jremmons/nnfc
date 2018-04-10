@@ -53,7 +53,7 @@ int main(int argc, char* argv[]){
     // check output blob
     for(size_t i = 0; i < input_size; i++) {
         if(output_data.get()[i] != output_data_correct.get()[i]){
-            throw std::runtime_error("hihi");
+            throw std::runtime_error("There was a discrepancy between the PyTorch and the nnfc output.");
         }
     }
     
