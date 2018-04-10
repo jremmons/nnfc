@@ -5,6 +5,7 @@ tests/conv2d.bin
 tests/relu.bin
 tests/batchnorm.bin
 tests/fc.bin
+tests/avgpool.bin
 
 # other
 *.a
