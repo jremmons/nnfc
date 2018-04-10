@@ -12,7 +12,7 @@ import subprocess as sub
 
 TMPDIR = os.environ['NNFC_TEST_TMPDIR']
 
-EPSILON = 1e-3
+EPSILON = abs(np.random.randn(1)[0]) / 10.0
 
 batch_size = 13
 num_channels = 128
