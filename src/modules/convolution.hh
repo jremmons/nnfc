@@ -1,13 +1,14 @@
 #pragma once
 
-#include "blob1d.hh"
+#include "blob3d.hh"
 #include "blob4d.hh"
 
-// namespace NN {
+namespace NN {
 
-// void NN::conv2d(const Blob4D<float> &input, const Blob3D<float> &kernel,
-//                 Blob4D<uint64_t> &output,
-//                 const size_t stride = 0,
-//                 const size_t zero_padding = 0);
+    void conv2d(const Blob4D<float> &input,
+                const Blob4D<float> &kernel,
+                Blob4D<float> &output,
+                const size_t stride,
+                const size_t zero_padding);
     
-// }
+}
