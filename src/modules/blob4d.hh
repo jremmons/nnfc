@@ -10,6 +10,10 @@ public:
 
     const size_t &batch_size;
     const size_t &channels;
+
+    const size_t &out_channels;
+    const size_t &in_channels;    
+    
     const size_t &height;
     const size_t &width;
     const size_t &size;
@@ -19,6 +23,8 @@ public:
     Blob4D(T* data, size_t n, size_t c, size_t h, size_t w) :
         batch_size(batch_size_),
         channels(channels_),
+        out_channels(batch_size_),
+        in_channels(channels_),
         height(height_),
         width(width_),
         size(size_),

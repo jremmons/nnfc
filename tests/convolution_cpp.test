@@ -12,30 +12,30 @@ import subprocess as sub
 
 TMPDIR = os.environ['NNFC_TEST_TMPDIR']
 
-batch_size = 13
-num_channels = 128
-height = 59
-width = 71
-inputs = Variable(torch.randn(batch_size, num_channels, height, width))
+batch_size = 10
+num_channels = 63
+height = 234
+width = 294
+inputs = Variable(torch.zeros(batch_size, num_channels, height, width))
 print('inputs.shape', inputs.shape)
 
-num_kernels = 31
-kernel_height = 5
-kernel_width = 7
-kernel = Variable(torch.randn(num_kernels, num_channels, kernel_height, kernel_width))
+num_kernels = 1
+kernel_height = 7
+kernel_width = 5
+kernel = Variable(torch.ones(num_kernels, num_channels, kernel_height, kernel_width))
 print('kernel.shape', kernel.shape)
 
 stride = 2
 padding = 3
-outputs = F.conv2d(inputs, kernel, stride=stride, padding=padding, dilation=1, groups=1)
+outputs = F.conv2d(inputs, kernel, bias=None, stride=stride, padding=padding, dilation=1, groups=1)
 print('output.shape', outputs.shape)
 
-hdf5_file = os.path.join(TMPDIR, 'convolution_test.h5')
+hdf5_file = os.path.join(TMPDIR, 'convolution.h5')
 with h5py.File(hdf5_file, 'w') as f:
-    f.create_dataset('input', data=inputs.data.numpy())
-    f.create_dataset('kernel', data=kernel.data.numpy())
+    f.create_dataset('input', data=inputs.data.numpy(), dtype=np.uint64)
+    f.create_dataset('kernel', data=kernel.data.numpy(), dtype=np.uint64)
     f.create_dataset('stride', data=np.asarray([stride]))
-    f.create_dataset('padding', data=np.asarray([padding]))
+    f.create_dataset('zero_padding', data=np.asarray([padding]))
     f.create_dataset('output', data=outputs.data.numpy())
 
     f.create_dataset('hdf5_version', data=six.u(h5py.version.hdf5_version))
