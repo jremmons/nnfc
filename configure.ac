@@ -46,6 +46,7 @@ AX_PYTHON_VERSION([3.5.0])
 
 AX_PYTHON_MODULE_VERSION([setuptools], [33.0.0], [python3])
 AX_PYTHON_MODULE_VERSION([wheel], [0.29.0], [python3])
+AX_PYTHON_MODULE_VERSION([h5py], [2.7.0], [python3])
 AX_PYTHON_MODULE_VERSION([torch], [0.3.1], [python3])
 AX_PYTHON_MODULE_VERSION([cffi], [1.11.5], [python3])
 
