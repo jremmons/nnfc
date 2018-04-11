@@ -74,13 +74,14 @@ int main(int argc, char* argv[]){
 
     // check output blob
     for(size_t i = 0; i < output_size; i++) {
+        std::cerr << i << std::endl;
         std::cerr << output_data_correct.get()[i] << std::endl;
         std::cerr << output_data.get()[i] << std::endl;
 
         const float error = output_data.get()[i] - output_data_correct.get()[i];
         const float squared_error = error*error;
         if( squared_error > tolerance ){
-            std::cerr << "expected:" << output_data_correct.get()[i] << " but got computed:" << output_data.get()[i] << "\n"; 
+            std::cerr << i << " expected:" << output_data_correct.get()[i] << " but got computed:" << output_data.get()[i] << "\n"; 
             throw std::runtime_error("There was a discrepancy between the PyTorch and the nnfc output.");
         }
     }

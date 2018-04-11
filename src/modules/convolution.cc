@@ -37,14 +37,16 @@ void NN::conv2d(const Blob4D<float> &input,
                         for(size_t h = 0; h < kernel.height; h++){ 
                             for(size_t w = 0; w < kernel.width; w++){
                                 
-                                float kernel_weight = kernel.get(j, k, h, w);
-
-                                const int64_t y_image = y+h;
-                                const int64_t x_image = x+w;
+                                const int64_t y_image = y + h;
+                                const int64_t x_image = x + w;
 
                                 if(0 <= y_image and y_image < static_cast<int64_t>(input.height) and \
                                    0 <= x_image and x_image < static_cast<int64_t>(input.width)){
+                                    float kernel_weight = kernel.get(j, k, h, w);
+                                    std::cerr << "kernel_weight: " << kernel_weight << std::endl;
+
                                     float inp = input.get(i, k, y_image, x_image);
+                                    std::cerr << "inp: " << inp << std::endl;
                                     val += kernel_weight * inp;
                                 }
                             }
