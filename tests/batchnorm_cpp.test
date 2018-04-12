@@ -27,8 +27,8 @@ print('means.shape', means.shape)
 variances = torch.abs(torch.randn(num_channels)) + 0.1
 print('variances.shape', variances.shape)
 
-weight = Parameter(torch.ones(num_channels))
-bias = Parameter(torch.zeros(num_channels))
+weight = Parameter(torch.randn(num_channels))
+bias = Parameter(torch.randn(num_channels))
 
 # check both the nn.module and functional batch_norm interface
 bn = torch.nn.BatchNorm2d(num_channels, eps=EPSILON, momentum=0.0, affine=False)
@@ -48,6 +48,8 @@ with h5py.File(hdf5_file, 'w') as f:
     f.create_dataset('input', data=inputs.data.numpy())
     f.create_dataset('means', data=means.numpy())
     f.create_dataset('variances', data=variances.numpy())
+    f.create_dataset('weight', data=weight.data.numpy())
+    f.create_dataset('bias', data=bias.data.numpy())
     f.create_dataset('eps', data=np.asarray([EPSILON]))
     f.create_dataset('output', data=outputs_f.data.numpy())
 
