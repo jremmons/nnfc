@@ -30,7 +30,7 @@ AC_PROG_RANLIB
 
 # Checks for libraries.
 PKG_CHECK_MODULES([JPEG], [libturbojpeg])
-AX_LIB_HDF5([serial])
+AX_CHECK_HDF5_SERIAL()
 
 # Checks for header files.
 
