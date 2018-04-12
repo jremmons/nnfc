@@ -1,3 +1,9 @@
+AC_DEFUN([AX_CHECK_HDF5_SERIAL], [
+    AX_LIB_HDF5([serial])
+    AS_IF([test x"$with_hdf5" = xno],
+        [AC_MSG_ERROR([cannot build project without hdf5 support currently.])])
+])
+
 AC_DEFUN([AX_LIB_HDF5], [
 
 AC_REQUIRE([AC_PROG_SED])
