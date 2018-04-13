@@ -4,7 +4,7 @@ import os
 import json
 import shutil
 import logging
-import resnet_models as resnet
+import resnet
 import time
 import timeit
 
@@ -14,7 +14,7 @@ import torch.optim as optim
 
 import numpy as np
 
-NUM_EPOCHS = 200
+NUM_EPOCHS = 100
 logging.basicConfig(level=logging.DEBUG)
 
 def train(model, loss_fn, optimizer, batch_size, _data, _data_labels):
@@ -36,9 +36,9 @@ def train(model, loss_fn, optimizer, batch_size, _data, _data_labels):
     for i in range(0, data_len, batch_size):
 
         batch_data = data[i:i+batch_size, :, :, :]
-        batch_data = torch.autograd.Variable(torch.from_numpy(batch_data)).cuda()
+        batch_data = torch.autograd.Variable(torch.from_numpy(batch_data))#.cuda()
 
-        batch_labels = torch.autograd.Variable(torch.from_numpy(data_labels[i:i+batch_size].astype(np.int64))).cuda()
+        batch_labels = torch.autograd.Variable(torch.from_numpy(data_labels[i:i+batch_size].astype(np.int64)))#.cuda()
         
         optimizer.zero_grad()
         output = model(batch_data)
@@ -79,8 +79,8 @@ def test(model, loss_fn, batch_size, data, data_labels):
     for i in range(0, data_len, batch_size):
 
         batch_data = data[i:i+batch_size, :, :, :]
-        batch_data = torch.autograd.Variable(torch.from_numpy(batch_data)).cuda()
-        batch_labels = torch.autograd.Variable(torch.from_numpy(data_labels[i:i+batch_size].astype(np.int64))).cuda()
+        batch_data = torch.autograd.Variable(torch.from_numpy(batch_data))#.cuda()
+        # batch_labels = torch.autograd.Variable(torch.from_numpy(data_labels[i:i+batch_size].astype(np.int64)))#.cuda()
 
         t1 = timeit.default_timer()
         output = model(batch_data)
@@ -163,8 +163,9 @@ def main(args):
     #net = torch.nn.DataParallel(resnet.AutoencoderResNet(compaction_factor=args.compaction_factor, num_blocks=resnet34_blocks))
     #net.cuda()
     
-    net = torch.nn.DataParallel(resnet.ResNet50())
+    net = torch.nn.DataParallel(resnet.AutoencoderResNet(compaction_factor=args.compaction_factor, num_blocks=resnet34_blocks))
     net.cuda()
+    
     
     optimizer = optim.Adam(net.parameters(), lr=args.lr)
     #optimizer = optim.Adagrad(net.parameters(), lr=args.lr, lr_decay=0.01)
@@ -212,13 +213,13 @@ if __name__ == '__main__':
     parser.add_argument('data_hdf5', type=str)
     parser.add_argument('checkpoint_dir', type=str)
 
-    # parser.add_argument('--compaction_factor', type=float, default=1.0)
-    # parser.add_argument('--lr', type=float, default=0.001, 
-    #                     help='learning rate (default: 0.001)')
+    parser.add_argument('--compaction_factor', type=float, default=1.0)
+    parser.add_argument('--lr', type=float, default=0.001, 
+                        help='learning rate (default: 0.001)')
     parser.add_argument('--batch_size', type=int, default=500,
                         help='train/test batch_size (default: 1000)')
-    # parser.add_argument('--resnet_blocks', type=str, default='[2,2,2,2]',
-    #                     help='ex. [2,2,2,2]')
+    parser.add_argument('--resnet_blocks', type=str, default='[2,2,2,2]',
+                        help='ex. [2,2,2,2]')
     
     args = parser.parse_args()
     main(args)
