@@ -12,31 +12,8 @@
 
 ### Prerequistes 
 
-```bash
-sudo add-apt-repository -y ppa:keithw/libjpeg-turbo-backports  
-
-sudo apt-get update
-
-sudo apt-get install build-essential
-sudo apt-get install python3-dev
-sudo apt-get install libturbojpeg0-dev 
-```
+Read the [.travis.yml](https://github.com/jremmons/nnfc/blob/master/.travis.yml) file for building on Ubuntu
 
 ### Build
 
-```bash
-# Clone the repo
-git clone https://github.com/jremmons/nnfc.git
-cd nnfc
-
-# Build the library
-./autogen.sh
-./configure
-make -j 
-
-# Build the PyTorch wrapper
-python python/setup.py bdist_wheel
-
-# Install the PyTorch wrapper
-pip install dist/nnff-*
-```
+Read the [.travis.yml](https://github.com/jremmons/nnfc/blob/master/.travis.yml) file for building on Ubuntu
