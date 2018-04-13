@@ -6,6 +6,8 @@ tests/relu.bin
 tests/batchnorm.bin
 tests/fc.bin
 tests/avgpool.bin
+tests/simplecnn.bin
+tests/resnet18.bin
 
 # other
 *.a
