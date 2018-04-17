@@ -9,6 +9,10 @@ tests/avgpool.bin
 tests/simplecnn.bin
 tests/resnet18.bin
 
+src/modules/.libs/
+src/modules/libnnfc.la
+src/modules/nnfc.lo
+
 # other
 *.a
 *.o
