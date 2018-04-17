@@ -17,7 +17,7 @@ if torch.cuda.is_available():
     with_cuda = True
 
 include_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules'])
-library_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules'])
+library_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules', '../src/modules/.libs'])
 runtime_library_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules'])
 libraries = []
 
