@@ -15,7 +15,7 @@ batch_size = 13
 num_channels = 128
 height = 59
 width = 71
-inputs = Variable(torch.randn(batch_size, num_channels, height, width))
+inputs = Variable(10*torch.randn(batch_size, num_channels, height, width))
 print('inputs.shape', inputs.shape)
 
 outputs = F.relu(inputs, inplace=False)

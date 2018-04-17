@@ -137,7 +137,7 @@ int main(int argc, char* argv[]){
         const float error = output_data.get()[i] - output_data_correct.get()[i];
         const float squared_error = error*error;
         if( squared_error > tolerance ){
-            std::cerr << i << " expected:" << output_data_correct.get()[i] << " but got computed:" << output_data.get()[i] << "\n"; 
+            std::cerr << i << " expected:" << output_data_correct.get()[i] << " but computed:" << output_data.get()[i] << "\n"; 
             throw std::runtime_error("There was a discrepancy between the PyTorch and the nnfc output.");
         }
     }

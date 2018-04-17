@@ -25,7 +25,7 @@ void NNFC::encode(Blob4D<float> &input, Blob1D<uint8_t> &output) {
 
     std::cerr << "nnfc encoder was called!" << std::endl;
 
-    static_assert(sizeof(double) == sizeof(uint64_t), "the current code assumes doubles are 64-bits long");
+    static_assert(sizeof(double) == sizeof(uint64_t), "the current code assumes doubles are 64-bit long");
     size_t metadata_length = 6*sizeof(uint64_t);
     output.resize(sizeof(uint8_t) * input.batch_size * input.channels * input.height * input.width + metadata_length);
     
@@ -55,10 +55,6 @@ void NNFC::encode(Blob4D<float> &input, Blob1D<uint8_t> &output) {
     assert(min_valf == 0);
     std::cerr << "min_val: " << min_valf  << " max_val: " << max_valf << std::endl;
 
-    tjhandle _jpegCompressor = tjInitCompress();
-    //tjBufSize();
-    tjDestroy(_jpegCompressor);
-    
     for(size_t n = 0; n < input.batch_size; n++){
         for(size_t i = 0; i < input.channels; i++){
             for(size_t j = 0; j < input.height; j++){
@@ -77,6 +73,20 @@ void NNFC::encode(Blob4D<float> &input, Blob1D<uint8_t> &output) {
         }
     }
     
+    // tjhandle _jpegCompressor = tjInitCompress();
+
+    // int _width = 1920;
+    // int _height = 1080;
+    // long unsigned int _jpegSize = 0;
+    // unsigned char* _compressedImage = NULL; //!< Memory is allocated by tjCompress2 if _jpegSize == 0
+    // //unsigned char buffer[_width*_height*COLOR_COMPONENTS]; //!< Contains the uncompressed image
+
+    // tjCompress2(_jpegCompressor, buffer, _width, 0, _height, TJPF_RGB,
+    //             &_compressedImage, &_jpegSize, TJSAMP_444, JPEG_QUALITY,
+    //             TJFLAG_FASTDCT);
+    
+    // tjDestroy(_jpegCompressor);
+
     uint64_t batch_size = input.batch_size;
     uint64_t channels = input.channels;
     uint64_t height = input.height;
