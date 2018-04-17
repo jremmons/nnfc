@@ -8,6 +8,7 @@ AC_CONFIG_SRCDIR([src/modules/nnfc.hh])
 AC_CONFIG_HEADERS([config.h])
 
 # include extra macros
+AC_CONFIG_MACRO_DIRS([m4])
 m4_include(m4/python.m4)
 m4_include(m4/hdf5.m4)
 
@@ -26,7 +27,7 @@ AC_SUBST([PYWRAPPER_EXTRA_LDFLAGS])
 
 # Checks for programs.
 AC_PROG_CXX
-AC_PROG_RANLIB
+AM_PROG_LIBTOOL
 
 # Checks for libraries.
 PKG_CHECK_MODULES([JPEG], [libturbojpeg])
