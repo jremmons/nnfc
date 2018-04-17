@@ -74,9 +74,9 @@ int main(int argc, char* argv[]){
 
     // check output blob
     for(size_t i = 0; i < output_size; i++) {
-        std::cerr << i << std::endl;
-        std::cerr << output_data_correct.get()[i] << std::endl;
-        std::cerr << output_data.get()[i] << std::endl;
+        // std::cerr << i << std::endl;
+        // std::cerr << output_data_correct.get()[i] << std::endl;
+        // std::cerr << output_data.get()[i] << std::endl;
 
         const float error = output_data.get()[i] - output_data_correct.get()[i];
         const float squared_error = error*error;
