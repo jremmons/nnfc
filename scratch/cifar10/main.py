@@ -11,11 +11,27 @@ import timeit
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
+import torchvision
 
 import numpy as np
 
+import multiprocessing as mp
+
 NUM_EPOCHS = 200
 logging.basicConfig(level=logging.DEBUG)
+
+
+def transform_train(inputs):
+
+    inputs = inputs / 255.0    
+    return inputs
+
+
+def transform_test(inputs):
+
+    inputs = inputs / 255.0
+    return inputs
+
 
 def train(model, loss_fn, optimizer, batch_size, _data, _data_labels):
 
@@ -27,7 +43,7 @@ def train(model, loss_fn, optimizer, batch_size, _data, _data_labels):
 
     # shuffle the data and labels in the same way
     p = np.random.permutation(len(_data))
-    data = _data[p]
+    data = transform_train(_data[p])
     data_labels = _data_labels[p]
 
     train_loss = 0
@@ -36,8 +52,8 @@ def train(model, loss_fn, optimizer, batch_size, _data, _data_labels):
     for i in range(0, data_len, batch_size):
 
         batch_data = data[i:i+batch_size, :, :, :]
-        batch_data = torch.autograd.Variable(torch.from_numpy(batch_data)).cuda()
 
+        batch_data = torch.autograd.Variable(torch.from_numpy(batch_data)).cuda()
         batch_labels = torch.autograd.Variable(torch.from_numpy(data_labels[i:i+batch_size].astype(np.int64))).cuda()
         
         optimizer.zero_grad()
@@ -73,21 +89,22 @@ def test(model, loss_fn, batch_size, data, data_labels):
     data_labels_len = len(data_labels)
     assert data_len == data_labels_len, 'data_len != data_labels_len; {} != {}'.format(data_len, data_labels_len)
 
+    data = transform_test(data)
+    
     test_loss = 0
     correct = 0
     t1 = timeit.default_timer()
     for i in range(0, data_len, batch_size):
 
         batch_data = data[i:i+batch_size, :, :, :]
+
         batch_data = torch.autograd.Variable(torch.from_numpy(batch_data)).cuda()
         batch_labels = torch.autograd.Variable(torch.from_numpy(data_labels[i:i+batch_size].astype(np.int64))).cuda()
 
         t1 = timeit.default_timer()
         output = model(batch_data)
         t2 = timeit.default_timer()
-        print('fwd:', t2-t1)
-
-        continue
+        #print('fwd:', t2-t1)
 
         test_loss += loss_fn(output, batch_labels).data[0]
         pred = output.data.max(1, keepdim=True)[1]
@@ -123,10 +140,20 @@ def main(args):
     logging.info('done! (loading data into memory)')
 
     logging.info('compute and subtract train_data mean pixel value; squash to 0-1 as well')
-    train_data_raw_mean = np.mean(train_data_raw, axis=0)
+    train_data_raw_mean_c1 = np.mean(train_data_raw[:,0::3,:,:])
+    train_data_raw_mean_c2 = np.mean(train_data_raw[:,1::3,:,:])
+    train_data_raw_mean_c3 = np.mean(train_data_raw[:,2::3,:,:])
 
-    train_data_raw = (train_data_raw.astype(np.float64) - train_data_raw_mean) / 255.0
-    test_data_raw = (test_data_raw.astype(np.float64) - train_data_raw_mean) / 255.0
+    train_data_raw = train_data_raw.astype(np.float64)
+    test_data_raw = test_data_raw.astype(np.float64)
+
+    train_data_raw[:,0::3,:,:] = train_data_raw[:,0::3,:,:] - train_data_raw_mean_c1
+    train_data_raw[:,1::3,:,:] = train_data_raw[:,1::3,:,:] - train_data_raw_mean_c1
+    train_data_raw[:,2::3,:,:] = train_data_raw[:,2::3,:,:] - train_data_raw_mean_c2
+    
+    test_data_raw[:,0::3,:,:] = test_data_raw[:,0::3,:,:] - train_data_raw_mean_c1
+    test_data_raw[:,1::3,:,:] = test_data_raw[:,1::3,:,:] - train_data_raw_mean_c1
+    test_data_raw[:,2::3,:,:] = test_data_raw[:,2::3,:,:] - train_data_raw_mean_c2
 
     train_data_raw = train_data_raw.astype(np.float32)
     test_data_raw = test_data_raw.astype(np.float32)
@@ -139,8 +166,6 @@ def main(args):
         'data_hdf5' : os.path.abspath(args.data_hdf5),
         'checkpoint_dir' : os.path.abspath(args.checkpoint_dir),
         'batch_size' : args.batch_size,
-        'resnet_blocks' : args.resnet_blocks,
-        'compaction_factor' : args.compaction_factor,
         'learning_rate' : args.lr,
         'training_epochs' : NUM_EPOCHS, 
         }
@@ -213,10 +238,10 @@ if __name__ == '__main__':
     parser.add_argument('checkpoint_dir', type=str)
 
     # parser.add_argument('--compaction_factor', type=float, default=1.0)
-    # parser.add_argument('--lr', type=float, default=0.001, 
-    #                     help='learning rate (default: 0.001)')
-    parser.add_argument('--batch_size', type=int, default=500,
-                        help='train/test batch_size (default: 1000)')
+    parser.add_argument('--lr', type=float, default=0.001, 
+                        help='learning rate (default: 0.001)')
+    parser.add_argument('--batch_size', type=int, default=250,
+                        help='train/test batch_size (default: 250)')
     # parser.add_argument('--resnet_blocks', type=str, default='[2,2,2,2]',
     #                     help='ex. [2,2,2,2]')
     
