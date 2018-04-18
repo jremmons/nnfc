@@ -12,6 +12,8 @@ tests/resnet18.bin
 src/modules/.libs/
 src/modules/libnnfc.la
 src/modules/nnfc.lo
+src/modules/libnoop.la
+src/modules/noop.lo
 
 # other
 *.a
