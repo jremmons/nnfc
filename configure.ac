@@ -9,6 +9,7 @@ AC_CONFIG_HEADERS([config.h])
 
 # include extra macros
 AC_CONFIG_MACRO_DIRS([m4])
+m4_include(m4/boost.m4)
 m4_include(m4/python.m4)
 m4_include(m4/hdf5.m4)
 
@@ -30,10 +31,12 @@ AC_PROG_CXX
 AM_PROG_LIBTOOL
 
 # Checks for libraries.
-PKG_CHECK_MODULES([JPEG], [libturbojpeg])
+BOOST_REQUIRE([1.54.0])
 AX_CHECK_HDF5_SERIAL()
+PKG_CHECK_MODULES([JPEG], [libturbojpeg])
 
 # Checks for header files.
+BOOST_MULTIARRAY()
 
 # Checks for typedefs, structures, and compiler characteristics.
 
