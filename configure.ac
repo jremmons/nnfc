@@ -9,9 +9,9 @@ AC_CONFIG_HEADERS([config.h])
 
 # include extra macros
 AC_CONFIG_MACRO_DIRS([m4])
-m4_include(m4/boost.m4)
 m4_include(m4/python.m4)
 m4_include(m4/hdf5.m4)
+#m4_include(m4/boost.m4)
 
 # Add picky CXXFLAGS
 CXX14_FLAGS="-std=c++14"
@@ -22,7 +22,6 @@ AC_SUBST([PICKY_CXXFLAGS])
 # add flags for python wrapper compilation
 PYWRAPPER_EXTRA_CFLAGS="-std=c++14 -Wall -Wextra -Weffc++"
 PYWRAPPER_EXTRA_LDFLAGS=""
-
 AC_SUBST([PYWRAPPER_EXTRA_CFLAGS])
 AC_SUBST([PYWRAPPER_EXTRA_LDFLAGS])
 
@@ -31,12 +30,20 @@ AC_PROG_CXX
 AM_PROG_LIBTOOL
 
 # Checks for libraries.
-BOOST_REQUIRE([1.54.0])
-AX_CHECK_HDF5_SERIAL()
 PKG_CHECK_MODULES([JPEG], [libturbojpeg])
+AX_CHECK_HDF5_SERIAL()
+#BOOST_REQUIRE([1.54.0])
+
+AC_CHECK_FILE([/usr/include/eigen3/unsupported/Eigen/CXX11/Tensor], [
+    EIGEN3_CFLAGS="-isystem /usr/include/eigen3/"
+    EIGEN3_UNSUPPORTED_CFLAGS="-isystem /usr/include/eigen3/unsupported/"
+    AC_SUBST([EIGEN3_CFLAGS])
+    AC_SUBST([EIGEN3_UNSUPPORTED_CFLAGS])],
+    [AC_MSG_ERROR([Missing eigen3 'Tensor' header. Something does not seem right...])
+])
 
 # Checks for header files.
-BOOST_MULTIARRAY()
+#BOOST_MULTIARRAY()
 
 # Checks for typedefs, structures, and compiler characteristics.
 
