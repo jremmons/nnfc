@@ -1,4 +1,6 @@
-AM_CPPFLAGS = -I$(srcdir)/../modules
+AM_CPPFLAGS = -I$(srcdir)/../modules \
+              $(EIGEN3_CFLAGS) $(EIGEN3_UNSUPPORTED_CFLAGS)
+
 AM_CXXFLAGS = $(PICKY_CXXFLAGS) $(CXX14_FLAGS)
 
 bin_PROGRAMS = nn

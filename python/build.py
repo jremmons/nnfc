@@ -23,7 +23,7 @@ libraries = []
 
 extra_compile_args = os.environ.get("CXXFLAGS", "").split() + []
 extra_link_args = ['-lnoop', '-lnnfc', '-lturbojpeg']
-extra_objects = []
+extra_objects = ['../src/modules/.libs/libnnfc.a']
 
 # TODO(jremmons) provide option for dynamic linking external libraries
 # Note: we currently statically link so that our experiments will always use identical libraries

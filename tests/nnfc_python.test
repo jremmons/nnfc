@@ -21,7 +21,7 @@ class MyNetwork(nn.Module):
 
 model = MyNetwork()
 
-x = torch.arange(0, 4000).view(10, 4, 10, 10) % 256
+x = torch.randn(13, 7, 5, 11)  % 256
 
 print('cpu only test')
 inp = Variable(x)
