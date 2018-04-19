@@ -29,7 +29,7 @@ install:
   - g++ -v
 
   # install eigen3
-  - sudo add-apt-repository ppa:jremmons/libeigen3-backports
+  - sudo add-apt-repository -y ppa:jremmons/libeigen3-backports
   - sudo apt-get update -q
   - sudo apt-get install libeigen3-dev-3.3.4-4:i386
 
