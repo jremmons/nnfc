@@ -8,10 +8,11 @@
 #include<Eigen/Dense>
 #include<Eigen/CXX11/Tensor>
 
+#include "blob.hh"
 #include "blobs.hh"
 #include "common.hh"
 #include "nnfc.hh"
-
+    
 // functions must 'extern "C"' in order to be callable from within pytorch/python
 // https://github.com/torch/TH/blob/master/generic/THTensor.h
 
@@ -32,14 +33,11 @@ extern "C" int nnfc_encode_forward(THFloatTensor *input, THByteTensor *output)
     size_t h_size = THFloatTensor_size(input, 2);
     size_t w_size = THFloatTensor_size(input, 3);
     float* input_data = THFloatTensor_data(input);
-    Blob4DTorchFloat input_blob{input_data, n_size, c_size, h_size, w_size};
-
-    // Eigen::TensorMap<Eigen::Tensor<float, 4>> input_eigen_blob{input_data, n_size, c_size, h_size, w_size};
-    // std::cerr << "the (0,0,0,0) value: " << input_eigen_blob(0,0,0,0) << std::endl;    
-
+    TorchFloatBlob4D input_blob{input, input_data, n_size, c_size, h_size, w_size};
+    
     size_t b_size = THByteTensor_nElement(output);
     uint8_t *output_data = THByteTensor_data(output);
-    Blob1DTorchByte output_blob{output_data, b_size, output};
+    TorchByteBlob1D output_blob{output, output_data, b_size};
 
     // call the encoder
     NNFC::encode(input_blob, output_blob);
@@ -71,11 +69,14 @@ extern "C" int nnfc_decode_forward(THByteTensor *input, THFloatTensor *output)
     // munge the blobs
     size_t b_size = THByteTensor_nElement(input);
     uint8_t* input_data = THByteTensor_data(input);
-    Blob1DTorchByte input_blob{input_data, b_size};
+    //Blob1DTorchByte input_blob{input_data, b_size};
+    TorchByteBlob1D input_blob{input, input_data, b_size};
+
     
     size_t n_size = THFloatTensor_nElement(output);
     float* output_data = THFloatTensor_data(output);
-    Blob4DTorchFloat output_blob{output_data, n_size, 0, 0, 0, output};
+    //Blob4DTorchFloat output_blob{output_data, n_size, 1, 1, 1, output};
+    TorchFloatBlob4D output_blob{output, output_data, n_size, 1, 1, 1};
 
     // call the decoder
     NNFC::decode(input_blob, output_blob);

@@ -5,10 +5,9 @@
 #include <cassert>
 #include <cstdint>
 #include <iostream>
-
-#include <Eigen/Dense>
 #include <Eigen/CXX11/Tensor>
 
+#include "blob.hh"
 #include "blob1d.hh"
 #include "blob4d.hh"
 
@@ -21,23 +20,33 @@ static uint64_t magic_num = 0xDEADBEEF;
 // add a 'working memory' blob that can be pass into the function
 // 
 
-void NNFC::encode(Blob4D<float> &input, Blob1D<uint8_t> &output) {
+void NNFC::encode(const Blob<float, 4> &input_blob, Blob<uint8_t, 1> &output_blob) {
 
-
+    auto input = input_blob.get_tensor();
+    
     static_assert(sizeof(double) == sizeof(uint64_t), "the current code assumes doubles are 64-bit long");
     size_t metadata_length = 6*sizeof(uint64_t);
-    output.resize(sizeof(uint8_t) * input.batch_size * input.channels * input.height * input.width + metadata_length);
+
+    uint64_t batch_size = input.dimension(0);
+    uint64_t channels = input.dimension(1);
+    uint64_t height = input.dimension(2);
+    uint64_t width = input.dimension(3);
+
+    std::cerr << batch_size << " " << channels << " " << height << " " << width << std::endl;
+    
+    output_blob.resize(sizeof(uint8_t) * batch_size * channels * height * width + metadata_length);
+    auto output = output_blob.get_tensor();
     
     float max_valf = 0.0;
     float min_valf = 0.0;
 
     // get the min and the max values
-    for(size_t n = 0; n < input.batch_size; n++){
-        for(size_t i = 0; i < input.channels; i++){
-            for(size_t j = 0; j < input.height; j++){
-                for(size_t k = 0; k < input.width; k++){
+    for(size_t n = 0; n < batch_size; n++){
+        for(size_t i = 0; i < channels; i++){
+            for(size_t j = 0; j < height; j++){
+                for(size_t k = 0; k < width; k++){
 
-                    float num = input.get(n, i ,j ,k); 
+                    float num = input(n, i ,j ,k); 
                     if(num > max_valf){
                         max_valf = num;
                     }
@@ -54,18 +63,18 @@ void NNFC::encode(Blob4D<float> &input, Blob1D<uint8_t> &output) {
     assert(min_valf == 0);
     std::cerr << "min_val: " << min_valf  << " max_val: " << max_valf << std::endl;
 
-    for(size_t n = 0; n < input.batch_size; n++){
-        for(size_t i = 0; i < input.channels; i++){
-            for(size_t j = 0; j < input.height; j++){
-                for(size_t k = 0; k < input.width; k++){
+    for(size_t n = 0; n < batch_size; n++){
+        for(size_t i = 0; i < channels; i++){
+            for(size_t j = 0; j < height; j++){
+                for(size_t k = 0; k < width; k++){
 
-                    float num = input.get(n, i ,j ,k); 
+                    float num = input(n, i ,j ,k); 
 
                     num = num / (max_valf/255.0); // squash between 0 and 255.0
                     uint8_t quantized_val = static_cast<uint8_t>(num);
                     
-                    size_t offset = input.channels*input.height*input.width*n + input.height*input.width*i + input.width*j + k;
-                    output.set(quantized_val, offset + 0);
+                    size_t offset = channels*height*width*n + height*width*i + width*j + k;
+                    output(offset) = quantized_val;
 
                 }
             }
@@ -89,10 +98,6 @@ void NNFC::encode(Blob4D<float> &input, Blob1D<uint8_t> &output) {
     
     // tjDestroy(_jpegCompressor);
 
-    uint64_t batch_size = input.batch_size;
-    uint64_t channels = input.channels;
-    uint64_t height = input.height;
-    uint64_t width = input.width;
     double max_val = max_valf;
     
     uint8_t *magic_num_bytes = reinterpret_cast<uint8_t*>(&magic_num);
@@ -103,19 +108,19 @@ void NNFC::encode(Blob4D<float> &input, Blob1D<uint8_t> &output) {
     uint8_t *max_val_bytes = reinterpret_cast<uint8_t*>(&max_val);
     
     for(size_t i = 0; i < 8; i++){
-        output.set(magic_num_bytes[i], output.size-8 + i);
-        output.set(batch_size_bytes[i], output.size-16 + i);
-        output.set(channels_bytes[i], output.size-24 + i);
-        output.set(height_bytes[i], output.size-32 + i);
-        output.set(width_bytes[i], output.size-40 + i);    
-        output.set(max_val_bytes[i], output.size-48 + i);            
+        output(output.size()-8 + i) = magic_num_bytes[i];
+        output(output.size()-16 + i) = batch_size_bytes[i];
+        output(output.size()-24 + i) = channels_bytes[i];
+        output(output.size()-32 + i) = height_bytes[i];
+        output(output.size()-40 + i) = width_bytes[i];    
+        output(output.size()-48 + i) = max_val_bytes[i];
     }
     
 }
 
-void NNFC::decode(Blob1D<uint8_t> &input, Blob4D<float> &output) {
+void NNFC::decode(const Blob<uint8_t, 1> &input_blob, Blob<float, 4> &output_blob) {
 
-    std::cerr << "nnfc decoder was called!" << std::endl;
+    auto input = input_blob.get_tensor();
 
     uint64_t magic_num_read;
     uint64_t batch_size;
@@ -130,31 +135,35 @@ void NNFC::decode(Blob1D<uint8_t> &input, Blob4D<float> &output) {
     uint8_t *height_bytes = reinterpret_cast<uint8_t*>(&height);
     uint8_t *width_bytes = reinterpret_cast<uint8_t*>(&width);
     uint8_t *max_val_bytes = reinterpret_cast<uint8_t*>(&max_val);
-    
+
     for(size_t i = 0; i < 8; i++){
-        magic_num_bytes[i] = input.get(input.size-8 + i);
-        batch_size_bytes[i] = input.get(input.size-16 + i);
-        channels_bytes[i] = input.get(input.size-24 + i);
-        height_bytes[i] = input.get(input.size-32 + i);
-        width_bytes[i] = input.get(input.size-40 + i);    
-        max_val_bytes[i] = input.get(input.size-48 + i);    
+        magic_num_bytes[i] = input(input.size()-8 + i);
+        batch_size_bytes[i] = input(input.size()-16 + i);
+        channels_bytes[i] = input(input.size()-24 + i);
+        height_bytes[i] = input(input.size()-32 + i);
+        width_bytes[i] = input(input.size()-40 + i);    
+        max_val_bytes[i] = input(input.size()-48 + i);    
     }
 
-    assert(magic_num_read == magic_num);
+    if(magic_num_read != magic_num) {
+        std::cerr << "magic number does not match!" << std::endl;
+        throw std::runtime_error("magic number does not match!");
+    }
 
-    output.resize(batch_size, channels, height, width);
-        
-    for(size_t n = 0; n < output.batch_size; n++){
-        for(size_t i = 0; i < output.channels; i++){
-            for(size_t j = 0; j < output.height; j++){
-                for(size_t k = 0; k < output.width; k++){
+    output_blob.resize(batch_size, channels, height, width);
+    auto output = output_blob.get_tensor();
+    
+    for(size_t n = 0; n < batch_size; n++){
+        for(size_t i = 0; i < channels; i++){
+            for(size_t j = 0; j < height; j++){
+                for(size_t k = 0; k < width; k++){
 
-                    size_t offset = output.channels*output.height*output.width*n + output.height*output.width*i + output.width*j + k;
-                    uint8_t quantized_val = input.get(offset);
+                    size_t offset = channels*height*width*n + height*width*i + width*j + k;
+                    uint8_t quantized_val = input(offset);
                     
                     float uncompressed_val = (max_val * static_cast<double>(quantized_val)) / 255.0;
 
-                    output.set(uncompressed_val, n, i, j, k);
+                    output(n, i, j, k) = uncompressed_val;
 
                 }
             }
