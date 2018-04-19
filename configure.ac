@@ -34,6 +34,7 @@ PKG_CHECK_MODULES([JPEG], [libturbojpeg])
 AX_CHECK_HDF5_SERIAL()
 #BOOST_REQUIRE([1.54.0])
 
+# Important: need to add flags for AVX, SSE, etc.
 AC_CHECK_FILE([/usr/include/eigen3/unsupported/Eigen/CXX11/Tensor], [
     EIGEN3_CFLAGS="-isystem /usr/include/eigen3/"
     EIGEN3_UNSUPPORTED_CFLAGS="-isystem /usr/include/eigen3/unsupported/"
