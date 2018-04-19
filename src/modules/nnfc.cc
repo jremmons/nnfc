@@ -6,11 +6,11 @@
 #include <cstdint>
 #include <iostream>
 
+#include <Eigen/Dense>
+#include <Eigen/CXX11/Tensor>
+
 #include "blob1d.hh"
 #include "blob4d.hh"
-
-const int JPEG_QUALITY = 98;
-const int COLOR_COMPONENTS = 1;
 
 static uint64_t magic_num = 0xDEADBEEF;
 
@@ -23,7 +23,6 @@ static uint64_t magic_num = 0xDEADBEEF;
 
 void NNFC::encode(Blob4D<float> &input, Blob1D<uint8_t> &output) {
 
-    std::cerr << "nnfc encoder was called!" << std::endl;
 
     static_assert(sizeof(double) == sizeof(uint64_t), "the current code assumes doubles are 64-bit long");
     size_t metadata_length = 6*sizeof(uint64_t);
@@ -73,6 +72,9 @@ void NNFC::encode(Blob4D<float> &input, Blob1D<uint8_t> &output) {
         }
     }
     
+    // const int JPEG_QUALITY = 98;
+    // const int COLOR_COMPONENTS = 1;
+
     // tjhandle _jpegCompressor = tjInitCompress();
 
     // int _width = 1920;

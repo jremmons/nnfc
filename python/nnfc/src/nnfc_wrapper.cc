@@ -5,6 +5,9 @@
 #include <cstdint>
 #include <iostream>
 
+#include<Eigen/Dense>
+#include<Eigen/CXX11/Tensor>
+
 #include "blobs.hh"
 #include "common.hh"
 #include "nnfc.hh"
@@ -14,6 +17,7 @@
 
 extern "C" int nnfc_encode_forward(THFloatTensor *input, THByteTensor *output)
 {
+
     // sanity checking
     {
         int input_contiguous = THFloatTensor_isContiguous(input);
