@@ -34,6 +34,9 @@ extern "C" int nnfc_encode_forward(THFloatTensor *input, THByteTensor *output)
     float* input_data = THFloatTensor_data(input);
     Blob4DTorchFloat input_blob{input_data, n_size, c_size, h_size, w_size};
 
+    // Eigen::TensorMap<Eigen::Tensor<float, 4>> input_eigen_blob{input_data, n_size, c_size, h_size, w_size};
+    // std::cerr << "the (0,0,0,0) value: " << input_eigen_blob(0,0,0,0) << std::endl;    
+
     size_t b_size = THByteTensor_nElement(output);
     uint8_t *output_data = THByteTensor_data(output);
     Blob1DTorchByte output_blob{output_data, b_size, output};
