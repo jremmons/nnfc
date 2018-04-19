@@ -31,7 +31,7 @@ install:
   # install eigen3
   - sudo add-apt-repository -y ppa:jremmons/libeigen3-backports
   - sudo apt-get update -q
-  - sudo apt-get install libeigen3-dev-3.3.4-4:i386
+  - sudo apt-get install libeigen3-dev:i386
 
   # upgrade python version
   - sudo add-apt-repository ppa:fkrull/deadsnakes -y 
