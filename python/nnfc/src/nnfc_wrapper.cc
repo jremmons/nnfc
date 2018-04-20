@@ -5,10 +5,6 @@
 #include <cstdint>
 #include <iostream>
 
-#include<Eigen/Dense>
-#include<Eigen/CXX11/Tensor>
-
-#include "blob.hh"
 #include "blobs.hh"
 #include "common.hh"
 #include "nnfc.hh"
@@ -22,20 +18,20 @@ extern "C" int nnfc_encode_forward(THFloatTensor *input, THByteTensor *output)
     // sanity checking
     {
         int input_contiguous = THFloatTensor_isContiguous(input);
-        ASSERT(input_contiguous);
+        WrapperAssert(input_contiguous, "input array not contiguous!");
         int input_ndims = THFloatTensor_nDimension(input);
-        ASSERT(input_ndims == 4);
+        WrapperAssert(input_ndims == 4, "input dimensions must be 4");
     }
 
     // munge the blobs
-    size_t n_size = THFloatTensor_size(input, 0);
-    size_t c_size = THFloatTensor_size(input, 1);
-    size_t h_size = THFloatTensor_size(input, 2);
-    size_t w_size = THFloatTensor_size(input, 3);
+    Eigen::Index n_size = THFloatTensor_size(input, 0);
+    Eigen::Index c_size = THFloatTensor_size(input, 1);
+    Eigen::Index h_size = THFloatTensor_size(input, 2);
+    Eigen::Index w_size = THFloatTensor_size(input, 3);
     float* input_data = THFloatTensor_data(input);
     TorchFloatBlob4D input_blob{input, input_data, n_size, c_size, h_size, w_size};
     
-    size_t b_size = THByteTensor_nElement(output);
+    Eigen::Index b_size = THByteTensor_nElement(output);
     uint8_t *output_data = THByteTensor_data(output);
     TorchByteBlob1D output_blob{output, output_data, b_size};
 
@@ -60,22 +56,19 @@ extern "C" int nnfc_decode_forward(THByteTensor *input, THFloatTensor *output)
     // sanity checking
     {
         int input_contiguous = THByteTensor_isContiguous(input);
-        ASSERT(input_contiguous);
+        WrapperAssert(input_contiguous, "input array not contiguous!");
         
         int input_ndims = THByteTensor_nDimension(input);
-        ASSERT(input_ndims == 1);
+        WrapperAssert(input_ndims == 1, "input dimensions must be 1");
     }
     
     // munge the blobs
-    size_t b_size = THByteTensor_nElement(input);
+    Eigen::Index b_size = THByteTensor_nElement(input);
     uint8_t* input_data = THByteTensor_data(input);
-    //Blob1DTorchByte input_blob{input_data, b_size};
     TorchByteBlob1D input_blob{input, input_data, b_size};
-
     
-    size_t n_size = THFloatTensor_nElement(output);
+    Eigen::Index n_size = THFloatTensor_nElement(output);
     float* output_data = THFloatTensor_data(output);
-    //Blob4DTorchFloat output_blob{output_data, n_size, 1, 1, 1, output};
     TorchFloatBlob4D output_blob{output, output_data, n_size, 1, 1, 1};
 
     // call the decoder

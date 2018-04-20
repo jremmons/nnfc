@@ -1,14 +1,16 @@
 #pragma once
 
 #include <iostream>
+#include <string>
 
-#define DEBUG 1
-#define ASSERT(expr) if(!(expr) and DEBUG){ std::cerr << "assertion failed: " << __FILE__ << ":" <<  __LINE__ << " \n"; throw; } // TOOD(jremmons) make this more sensible...
+#define _DEBUG 1
 
-inline void WrapperAssert(bool expr, const char* message="unnammed runtime error"){
+inline void WrapperAssert(bool expr, const std::string message="unnammed runtime error"){
+    #ifdef _DEBUG 
     if(!expr){
         throw std::runtime_error(message);
     }
+    #endif
 }
 
 #define _TORCH_SUCCESS 1;

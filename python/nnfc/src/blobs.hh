@@ -13,18 +13,21 @@ private:
     THFloatTensor *tensor_;
 
 public:
-    TorchFloatBlob4D(THFloatTensor *tensor, float *data, size_t n, size_t c, size_t h, size_t w) :
+    TorchFloatBlob4D(THFloatTensor *tensor, float *data, Eigen::Index n, Eigen::Index c, Eigen::Index h, Eigen::Index w) :
         Blob<float, 4>(data, n, c, h, w),
         tensor_(tensor)
     { }
-    
-    void resize(size_t n, ...) {
+    TorchFloatBlob4D(const TorchFloatBlob4D&) = delete;
+    TorchFloatBlob4D(const TorchFloatBlob4D&&) = delete; 
+    TorchFloatBlob4D& operator=(TorchFloatBlob4D &rhs) = delete;    
+   
+    void resize(Eigen::Index n, ...) {
 
         va_list args;
         va_start(args, n);
-        size_t c = va_arg(args, size_t);
-        size_t h = va_arg(args, size_t);
-        size_t w = va_arg(args, size_t);
+        Eigen::Index c = va_arg(args, Eigen::Index);
+        Eigen::Index h = va_arg(args, Eigen::Index);
+        Eigen::Index w = va_arg(args, Eigen::Index);
         va_end(args);
         
         WrapperAssert(tensor_ != NULL, "Cannot resize tensor/blob! The PyTorch tensor is null!");
@@ -56,12 +59,15 @@ private:
     THByteTensor *tensor_;
 
 public:
-    TorchByteBlob1D(THByteTensor *tensor, uint8_t *data, size_t n) :
+    TorchByteBlob1D(THByteTensor *tensor, uint8_t *data, Eigen::Index n) :
         Blob<uint8_t, 1>(data, n),
         tensor_(tensor)
     { }
+    TorchByteBlob1D(const TorchByteBlob1D&) = delete;
+    TorchByteBlob1D(const TorchByteBlob1D&&) = delete;
+    TorchByteBlob1D& operator=(TorchByteBlob1D &rhs) = delete;
     
-    void resize(size_t n, ...) {
+    void resize(Eigen::Index n, ...) {
 
         WrapperAssert(tensor_ != NULL, "Cannot resize tensor/blob! The PyTorch tensor is null!");
 
@@ -79,107 +85,4 @@ public:
 
     }
 
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-class Blob1DTorchByte : public Blob1D<uint8_t> {
-public:
-    Blob1DTorchByte(uint8_t *data, size_t size, THByteTensor *tensor=NULL) :
-        Blob1D<uint8_t>(data, size),
-        tensor_(tensor)
-    { }
-    
-    void resize(size_t new_size) {
-        if(!tensor_){
-            throw std::runtime_error("cannot resize tensor! The PyTorch tensor is null!");
-        }
-
-        if(new_size == size_){
-            return; // no change in size
-        }
-
-        THByteTensor_resize1d(tensor_, new_size); // will realloc
-        data_ = THByteTensor_data(tensor_);
-        size_ = THByteTensor_size(tensor_, 0);
-        
-        ASSERT(size_ == new_size);
-    }
-    
-private:
-    THByteTensor *tensor_;
-};
-
-class Blob4DTorchFloat : public Blob4D<float> {
-public:
-    Blob4DTorchFloat(float *data, size_t n, size_t c, size_t h, size_t w, THFloatTensor *tensor=NULL) :
-        Blob4D<float>(data, n, c, h, w),
-        tensor_(tensor)
-    { }
-    
-    void resize(size_t new_n, size_t new_c, size_t new_h, size_t new_w) {
-        if(!tensor_){
-            throw std::runtime_error("cannot resize tensor! The PyTorch tensor is null!");
-        }
-
-        if(new_n == batch_size_ and
-           new_c == channels_ and
-           new_h == height_ and
-           new_w == width_){
-
-            return; // no change in size
-        }
-        
-        THFloatTensor_resize4d(tensor_, new_n, new_c, new_h, new_w); // will realloc
-        data_ = THFloatTensor_data(tensor_);
-
-        batch_size_ = THFloatTensor_size(tensor_, 0);
-        channels_ = THFloatTensor_size(tensor_, 1);
-        height_ = THFloatTensor_size(tensor_, 2);
-        width_ = THFloatTensor_size(tensor_, 3);
-
-        size_ = batch_size_ * channels_ * height_ * width_;
-
-        batch_stride_ = channels_ * height_ * width_;
-        channels_stride_ = height_ * width_;
-        height_stride_ = width_;
-        width_stride_ = 1;
-        
-        ASSERT(batch_size_ == new_n);
-        ASSERT(channels_ == new_c);
-        ASSERT(height_ == new_h);
-        ASSERT(width_ == new_w);
-        ASSERT(size_ == new_n * new_c * new_h * new_w);
-    }
-
-private:
-    THFloatTensor *tensor_;
 };

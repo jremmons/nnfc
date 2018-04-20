@@ -7,17 +7,16 @@
 #include <cstdarg>
 #include <memory>
 
-template <typename T, size_t ndims>
+template <typename T, int ndims>
 class Blob {
 protected:
-    const size_t ndims_;
+    const int ndims_;
     Eigen::DSizes<Eigen::Index, ndims> size_;
     T* data_; // we do not own this data
 
     void set_tensor(void) {
         Eigen::TensorMap<Eigen::Tensor<T, ndims>> new_tensor{data_, size_};
         std::memcpy(&tensor, &new_tensor, sizeof(Eigen::TensorMap<Eigen::Tensor<T, ndims>>));
-        //tensor = new_tensor;
     }
     
 public:
@@ -26,34 +25,35 @@ public:
 
     Blob(T* data, ...) :
         ndims_(ndims),
+        size_(),
         data_(data),
         tensor(Eigen::TensorMap<Eigen::Tensor<T, ndims>>(nullptr, size_))
     {
         va_list args;
         va_start(args, data);
 
-        for (size_t i = 0; i < ndims; i++) {
-            size_[i] = va_arg(args, size_t);
+        for (int i = 0; i < ndims; i++) {
+            size_[i] = va_arg(args, Eigen::Index);
         }
 
         va_end(args);
-
         set_tensor();
         
     }
     Blob(const Blob<T, ndims>&) = delete;
-    ~Blob() {}
-
+    Blob(const Blob<T, ndims>&&) = delete;
+    virtual ~Blob() {}
+    
     Blob<T, ndims>& operator=(Blob<T, ndims> &rhs) = delete;    
     
-    size_t dimension(size_t dim) const {
+    Eigen::Index dimension(Eigen::Index dim) const {
         return size_[dim];
     }
 
-    size_t size(void) const {
-        size_t s = 1;
+    Eigen::Index size(void) const {
+        Eigen::Index s = 1;
 
-        for(size_t i = 0; i < ndims; i++){
+        for(int i = 0; i < ndims; i++){
             s *= dimension(i);
         }
 
@@ -63,7 +63,7 @@ public:
     Eigen::TensorMap<Eigen::Tensor<T, ndims>> get_tensor(void) const {
         Eigen::DSizes<long int, ndims> dimensions;
 
-        for(size_t i = 0; i < ndims; i++){
+        for(int i = 0; i < ndims; i++){
             dimensions[i] = size_[i];
         }
 
@@ -71,7 +71,7 @@ public:
         return tensor;
     }
     
-    virtual void resize(size_t, ...) {
+    virtual void resize(Eigen::Index, ...) {
         throw std::runtime_error("resize is not defined in the base class of 'blob'");
     }    
 };

@@ -5,21 +5,101 @@
 #include <cstdint>
 #include <iostream>
 
-#include "blobs.hh"
+#include "blob1d.hh"
+#include "blob4d.hh"
 #include "common.hh"
 #include "noop.hh"
 
 // functions must 'extern "C"' in order to be callable from within pytorch/python
 // https://github.com/torch/TH/blob/master/generic/THTensor.h
 
+class Blob1DTorchByte : public Blob1D<uint8_t> {
+public:
+    Blob1DTorchByte(uint8_t *data, size_t size, THByteTensor *tensor=NULL) :
+        Blob1D<uint8_t>(data, size),
+        tensor_(tensor)
+    { }
+    Blob1DTorchByte(const Blob1DTorchByte&) = delete;
+    Blob1DTorchByte(const Blob1DTorchByte&&) = delete;
+    Blob1DTorchByte& operator=(Blob1DTorchByte &rhs) = delete;
+    
+    void resize(size_t new_size) {
+        if(!tensor_){
+            throw std::runtime_error("cannot resize tensor! The PyTorch tensor is null!");
+        }
+
+        if(new_size == size_){
+            return; // no change in size
+        }
+
+        THByteTensor_resize1d(tensor_, new_size); // will realloc
+        data_ = THByteTensor_data(tensor_);
+        size_ = THByteTensor_size(tensor_, 0);
+        
+        WrapperAssert(size_ == new_size, "resize failed! 'size' was not set correctly.");
+    }
+    
+private:
+    THByteTensor *tensor_;
+};
+
+class Blob4DTorchFloat : public Blob4D<float> {
+public:
+    Blob4DTorchFloat(float *data, size_t n, size_t c, size_t h, size_t w, THFloatTensor *tensor=NULL) :
+        Blob4D<float>(data, n, c, h, w),
+        tensor_(tensor)
+    { }
+    Blob4DTorchFloat(const Blob4DTorchFloat&) = delete;
+    Blob4DTorchFloat(const Blob4DTorchFloat&&) = delete;
+    Blob4DTorchFloat& operator=(Blob4DTorchFloat &rhs) = delete;
+    
+    void resize(size_t new_n, size_t new_c, size_t new_h, size_t new_w) {
+        if(!tensor_){
+            throw std::runtime_error("cannot resize tensor! The PyTorch tensor is null!");
+        }
+
+        if(new_n == batch_size_ and
+           new_c == channels_ and
+           new_h == height_ and
+           new_w == width_){
+
+            return; // no change in size
+        }
+        
+        THFloatTensor_resize4d(tensor_, new_n, new_c, new_h, new_w); // will realloc
+        data_ = THFloatTensor_data(tensor_);
+
+        batch_size_ = THFloatTensor_size(tensor_, 0);
+        channels_ = THFloatTensor_size(tensor_, 1);
+        height_ = THFloatTensor_size(tensor_, 2);
+        width_ = THFloatTensor_size(tensor_, 3);
+
+        size_ = batch_size_ * channels_ * height_ * width_;
+
+        batch_stride_ = channels_ * height_ * width_;
+        channels_stride_ = height_ * width_;
+        height_stride_ = width_;
+        width_stride_ = 1;
+        
+        WrapperAssert(batch_size_ == new_n, "resize failed! 'batch_size' was not set correctly.");
+        WrapperAssert(channels_ == new_c, "resize failed! 'channels' was not set correctly.");
+        WrapperAssert(height_ == new_h, "resize failed! 'height' was not set correctly.");
+        WrapperAssert(width_ == new_w, "resize failed! 'width' was not set correctly.");
+        WrapperAssert(size_ == new_n * new_c * new_h * new_w, "resize failed! 'size' was not set correctly.");
+    }
+
+private:
+    THFloatTensor *tensor_;
+};
+
 extern "C" int noop_encode_forward(THFloatTensor *input, THByteTensor *output)
 {
     // sanity checking
     {
         int input_contiguous = THFloatTensor_isContiguous(input);
-        ASSERT(input_contiguous);
+        WrapperAssert(input_contiguous, "input array not contiguous!");
         int input_ndims = THFloatTensor_nDimension(input);
-        ASSERT(input_ndims == 4);
+        WrapperAssert(input_ndims == 4, "input dimensions must be 4");
     }
 
     // munge the blobs
@@ -55,10 +135,10 @@ extern "C" int noop_decode_forward(THByteTensor *input, THFloatTensor *output)
     // sanity checking
     {
         int input_contiguous = THByteTensor_isContiguous(input);
-        ASSERT(input_contiguous);
+        WrapperAssert(input_contiguous, "input array not contiguous!");
         
         int input_ndims = THByteTensor_nDimension(input);
-        ASSERT(input_ndims == 1);
+        WrapperAssert(input_ndims == 1, "input dimensions must be 1");
     }
     
     // munge the blobs

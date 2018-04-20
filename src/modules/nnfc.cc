@@ -13,17 +13,8 @@
 
 static uint64_t magic_num = 0xDEADBEEF;
 
-// TODO(jremmons)
-// put header information at the beginning of the blob
-// add a get_size function
-// put the file in protobuf format
-// add a 'working memory' blob that can be pass into the function
-// 
-
 void NNFC::encode(const Blob<float, 4> &input, Blob<uint8_t, 1> &output) {
 
-    // auto input = input_blob.tensor;
-    
     static_assert(sizeof(double) == sizeof(uint64_t), "the current code assumes doubles are 64-bit long");
     size_t metadata_length = 6*sizeof(uint64_t);
 
