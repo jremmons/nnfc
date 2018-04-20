@@ -10,12 +10,12 @@
 
 class TorchFloatBlob4D : public Blob<float, 4> {
 private:
-    THFloatTensor *tensor_;
+    THFloatTensor *THtensor_;
 
 public:
-    TorchFloatBlob4D(THFloatTensor *tensor, float *data, Eigen::Index n, Eigen::Index c, Eigen::Index h, Eigen::Index w) :
+    TorchFloatBlob4D(THFloatTensor *THtensor, float *data, Eigen::Index n, Eigen::Index c, Eigen::Index h, Eigen::Index w) :
         Blob<float, 4>(data, n, c, h, w),
-        tensor_(tensor)
+        THtensor_(THtensor)
     { }
     TorchFloatBlob4D(const TorchFloatBlob4D&) = delete;
     TorchFloatBlob4D(const TorchFloatBlob4D&&) = delete; 
@@ -30,18 +30,18 @@ public:
         Eigen::Index w = va_arg(args, Eigen::Index);
         va_end(args);
         
-        WrapperAssert(tensor_ != NULL, "Cannot resize tensor/blob! The PyTorch tensor is null!");
+        WrapperAssert(THtensor_ != NULL, "Cannot resize tensor/blob! The PyTorch tensor is null!");
 
-        THFloatTensor_resize4d(tensor_, n, c, h, w); // will realloc if size changes
-        data_ = THFloatTensor_data(tensor_);
+        THFloatTensor_resize4d(THtensor_, n, c, h, w); // will realloc if size changes
+        data_ = THFloatTensor_data(THtensor_);
 
-        int ndims = THFloatTensor_nDimension(tensor_);
+        int ndims = THFloatTensor_nDimension(THtensor_);
         WrapperAssert(ndims == ndims_, "resize failed! the number of dimension changed");
         
-        size_[0] = THFloatTensor_size(tensor_, 0);
-        size_[1] = THFloatTensor_size(tensor_, 1);
-        size_[2] = THFloatTensor_size(tensor_, 2);
-        size_[3] = THFloatTensor_size(tensor_, 3);
+        size_[0] = THFloatTensor_size(THtensor_, 0);
+        size_[1] = THFloatTensor_size(THtensor_, 1);
+        size_[2] = THFloatTensor_size(THtensor_, 2);
+        size_[3] = THFloatTensor_size(THtensor_, 3);
         
         WrapperAssert(size_[0] == n, "resize failed! 'n' was not set.");
         WrapperAssert(size_[1] == c, "resize failed! 'c' was not set.");
@@ -56,12 +56,12 @@ public:
 
 class TorchByteBlob1D : public Blob<uint8_t, 1> {
 private:
-    THByteTensor *tensor_;
+    THByteTensor *THtensor_;
 
 public:
-    TorchByteBlob1D(THByteTensor *tensor, uint8_t *data, Eigen::Index n) :
+    TorchByteBlob1D(THByteTensor *THtensor, uint8_t *data, Eigen::Index n) :
         Blob<uint8_t, 1>(data, n),
-        tensor_(tensor)
+        THtensor_(THtensor)
     { }
     TorchByteBlob1D(const TorchByteBlob1D&) = delete;
     TorchByteBlob1D(const TorchByteBlob1D&&) = delete;
@@ -69,15 +69,15 @@ public:
     
     void resize(Eigen::Index n, ...) {
 
-        WrapperAssert(tensor_ != NULL, "Cannot resize tensor/blob! The PyTorch tensor is null!");
+        WrapperAssert(THtensor_ != NULL, "Cannot resize tensor/blob! The PyTorch tensor is null!");
 
-        THByteTensor_resize1d(tensor_, n); // will realloc if size changes
-        data_ = THByteTensor_data(tensor_);
+        THByteTensor_resize1d(THtensor_, n); // will realloc if size changes
+        data_ = THByteTensor_data(THtensor_);
 
-        int ndims = THByteTensor_nDimension(tensor_);
+        int ndims = THByteTensor_nDimension(THtensor_);
         WrapperAssert(ndims == ndims_, "resize failed! the number of dimension changed");
         
-        size_[0] = THByteTensor_size(tensor_, 0);
+        size_[0] = THByteTensor_size(THtensor_, 0);
         
         WrapperAssert(size_[0] == n, "resize failed! 'n' was not set.");
 
