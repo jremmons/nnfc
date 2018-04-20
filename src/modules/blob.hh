@@ -40,6 +40,14 @@ public:
         set_tensor();
         
     }
+    Blob(Eigen::TensorMap<Eigen::Tensor<T, ndims>> t) :
+        ndims_(ndims),
+        size_(),
+        data_(nullptr),
+        tensor(Eigen::TensorMap<Eigen::Tensor<T, ndims>>(nullptr, size_))
+    {
+        throw std::runtime_error("not yet implemented");
+    }
     Blob(const Blob<T, ndims>&) = delete;
     Blob(const Blob<T, ndims>&&) = delete;
     virtual ~Blob() {}
