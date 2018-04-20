@@ -1,11 +1,6 @@
 #include "nn.hh"
 
-#include "blob1d.hh"
-#include "blob4d.hh"
+#include "blob.hh"
 
-
-void NN::forward(Blob4D<float>&, Blob1D<uint64_t>&) {
-
-    // todo perform forward pass and store predictions into labels
-    
-}
+// create a stateful wrapper class for each layer
+// create a 'net' class that allows layers to be stacked

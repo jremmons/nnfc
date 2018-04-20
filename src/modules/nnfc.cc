@@ -5,11 +5,8 @@
 #include <cassert>
 #include <cstdint>
 #include <iostream>
-#include <Eigen/CXX11/Tensor>
 
 #include "blob.hh"
-#include "blob1d.hh"
-#include "blob4d.hh"
 
 static uint64_t magic_num = 0xDEADBEEF;
 
@@ -23,8 +20,6 @@ void NNFC::encode(const Blob<float, 4> &input, Blob<uint8_t, 1> &output) {
     uint64_t height = input.tensor.dimension(2);
     uint64_t width = input.tensor.dimension(3);
 
-    std::cerr << batch_size << " " << channels << " " << height << " " << width << std::endl;
-    
     output.resize(sizeof(uint8_t) * batch_size * channels * height * width + metadata_length);
     
     float max_valf = 0.0;
@@ -51,7 +46,6 @@ void NNFC::encode(const Blob<float, 4> &input, Blob<uint8_t, 1> &output) {
     
     assert(max_valf > 0);
     assert(min_valf == 0);
-    std::cerr << "min_val: " << min_valf  << " max_val: " << max_valf << std::endl;
 
     for(size_t n = 0; n < batch_size; n++){
         for(size_t i = 0; i < channels; i++){
