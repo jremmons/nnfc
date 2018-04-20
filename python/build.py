@@ -22,7 +22,7 @@ runtime_library_dirs = map(lambda x: os.path.join(this_dir, x), ['../src/modules
 libraries = []
 
 extra_compile_args = os.environ.get("CXXFLAGS", "").split() + []
-extra_link_args = ['-lnoop', '-lnnfc', '-lturbojpeg']
+extra_link_args = ['-lnoop', '-Wl,-Bstatic', '-lnnfc', '-lturbojpeg', '-Wl,-Bdynamic', '-lpthread']
 extra_objects = ['../src/modules/.libs/libnnfc.a']
 
 # TODO(jremmons) provide option for dynamic linking external libraries
