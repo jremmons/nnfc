@@ -13,9 +13,13 @@ private:
     THFloatTensor *THtensor_;
 
 public:
+
+    float *&data;
+    
     TorchFloatBlob4D(THFloatTensor *THtensor, float *data, Eigen::Index n, Eigen::Index c, Eigen::Index h, Eigen::Index w) :
         Blob<float, 4>(data, n, c, h, w),
-        THtensor_(THtensor)
+        THtensor_(THtensor),
+        data(data_)
     { }
     TorchFloatBlob4D(const TorchFloatBlob4D&) = delete;
     TorchFloatBlob4D(const TorchFloatBlob4D&&) = delete; 
@@ -59,9 +63,13 @@ private:
     THByteTensor *THtensor_;
 
 public:
+
+    uint8_t *&data;
+    
     TorchByteBlob1D(THByteTensor *THtensor, uint8_t *data, Eigen::Index n) :
         Blob<uint8_t, 1>(data, n),
-        THtensor_(THtensor)
+        THtensor_(THtensor),
+        data(data_)
     { }
     TorchByteBlob1D(const TorchByteBlob1D&) = delete;
     TorchByteBlob1D(const TorchByteBlob1D&&) = delete;
