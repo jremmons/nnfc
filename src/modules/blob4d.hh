@@ -41,7 +41,8 @@ public:
         data_(data)
     { }    
     Blob4D(const Blob4D<T>&) = delete;
-    ~Blob4D() {}
+    Blob4D(const Blob4D<T>&&) = delete;
+    virtual ~Blob4D() {}
 
     Blob4D<T>& operator=(Blob4D<T> &rhs) = delete;
     

@@ -31,7 +31,8 @@ public:
         data_(data)
     { }    
     Blob3D(const Blob3D<T>&) = delete;
-    ~Blob3D() {}
+    Blob3D(const Blob3D<T>&&) = delete;
+    virtual ~Blob3D() {}
 
     Blob3D<T>& operator=(Blob3D<T> &rhs) = delete;
 

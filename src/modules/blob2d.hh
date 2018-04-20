@@ -26,8 +26,9 @@ public:
         in_channels_stride_(1),
         data_(data)
     { }    
-    Blob2D(const Blob2D<T>&) = delete;
-    ~Blob2D() {}
+    Blob2D(const Blob2D<T>&) = delete; 
+    Blob2D(const Blob2D<T>&&) = delete; 
+   ~Blob2D() {}
 
     Blob2D<T>& operator=(Blob2D<T> &rhs) = delete;
 
