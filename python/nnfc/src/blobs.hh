@@ -44,6 +44,9 @@ public:
         WrapperAssert(size_[1] == c, "resize failed! 'c' was not set.");
         WrapperAssert(size_[2] == h, "resize failed! 'h' was not set.");
         WrapperAssert(size_[3] == w, "resize failed! 'w' was not set.");
+
+        set_tensor();
+
     }
 
 };
@@ -71,9 +74,41 @@ public:
         size_[0] = THByteTensor_size(tensor_, 0);
         
         WrapperAssert(size_[0] == n, "resize failed! 'n' was not set.");
+
+        set_tensor();
+
     }
 
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class Blob1DTorchByte : public Blob1D<uint8_t> {
