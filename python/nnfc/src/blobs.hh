@@ -4,8 +4,6 @@
 #include <cstdarg>
 
 #include "blob.hh"
-#include "blob1d.hh"
-#include "blob4d.hh"
 #include "common.hh"
 
 class TorchFloatBlob4D : public Blob<float, 4> {
