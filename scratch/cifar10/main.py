@@ -26,11 +26,18 @@ logging.basicConfig(level=logging.DEBUG)
 
 use_cuda = torch.cuda.is_available()
 
+# TODO(jremmons) add functionality for restoring from checkpoint
+# TODO(jremmons) add a better programmatic interface
+
 class Cifar10(torch.utils.data.Dataset):
 
     def __init__(self, data_raw, data_labels, transform=None):
 
-        self.data_raw = data_raw.transpose((0, 2, 3, 1))
+        r = data_raw[:,0,:,:]
+        g = data_raw[:,1,:,:]
+        b = data_raw[:,2,:,:]
+        
+        self.data_raw = np.stack([r,g,b], axis=-1)
         self.data_labels = data_labels
         self.transform = transform
 
@@ -45,19 +52,16 @@ class Cifar10(torch.utils.data.Dataset):
         if self.transform:
             image = self.transform(image)
 
-        #print(image.shape)
-        #image = image.permute(2, 1, 0)
-        #print(image.shape)
-
         return image, self.data_labels[idx].astype(np.int64)
     
 
-def train(model, loss_fn, optimizer, batch_size, trainloader):
+def train(model, loss_fn, optimizer, trainloader):
 
     model.train()
 
     train_loss = 0
     correct = 0
+    count = trainloader.batch_size * len(trainloader)
     t1 = timeit.default_timer()
     for batch_idx, batch in enumerate(trainloader):
 
@@ -81,30 +85,31 @@ def train(model, loss_fn, optimizer, batch_size, trainloader):
 
         if batch_idx % 5 == 0:
             logging.info('Train Epoch: [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                batch_idx, len(trainloader),
-                100. * batch_idx / len(trainloader), loss.data[0]))
+                trainloader.batch_size * batch_idx, count,
+                100. * trainloader.batch_size * batch_idx / count, loss.data[0]))
 
     t2 = timeit.default_timer()
     logging.info('Train Epoch took {} seconds'.format(t2-t1))
 
     return {
-        'train_top1' : correct / (batch_size*len(trainloader)),
+        'train_top1' : correct / count,
         'train_loss' : train_loss
         }
     
     
-def test(model, loss_fn, batch_size, testloader):
+def test(model, loss_fn, testloader):
 
     model.eval()
     
     test_loss = 0
     correct = 0
+    count = testloader.batch_size * len(testloader)
     t1 = timeit.default_timer()
     for batch_idx, batch in enumerate(testloader):
 
         batch_data = torch.autograd.Variable(batch[0])
         batch_labels = torch.autograd.Variable(batch[1])
-
+        
         if use_cuda:
             batch_data = batch_data.cuda()
             batch_labels = batch_labels.cuda()        
@@ -119,14 +124,14 @@ def test(model, loss_fn, batch_size, testloader):
         correct += pred.eq(batch_labels.data.view_as(pred)).long().cpu().sum()
         
     logging.info('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(
-        test_loss, correct, batch_size*len(testloader),
-        100. * correct / (batch_size*len(testloader))))
+        test_loss, correct, count,
+        100. * correct / count))
 
     t2 = timeit.default_timer()
     logging.info('Test Epoch took {} seconds'.format(t2-t1))
 
     return {
-        'validation_top1' : correct / (batch_size*len(testloader)),
+        'validation_top1' : correct / count,
         'validation_loss' : test_loss
         }
 
@@ -160,10 +165,10 @@ def main(args):
     ])
 
     trainset = Cifar10(train_data_raw, train_data_labels, transform=transform_train)
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size, shuffle=True, num_workers=8)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size, shuffle=True, num_workers=2)
 
     testset = Cifar10(test_data_raw, test_data_labels, transform=transform_test)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=8)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size, shuffle=False, num_workers=2)
     
     shutil.copy(args.data_hdf5, args.checkpoint_dir)
 
@@ -201,10 +206,10 @@ def main(args):
         for epoch in range(1, NUM_EPOCHS+1):
             
             logging.info('begin training epoch: {}'.format(epoch))
-            train_log = train(net, loss_fn, optimizer, args.batch_size, trainloader)
+            train_log = train(net, loss_fn, optimizer, trainloader)
 
             logging.info('begin testing epoch: {}'.format(epoch))
-            test_log = test(net, loss_fn, args.batch_size, testloader)
+            test_log = test(net, loss_fn, testloader)
 
             if epoch % 5 == 0 or epoch in [1,2,3,4,5]:
                 checkpoint_filename = os.path.abspath(os.path.join(args.checkpoint_dir,
@@ -230,8 +235,8 @@ if __name__ == '__main__':
     parser.add_argument('checkpoint_dir', type=str)
 
     # parser.add_argument('--compaction_factor', type=float, default=1.0)
-    parser.add_argument('--lr', type=float, default=0.001, 
-                        help='learning rate (default: 0.001)')
+    parser.add_argument('--lr', type=float, default=0.01, 
+                        help='learning rate (default: 0.01)')
     parser.add_argument('--batch_size', type=int, default=250,
                         help='train/test batch_size (default: 250)')
     # parser.add_argument('--resnet_blocks', type=str, default='[2,2,2,2]',
