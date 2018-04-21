@@ -4,58 +4,70 @@ import os
 import json
 import shutil
 import logging
-import resnet_models as resnet
 import time
 import timeit
+
+from PIL import Image
 
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
+
 import torchvision
+import torchvision.transforms as transforms
 
 import numpy as np
 
-import multiprocessing as mp
+import resnet
+#import multiprocessing as mp
 
 NUM_EPOCHS = 200
 logging.basicConfig(level=logging.DEBUG)
 
+use_cuda = torch.cuda.is_available()
 
-def transform_train(inputs):
+class Cifar10(torch.utils.data.Dataset):
 
-    inputs = inputs / 255.0    
-    return inputs
+    def __init__(self, data_raw, data_labels, transform=None):
 
+        self.data_raw = data_raw.transpose((0, 2, 3, 1))
+        self.data_labels = data_labels
+        self.transform = transform
 
-def transform_test(inputs):
+    def __len__(self):
 
-    inputs = inputs / 255.0
-    return inputs
+        return len(self.data_raw)
+    
+    def __getitem__(self, idx):
 
+        image = Image.fromarray(self.data_raw[idx,:,:,:])
+        
+        if self.transform:
+            image = self.transform(image)
 
-def train(model, loss_fn, optimizer, batch_size, _data, _data_labels):
+        #print(image.shape)
+        #image = image.permute(2, 1, 0)
+        #print(image.shape)
+
+        return image, self.data_labels[idx].astype(np.int64)
+    
+
+def train(model, loss_fn, optimizer, batch_size, trainloader):
 
     model.train()
-
-    data_len = len(_data)
-    data_labels_len = len(_data_labels)
-    assert data_len == data_labels_len, 'data_len != data_labels_len; {} != {}'.format(data_len, data_labels_len)
-
-    # shuffle the data and labels in the same way
-    p = np.random.permutation(len(_data))
-    data = transform_train(_data[p])
-    data_labels = _data_labels[p]
 
     train_loss = 0
     correct = 0
     t1 = timeit.default_timer()
-    for i in range(0, data_len, batch_size):
+    for batch_idx, batch in enumerate(trainloader):
 
-        batch_data = data[i:i+batch_size, :, :, :]
+        batch_data = torch.autograd.Variable(batch[0])
+        batch_labels = torch.autograd.Variable(batch[1])
 
-        batch_data = torch.autograd.Variable(torch.from_numpy(batch_data)).cuda()
-        batch_labels = torch.autograd.Variable(torch.from_numpy(data_labels[i:i+batch_size].astype(np.int64))).cuda()
-        
+        if use_cuda:
+            batch_data = batch_data.cuda()
+            batch_labels = batch_labels.cuda()
+
         optimizer.zero_grad()
         output = model(batch_data)
         loss = loss_fn(output, batch_labels)
@@ -67,39 +79,35 @@ def train(model, loss_fn, optimizer, batch_size, _data, _data_labels):
         loss.backward()
         optimizer.step()
 
-        if i % (batch_size) == 0 and i != 0:
+        if batch_idx % 5 == 0:
             logging.info('Train Epoch: [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                i, data_len,
-                100. * i / data_len, loss.data[0]))
+                batch_idx, len(trainloader),
+                100. * batch_idx / len(trainloader), loss.data[0]))
 
     t2 = timeit.default_timer()
     logging.info('Train Epoch took {} seconds'.format(t2-t1))
 
     return {
-        'train_top1' : correct / data_len,
+        'train_top1' : correct / (batch_size*len(trainloader)),
         'train_loss' : train_loss
         }
     
     
-def test(model, loss_fn, batch_size, data, data_labels):
+def test(model, loss_fn, batch_size, testloader):
 
     model.eval()
-
-    data_len = len(data)
-    data_labels_len = len(data_labels)
-    assert data_len == data_labels_len, 'data_len != data_labels_len; {} != {}'.format(data_len, data_labels_len)
-
-    data = transform_test(data)
     
     test_loss = 0
     correct = 0
     t1 = timeit.default_timer()
-    for i in range(0, data_len, batch_size):
+    for batch_idx, batch in enumerate(testloader):
 
-        batch_data = data[i:i+batch_size, :, :, :]
+        batch_data = torch.autograd.Variable(batch[0])
+        batch_labels = torch.autograd.Variable(batch[1])
 
-        batch_data = torch.autograd.Variable(torch.from_numpy(batch_data)).cuda()
-        batch_labels = torch.autograd.Variable(torch.from_numpy(data_labels[i:i+batch_size].astype(np.int64))).cuda()
+        if use_cuda:
+            batch_data = batch_data.cuda()
+            batch_labels = batch_labels.cuda()        
 
         t1 = timeit.default_timer()
         output = model(batch_data)
@@ -111,14 +119,14 @@ def test(model, loss_fn, batch_size, data, data_labels):
         correct += pred.eq(batch_labels.data.view_as(pred)).long().cpu().sum()
         
     logging.info('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(
-        test_loss, correct, data_len,
-        100. * correct / data_len))
+        test_loss, correct, batch_size*len(testloader),
+        100. * correct / (batch_size*len(testloader))))
 
     t2 = timeit.default_timer()
     logging.info('Test Epoch took {} seconds'.format(t2-t1))
 
     return {
-        'validation_top1' : correct / data_len,
+        'validation_top1' : correct / (batch_size*len(testloader)),
         'validation_loss' : test_loss
         }
 
@@ -139,25 +147,23 @@ def main(args):
         test_data_labels = np.asarray(f['test_data_labels'])
     logging.info('done! (loading data into memory)')
 
-    logging.info('compute and subtract train_data mean pixel value; squash to 0-1 as well')
-    train_data_raw_mean_c1 = np.mean(train_data_raw[:,0::3,:,:])
-    train_data_raw_mean_c2 = np.mean(train_data_raw[:,1::3,:,:])
-    train_data_raw_mean_c3 = np.mean(train_data_raw[:,2::3,:,:])
+    transform_train = transforms.Compose([
+        transforms.RandomCrop(32, padding=4),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    ])
 
-    train_data_raw = train_data_raw.astype(np.float64)
-    test_data_raw = test_data_raw.astype(np.float64)
+    transform_test = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    ])
 
-    train_data_raw[:,0::3,:,:] = train_data_raw[:,0::3,:,:] - train_data_raw_mean_c1
-    train_data_raw[:,1::3,:,:] = train_data_raw[:,1::3,:,:] - train_data_raw_mean_c1
-    train_data_raw[:,2::3,:,:] = train_data_raw[:,2::3,:,:] - train_data_raw_mean_c2
-    
-    test_data_raw[:,0::3,:,:] = test_data_raw[:,0::3,:,:] - train_data_raw_mean_c1
-    test_data_raw[:,1::3,:,:] = test_data_raw[:,1::3,:,:] - train_data_raw_mean_c1
-    test_data_raw[:,2::3,:,:] = test_data_raw[:,2::3,:,:] - train_data_raw_mean_c2
+    trainset = Cifar10(train_data_raw, train_data_labels, transform=transform_train)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size, shuffle=True, num_workers=8)
 
-    train_data_raw = train_data_raw.astype(np.float32)
-    test_data_raw = test_data_raw.astype(np.float32)
-    logging.info('done! (compute and subtract train_data mean pixel value; squash to 0-1 as well)')
+    testset = Cifar10(test_data_raw, test_data_labels, transform=transform_test)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=8)
     
     shutil.copy(args.data_hdf5, args.checkpoint_dir)
 
@@ -173,23 +179,9 @@ def main(args):
     with open(os.path.join(args.checkpoint_dir, 'metadata.json'), 'w') as f:
         f.write(json.dumps(metadata, indent=4, sort_keys=True))
     
-    # resnet-18
-    # resnet_blocks = [2,2,2,2]
-
-    # if args.resnet_blocks:
-    #     resnet_blocks = eval(args.resnet_blocks)
-
-    # logging.info('Using the following resnet block architecture: {}'.format(resnet_blocks))
-    # net = torch.nn.DataParallel(resnet.AutoencoderResNet(compaction_factor=args.compaction_factor, num_blocks=resnet_blocks))
-    # net.cuda()
-
-    # resnet-34 
-    #resnet34_blocks = [3,4,6,3]
-    #net = torch.nn.DataParallel(resnet.AutoencoderResNet(compaction_factor=args.compaction_factor, num_blocks=resnet34_blocks))
-    #net.cuda()
-    
-    net = torch.nn.DataParallel(resnet.ResNet50())
-    net.cuda()
+    net = resnet.ResNet18()
+    if use_cuda:
+        net.cuda()
     
     optimizer = optim.Adam(net.parameters(), lr=args.lr)
     #optimizer = optim.Adagrad(net.parameters(), lr=args.lr, lr_decay=0.01)
@@ -209,10 +201,10 @@ def main(args):
         for epoch in range(1, NUM_EPOCHS+1):
             
             logging.info('begin training epoch: {}'.format(epoch))
-            train_log = train(net, loss_fn, optimizer, args.batch_size, train_data_raw, train_data_labels)
+            train_log = train(net, loss_fn, optimizer, args.batch_size, trainloader)
 
             logging.info('begin testing epoch: {}'.format(epoch))
-            test_log = test(net, loss_fn, args.batch_size, test_data_raw, test_data_labels)
+            test_log = test(net, loss_fn, args.batch_size, testloader)
 
             if epoch % 5 == 0 or epoch in [1,2,3,4,5]:
                 checkpoint_filename = os.path.abspath(os.path.join(args.checkpoint_dir,
