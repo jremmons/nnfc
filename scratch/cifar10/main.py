@@ -27,7 +27,7 @@ logging.basicConfig(level=logging.DEBUG)
 use_cuda = torch.cuda.is_available()
 
 # TODO(jremmons) add functionality for restoring from checkpoint
-# TODO(jremmons) add a better programmatic interface
+# TODO(jremmons) add a better programmatic interface for defined network architecture
 
 class Cifar10(torch.utils.data.Dataset):
 
@@ -235,8 +235,8 @@ if __name__ == '__main__':
     parser.add_argument('checkpoint_dir', type=str)
 
     # parser.add_argument('--compaction_factor', type=float, default=1.0)
-    parser.add_argument('--lr', type=float, default=0.01, 
-                        help='learning rate (default: 0.01)')
+    parser.add_argument('--lr', type=float, default=0.001, 
+                        help='learning rate (default: 0.001)')
     parser.add_argument('--batch_size', type=int, default=250,
                         help='train/test batch_size (default: 250)')
     # parser.add_argument('--resnet_blocks', type=str, default='[2,2,2,2]',
