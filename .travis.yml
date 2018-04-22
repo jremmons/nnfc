@@ -12,6 +12,7 @@ addons:
     - libhdf5-dev
     - hdf5-helpers
     - libboost-dev
+    - libatlas3-base
 
 install:
   - uname -a
