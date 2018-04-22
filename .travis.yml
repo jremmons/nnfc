@@ -61,10 +61,23 @@ install:
   # install python dependencies
   - sudo pip3 install numpy
   - python3 -c "import numpy; print('numpy', numpy.__version__)"
-  - wget https://www.dropbox.com/s/9n88hre6r5upfrt/torch-0.5.0-cp35-cp35m-linux_x86_64.whl
-  - wget https://www.dropbox.com/s/7hay4jjnbs0zg5b/torch-0.5.0-cp35-cp35m-linux_x86_64.whl.sha256
+
+  # this torch wheel file was compiled and is hosted by John Emmons (jemmons@cs.stanford.edu).
+  # this "should" work on just about any ubuntu machine >= 14.04. 
+  # the bdist_wheel was compiled on an Ubuntu 14.04 machines with the following flags:
+  #  export NO_CUDA=1
+  #  export NO_CUDNN=1
+  #  export NO_MKLDNN=1
+  #  export NO_DISTRIBUTED=1
+  #  export PYTORCH_BUILD_VERSION=0.5.0
+  #  export PYTORCH_BUILD_NUMBER=0
+  #  export CFLAGS="-mtune=generic"
+  #  export CXXFLAGS="-mtune=generic"
+  - wget https://www.dropbox.com/s/b9zy3vso4kl25yz/torch-0.5.0-cp35-cp35m-linux_x86_64.whl
+  - wget https://www.dropbox.com/s/qb0gp6w1amcrm3x/torch-0.5.0-cp35-cp35m-linux_x86_64.whl.sha256
   - sha256sum --check torch-0.5.0-cp35-cp35m-linux_x86_64.whl.sha256
   - sudo pip3 install torch-0.5.0-cp35-cp35m-linux_x86_64.whl
+
   - python3 -c "import torch; print('torch', torch.__version__)"
   - sudo pip3 install cffi
   - python3 -c "import cffi; print('cffi', cffi.__version__)"
