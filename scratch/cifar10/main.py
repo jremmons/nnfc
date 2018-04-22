@@ -19,7 +19,9 @@ import torchvision.transforms as transforms
 import numpy as np
 
 import resnet
-#import multiprocessing as mp
+import mobilenetv2
+import densenet
+import dpn
 
 NUM_EPOCHS = 200
 logging.basicConfig(level=logging.DEBUG)
@@ -177,14 +179,24 @@ def main(args):
         'data_hdf5' : os.path.abspath(args.data_hdf5),
         'checkpoint_dir' : os.path.abspath(args.checkpoint_dir),
         'batch_size' : args.batch_size,
+        'netowrk_name' : args.net,
         'learning_rate' : args.lr,
         'training_epochs' : NUM_EPOCHS, 
         }
     
     with open(os.path.join(args.checkpoint_dir, 'metadata.json'), 'w') as f:
         f.write(json.dumps(metadata, indent=4, sort_keys=True))
-    
-    net = resnet.ResNet18()
+
+    networks = {
+        'resnet18' : resnet.ResNet18(),
+        'resnet101' : resnet.ResNet101(),
+        'mobilenetv2' : mobilenetv2.MobileNetV2(),
+        'densenet121' : densenet.DenseNet121(),
+        'densenet121' : densenet.DenseNet121(),
+        'dpn92' : dpn.DPN92()
+    }
+        
+    net = networks[args.net]
     if use_cuda:
         net.cuda()
     
@@ -235,6 +247,8 @@ if __name__ == '__main__':
     parser.add_argument('checkpoint_dir', type=str)
 
     # parser.add_argument('--compaction_factor', type=float, default=1.0)
+    parser.add_argument('--net', type=str,
+                        help='the name of the net to train.')                        
     parser.add_argument('--lr', type=float, default=0.001, 
                         help='learning rate (default: 0.001)')
     parser.add_argument('--batch_size', type=int, default=250,

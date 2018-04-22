@@ -5,13 +5,13 @@
 #python add_compression_artifacts.py '../../../codecs/jpeg-9c/cjpeg -quality 30 -arithmetic' '../../../codecs/jpeg-9c/djpeg' cifar10.h5 cifar10.jpeg_arithmetic_q30.h5 &
 
 python add_compression_artifacts.py '/usr/bin/cjpeg -quality 100 -arithmetic' '/usr/bin/djpeg' cifar10.h5 cifar10.turbojpeg_arithmetic_q100.h5 & 
-python add_compression_artifacts.py '/usr/bin/cjpeg -quality 98 -arithmetic' '/usr/bin/djpeg' cifar10.h5 cifar10.turbojpeg_arithmetic_q100.h5 & 
-python add_compression_artifacts.py '/usr/bin/cjpeg -quality 95 -arithmetic' '/usr/bin/djpeg' cifar10.h5 cifar10.turbojpeg_arithmetic_q100.h5 & 
-python add_compression_artifacts.py '/usr/bin/cjpeg -quality 93 -arithmetic' '/usr/bin/djpeg' cifar10.h5 cifar10.turbojpeg_arithmetic_q100.h5 & 
+python add_compression_artifacts.py '/usr/bin/cjpeg -quality 98 -arithmetic' '/usr/bin/djpeg' cifar10.h5 cifar10.turbojpeg_arithmetic_q98.h5 & 
+python add_compression_artifacts.py '/usr/bin/cjpeg -quality 95 -arithmetic' '/usr/bin/djpeg' cifar10.h5 cifar10.turbojpeg_arithmetic_q95.h5 & 
+python add_compression_artifacts.py '/usr/bin/cjpeg -quality 93 -arithmetic' '/usr/bin/djpeg' cifar10.h5 cifar10.turbojpeg_arithmetic_q93.h5 & 
 python add_compression_artifacts.py '/usr/bin/cjpeg -quality 90 -arithmetic' '/usr/bin/djpeg' cifar10.h5 cifar10.turbojpeg_arithmetic_q90.h5 & 
-python add_compression_artifacts.py '/usr/bin/cjpeg -quality 85 -arithmetic' '/usr/bin/djpeg' cifar10.h5 cifar10.turbojpeg_arithmetic_q80.h5 & 
+python add_compression_artifacts.py '/usr/bin/cjpeg -quality 85 -arithmetic' '/usr/bin/djpeg' cifar10.h5 cifar10.turbojpeg_arithmetic_q85.h5 & 
 python add_compression_artifacts.py '/usr/bin/cjpeg -quality 80 -arithmetic' '/usr/bin/djpeg' cifar10.h5 cifar10.turbojpeg_arithmetic_q80.h5 & 
-python add_compression_artifacts.py '/usr/bin/cjpeg -quality 70 -arithmetic' '/usr/bin/djpeg' cifar10.h5 cifar10.turbojpeg_arithmetic_q60.h5 & 
+python add_compression_artifacts.py '/usr/bin/cjpeg -quality 70 -arithmetic' '/usr/bin/djpeg' cifar10.h5 cifar10.turbojpeg_arithmetic_q70.h5 & 
 python add_compression_artifacts.py '/usr/bin/cjpeg -quality 60 -arithmetic' '/usr/bin/djpeg' cifar10.h5 cifar10.turbojpeg_arithmetic_q60.h5 & 
 #python add_compression_artifacts.py '/usr/bin/cjpeg -quality 50 -arithmetic' '/usr/bin/djpeg' cifar10.h5 cifar10.turbojpeg_arithmetic_q50.h5 & 
 #python add_compression_artifacts.py '/usr/bin/cjpeg -quality 40 -arithmetic' '/usr/bin/djpeg' cifar10.h5 cifar10.turbojpeg_arithmetic_q40.h5 & 
