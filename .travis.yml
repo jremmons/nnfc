@@ -61,8 +61,8 @@ install:
   # install python dependencies
   - sudo pip3 install numpy
   - python3 -c "import numpy; print('numpy', numpy.__version__)"
-  - wget https://www.dropbox.com/s/vw1tafbtqlajmka/torch-0.5.0-cp35-cp35m-linux_x86_64.whl
-  - wget https://www.dropbox.com/s/0g3chv5ruzz1z1a/torch-0.5.0-cp35-cp35m-linux_x86_64.whl.sha256
+  - wget https://www.dropbox.com/s/em3432a3bflfmzj/torch-0.5.0-cp35-cp35m-linux_x86_64.whl
+  - wget https://www.dropbox.com/s/znm3kpoek8slnra/torch-0.5.0-cp35-cp35m-linux_x86_64.whl.sha256
   - sha256sum --check torch-0.5.0-cp35-cp35m-linux_x86_64.whl.sha256
   - sudo pip3 install torch-0.5.0-cp35-cp35m-linux_x86_64.whl
   - python3 -c "import torch; print('torch', torch.__version__)"
