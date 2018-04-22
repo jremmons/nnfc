@@ -33,10 +33,6 @@ install:
   - sudo apt-get update -q
   - sudo apt-get install libeigen3-dev:i386
 
-  echo "hello" > /tmp/file.txt
-  sha256sum /tmp/file.txt > /tmp/file.txt.sha256
-  cat /tmp/file.txt.sha256
-
   # upgrade python version
   - sudo add-apt-repository ppa:fkrull/deadsnakes -y 
   - sudo apt-get update -q
@@ -67,6 +63,7 @@ install:
   #- sudo pip3 install http://download.pytorch.org/whl/cpu/torch-0.3.1-cp35-cp35m-linux_x86_64.whl
   - wget -P /tmp https://www.dropbox.com/s/vw1tafbtqlajmka/torch-0.5.0-cp35-cp35m-linux_x86_64.whl
   - wget -P /tmp https://www.dropbox.com/s/0g3chv5ruzz1z1a/torch-0.5.0-cp35-cp35m-linux_x86_64.whl.sha256
+  - cd /tmp && sha256sum --check torch-0.5.0-cp35-cp35m-linux_x86_64.whl.sha256
   - sudo pip3 install /tmp/torch-0.5.0-cp35-cp35m-linux_x86_64.whl
   - python3 -c "import torch; print('torch', torch.__version__)"
   - sudo pip3 install cffi
