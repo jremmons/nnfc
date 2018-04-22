@@ -12,7 +12,8 @@ addons:
     - libhdf5-dev
     - hdf5-helpers
     - libboost-dev
-    
+    - libopenmpi-dev
+
 install:
   - uname -a
   - lsb_release -a
