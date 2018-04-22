@@ -6,6 +6,10 @@ import build
 
 this_file = os.path.dirname(__file__)
 
+# TODO(jremmons) convert the cuurent cffi setup to a python extension
+# module using the code in torch.utils.cpp_extension. This is allow us
+# to mantain state within out object. 
+
 setup(
     name='nnfc',
     version='0.1',
