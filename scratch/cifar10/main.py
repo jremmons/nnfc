@@ -27,13 +27,10 @@ import densenet
 import dpn
 import preact_resnet
 
-NUM_EPOCHS = 200
 logging.basicConfig(level=logging.DEBUG)
-
 use_cuda = torch.cuda.is_available()
 
-# TODO(jremmons) add functionality for restoring from checkpoint
-# TODO(jremmons) add a better programmatic interface for defined network architecture
+# TODO(jremmons) add a better programmatic interface for defining network architecture
 
 networks = {
     'resnet18' : resnet.ResNet18(),
@@ -72,7 +69,7 @@ class Cifar10(torch.utils.data.Dataset):
         return image, self.data_labels[idx].astype(np.int64)
     
 
-def train(model, loss_fn, optimizer, trainloader):
+def train(model, epoch, loss_fn, optimizer, trainloader):
 
     model.train()
 
@@ -101,8 +98,8 @@ def train(model, loss_fn, optimizer, trainloader):
         optimizer.step()
 
         if batch_idx % 5 == 0:
-            logging.info('Train Epoch: [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                trainloader.batch_size * batch_idx, count,
+            logging.info('Train Epoch: {} [(lr: {}) {}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+                epoch, optimizer.defaults['lr'], trainloader.batch_size * batch_idx, count,
                 100. * trainloader.batch_size * batch_idx / count, loss.data.item()))
 
     t2 = timeit.default_timer()
@@ -188,71 +185,68 @@ def main(checkpoint_dir, resume, config):
     #optimizer = optim.RMSprop(net.parameters(), lr=args.lr)
     loss_fn = torch.nn.CrossEntropyLoss()
 
+    initial_epoch = 0
+    net = None
+
+    if not resume:
+        net = networks[config['network_name']]
+        if use_cuda:
+            net.cuda()
+
+    elif resume:
+        checkpoints = glob.glob(os.path.join(checkpoint_dir, 'checkpoint-epoch*.h5'))
+        checkpoints = list(reversed(sorted(checkpoints)))
+
+        latest_checkpoint = checkpoints[0]
+        logging.info('loading from last checkpoint: {}'.format(latest_checkpoint))
+
+        pytorch_checkpoints = glob.glob(os.path.join(checkpoint_dir, 'pytorch_checkpoint-epoch*.pt'))
+        pytorch_checkpoints = list(reversed(sorted(pytorch_checkpoints)))
+
+        latest_pytorch_checkpoint = pytorch_checkpoints[0]
+        logging.info('loading from last pytorch_checkpoint: {}'.format(latest_pytorch_checkpoint))
+
+        latest_epoch = latest_checkpoint.split('.h5')[0].split('checkpoint-epoch')[-1]
+        logging.info('checkpoint epoch: {}'.format(latest_epoch))
+        latest_epoch = int(latest_epoch)
+
+        latest_pytorch_epoch = latest_pytorch_checkpoint.split('.pt')[0].split('pytorch_checkpoint-epoch')[-1]
+        logging.info('pytorch checkpoint epoch: {}'.format(latest_pytorch_epoch))
+        latest_pytorch_epoch = int(latest_pytorch_epoch)
+
+        # initialize the epoch to one after the last checkpoint
+        assert latest_epoch == latest_pytorch_epoch
+        initial_epoch = latest_epoch + 1
+
+        # restore the parameters to the value was stored in hdf5 file
+        checkpoint_filename = os.path.abspath(os.path.join(checkpoint_dir, latest_checkpoint))
+        logging.info('restoring parameters')
+        net = torch.load(latest_pytorch_checkpoint)
+        with h5py.File(checkpoint_filename, 'r') as f:
+
+            for key in net.state_dict().keys():
+                net.state_dict()[key] = np.asarray(f[key])
+
+
+    current_lr = get_learning_rate(initial_epoch, config['learning_rate'])
+    logging.info('initial learning rate: {}'.format(current_lr))
+    optimizer = optim.SGD(net.parameters(), lr=current_lr, momentum=0.9, weight_decay=5e-4)
+        
     with open(os.path.join(checkpoint_dir, 'training_log.csv'), 'a') as logfile:
 
-        initial_epoch = 1
-        net = None
-
-        if not resume:
-            net = networks[config['network_name']]
-            if use_cuda:
-                net.cuda()
-
-        elif resume:
-            checkpoints = glob.glob(os.path.join(checkpoint_dir, 'checkpoint-epoch*.h5'))
-            checkpoints = list(reversed(sorted(checkpoints)))
-
-            latest_checkpoint = checkpoints[0]
-            logging.info('loading from last checkpoint: {}'.format(latest_checkpoint))
-
-            pytorch_checkpoints = glob.glob(os.path.join(checkpoint_dir, 'pytorch_checkpoint-epoch*.pt'))
-            pytorch_checkpoints = list(reversed(sorted(pytorch_checkpoints)))
-
-            latest_pytorch_checkpoint = pytorch_checkpoints[0]
-            logging.info('loading from last pytorch_checkpoint: {}'.format(latest_pytorch_checkpoint))
-
-            latest_epoch = latest_checkpoint.split('.h5')[0].split('checkpoint-epoch')[-1]
-            logging.info('checkpoint epoch: {}'.format(latest_epoch))
-            latest_epoch = int(latest_epoch)
-
-            latest_pytorch_epoch = latest_pytorch_checkpoint.split('.pt')[0].split('pytorch_checkpoint-epoch')[-1]
-            logging.info('pytorch checkpoint epoch: {}'.format(latest_pytorch_epoch))
-            latest_pytorch_epoch = int(latest_pytorch_epoch)
-
-            # initialize the epoch to one after the last checkpoint
-            assert latest_epoch == latest_pytorch_epoch
-            initial_epoch = latest_epoch + 1
-
-            logging.info('loading parameters from last checkpoint: {}'.format(latest_checkpoint))
-            checkpoint_filename = os.path.abspath(os.path.join(checkpoint_dir, latest_checkpoint))
-
-            # restore the parameters to the value was stored in hdf5 file
-            net = torch.load(latest_pytorch_checkpoint)
-            with h5py.File(checkpoint_filename, 'r') as f:
-
-                for key in net.state_dict().keys():
-                    net.state_dict()[key] = np.asarray(f[key])
-                    
-                    
-        current_lr = get_learning_rate(initial_epoch, config['learning_rate'])
-        logging.info('initial learning rate: {}'.format(current_lr))
-        optimizer = optim.SGD(net.parameters(), lr=current_lr, momentum=0.9, weight_decay=5e-4)
-        
         for epoch in range(initial_epoch, config['num_epochs']+1):
 
-            new_lr = get_learning_rate(initial_epoch, config['learning_rate'])
+            new_lr = get_learning_rate(epoch, config['learning_rate'])
             if new_lr != current_lr:
-                logging.info('learning rate changed to: {}'.format(current_lr))
+                logging.info('learning rate changed to: {}'.format(new_lr))
                 optimizer = optim.SGD(net.parameters(), lr=new_lr, momentum=0.9, weight_decay=5e-4)
                 current_lr = new_lr
             
             logging.info('begin training epoch: {}'.format(epoch))
-            train_log = train(net, loss_fn, optimizer, trainloader)
-            print(train_log)
+            train_log = train(net, epoch, loss_fn, optimizer, trainloader)
             
             logging.info('begin testing epoch: {}'.format(epoch))
             test_log = test(net, loss_fn, testloader)
-            print(test_log)
             
             if epoch % 5 == 0 or epoch in [1,2,3,4,5]:
                 checkpoint_filename = os.path.abspath(os.path.join(checkpoint_dir,
@@ -266,12 +260,13 @@ def main(checkpoint_dir, resume, config):
                                                    'pytorch_checkpoint-epoch{}.pt'.format(str(epoch).zfill(5))))
                 torch.save(net, pytorch_checkpoint_filename)
                         
-                logfile.write('{},{},{},{},{},{}\n'.format(epoch,
-                                                           train_log['train_top1'],
-                                                           train_log['train_loss'],
-                                                           test_log['validation_top1'],
-                                                           test_log['validation_loss'],
-                                                           checkpoint_filename))
+                logfile.write('{},{},{},{},{},{},{}\n'.format(epoch,
+                                                            current_lr,
+                                                            train_log['train_top1'],
+                                                            train_log['train_loss'],
+                                                            test_log['validation_top1'],
+                                                            test_log['validation_loss'],
+                                                            checkpoint_filename))
                 logfile.flush()
 
                 
@@ -282,17 +277,17 @@ def get_learning_rate(epoch, learning_rate_dict):
         num2key[int(key)] = key
 
     nums = list(num2key.keys())
-    nums = list(reversed(sorted(nums))) # sorted highest to lowest
+    nums = list(reversed(sorted(nums)))
     
-    current_learning_rate = None
-    for lr_num in nums:
-        if lr_num <= epoch:
-            break
+    for i in range(len(nums)):
+        if nums[i] <= epoch:
+            return learning_rate_dict[num2key[nums[i]]]
 
-        current_learning_rate = lr_num
-        
-    return learning_rate_dict[num2key[current_learning_rate]]
-    
+    raise(Exception('Could not set learning rate for epoch:{} from lr_schedule:{}.'.format(
+        epoch,
+        json.dumps(learning_rate_dict, indent=4, sort_keys=True)
+        )))
+
 
 def check_for_required_params(d):
 
@@ -379,7 +374,7 @@ if __name__ == '__main__':
                 logfile.write('#     "{}": "{}",\n'.format(k, experiment_configuration[k]))
             logfile.write('# }\n')
             
-            logfile.write('epoch, train_acc_top1, train_loss, validation_acc_top1, validation_loss, model_checkpoint\n') 
+            logfile.write('epoch, learning_rate, train_acc_top1, train_loss, validation_acc_top1, validation_loss, model_checkpoint\n') 
             logfile.flush()
 
             
