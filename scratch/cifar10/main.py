@@ -93,9 +93,9 @@ def train(model, loss_fn, optimizer, trainloader):
         output = model(batch_data)
         loss = loss_fn(output, batch_labels)
 
-        train_loss += loss.data[0].item()
+        train_loss += loss.data.item()
         pred = output.data.max(1, keepdim=True)[1]
-        correct += pred.eq(batch_labels.data.view_as(pred)).long().sum()
+        correct += pred.eq(batch_labels.data.view_as(pred)).long().sum().item()
 
         loss.backward()
         optimizer.step()
@@ -103,7 +103,7 @@ def train(model, loss_fn, optimizer, trainloader):
         if batch_idx % 5 == 0:
             logging.info('Train Epoch: [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 trainloader.batch_size * batch_idx, count,
-                100. * trainloader.batch_size * batch_idx / count, loss.data[0].item()))
+                100. * trainloader.batch_size * batch_idx / count, loss.data.item()))
 
     t2 = timeit.default_timer()
     logging.info('Train Epoch took {} seconds'.format(t2-t1))
@@ -136,9 +136,9 @@ def test(model, loss_fn, testloader):
         t2 = timeit.default_timer()
         #print('fwd:', t2-t1)
 
-        test_loss += loss_fn(output, batch_labels).data[0].item()
+        test_loss += loss_fn(output, batch_labels).data.item()
         pred = output.data.max(1, keepdim=True)[1]
-        correct += pred.eq(batch_labels.data.view_as(pred)).long().cpu().sum()
+        correct += pred.eq(batch_labels.data.view_as(pred)).long().cpu().sum().item()
         
     logging.info('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(
         test_loss, correct, count,
@@ -182,10 +182,6 @@ def main(checkpoint_dir, resume, config):
     testloader = torch.utils.data.DataLoader(testset, batch_size=config['batch_size'], shuffle=False, num_workers=2)
     
     shutil.copy(config['data_hdf5'], checkpoint_dir)
-
-    net = networks[config['network_name']]
-    if use_cuda:
-        net.cuda()
     
     #optimizer = optim.Adam(net.parameters(), lr=args.lr)
     #optimizer = optim.Adagrad(net.parameters(), lr=args.lr, lr_decay=0.01)
@@ -195,25 +191,48 @@ def main(checkpoint_dir, resume, config):
     with open(os.path.join(checkpoint_dir, 'training_log.csv'), 'a') as logfile:
 
         initial_epoch = 1
-        if resume:
+        net = None
+
+        if not resume:
+            net = networks[config['network_name']]
+            if use_cuda:
+                net.cuda()
+
+        elif resume:
             checkpoints = glob.glob(os.path.join(checkpoint_dir, 'checkpoint-epoch*.h5'))
-            checkpoints = sorted(checkpoints).reverse()
+            checkpoints = list(reversed(sorted(checkpoints)))
 
             latest_checkpoint = checkpoints[0]
             logging.info('loading from last checkpoint: {}'.format(latest_checkpoint))
 
-            latest_epoch = latest_checkpoint.split('.h5')[0].split('checkpoint-epoch')[-1]
-            logging.info('setting epoch: {}'.format(latest_epoch))
+            pytorch_checkpoints = glob.glob(os.path.join(checkpoint_dir, 'pytorch_checkpoint-epoch*.pt'))
+            pytorch_checkpoints = list(reversed(sorted(pytorch_checkpoints)))
 
+            latest_pytorch_checkpoint = pytorch_checkpoints[0]
+            logging.info('loading from last pytorch_checkpoint: {}'.format(latest_pytorch_checkpoint))
+
+            latest_epoch = latest_checkpoint.split('.h5')[0].split('checkpoint-epoch')[-1]
+            logging.info('checkpoint epoch: {}'.format(latest_epoch))
             latest_epoch = int(latest_epoch)
-            initial_epoch = latest_epoch
+
+            latest_pytorch_epoch = latest_pytorch_checkpoint.split('.pt')[0].split('pytorch_checkpoint-epoch')[-1]
+            logging.info('pytorch checkpoint epoch: {}'.format(latest_pytorch_epoch))
+            latest_pytorch_epoch = int(latest_pytorch_epoch)
+
+            # initialize the epoch to one after the last checkpoint
+            assert latest_epoch == latest_pytorch_epoch
+            initial_epoch = latest_epoch + 1
 
             logging.info('loading parameters from last checkpoint: {}'.format(latest_checkpoint))
+            checkpoint_filename = os.path.abspath(os.path.join(checkpoint_dir, latest_checkpoint))
+
+            # restore the parameters to the value was stored in hdf5 file
+            net = torch.load(latest_pytorch_checkpoint)
             with h5py.File(checkpoint_filename, 'r') as f:
 
-                for key in model_params.keys():
-                    model_params[key] = f[key]
-
+                for key in net.state_dict().keys():
+                    net.state_dict()[key] = np.asarray(f[key])
+                    
                     
         current_lr = get_learning_rate(initial_epoch, config['learning_rate'])
         logging.info('initial learning rate: {}'.format(current_lr))
@@ -229,10 +248,12 @@ def main(checkpoint_dir, resume, config):
             
             logging.info('begin training epoch: {}'.format(epoch))
             train_log = train(net, loss_fn, optimizer, trainloader)
-
+            print(train_log)
+            
             logging.info('begin testing epoch: {}'.format(epoch))
             test_log = test(net, loss_fn, testloader)
-
+            print(test_log)
+            
             if epoch % 5 == 0 or epoch in [1,2,3,4,5]:
                 checkpoint_filename = os.path.abspath(os.path.join(checkpoint_dir,
                                                    'checkpoint-epoch{}.h5'.format(str(epoch).zfill(5))))
@@ -241,6 +262,10 @@ def main(checkpoint_dir, resume, config):
                     for param_name in model_params.keys():
                         f.create_dataset(param_name, data=model_params[param_name])
 
+                pytorch_checkpoint_filename = os.path.abspath(os.path.join(checkpoint_dir,
+                                                   'pytorch_checkpoint-epoch{}.pt'.format(str(epoch).zfill(5))))
+                torch.save(net, pytorch_checkpoint_filename)
+                        
                 logfile.write('{},{},{},{},{},{}\n'.format(epoch,
                                                            train_log['train_top1'],
                                                            train_log['train_loss'],
@@ -306,9 +331,10 @@ if __name__ == '__main__':
             config = json.loads(f.read())
             
         check_for_required_params(config)
+        keys = list(config.keys())
         assert 'creation_time' in keys
         assert 'data_hdf5' in keys
-        assert 'checkpoint_dir' in keys    
+        assert 'checkpoint_dir' in keys
             
         for key in config.keys():
             experiment_configuration[key] = config[key]
