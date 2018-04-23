@@ -3,9 +3,12 @@ import h5py
 import os
 import json
 import shutil
+import json
 import logging
 import time
 import timeit
+import sys
+import glob
 
 from PIL import Image
 
@@ -22,6 +25,7 @@ import resnet
 import mobilenetv2
 import densenet
 import dpn
+import preact_resnet
 
 NUM_EPOCHS = 200
 logging.basicConfig(level=logging.DEBUG)
@@ -30,6 +34,17 @@ use_cuda = torch.cuda.is_available()
 
 # TODO(jremmons) add functionality for restoring from checkpoint
 # TODO(jremmons) add a better programmatic interface for defined network architecture
+
+networks = {
+    'resnet18' : resnet.ResNet18(),
+    'resnet101' : resnet.ResNet101(),
+    'mobilenetv2' : mobilenetv2.MobileNetV2(),
+    'densenet121' : densenet.DenseNet121(),
+    'densenet121' : densenet.DenseNet121(),
+    'dpn92' : dpn.DPN92(),
+    'preact_resnet18' : preact_resnet.PreActResNet18(),
+    }
+        
 
 class Cifar10(torch.utils.data.Dataset):
 
@@ -78,7 +93,7 @@ def train(model, loss_fn, optimizer, trainloader):
         output = model(batch_data)
         loss = loss_fn(output, batch_labels)
 
-        train_loss += loss.data[0]
+        train_loss += loss.data[0].item()
         pred = output.data.max(1, keepdim=True)[1]
         correct += pred.eq(batch_labels.data.view_as(pred)).long().sum()
 
@@ -88,7 +103,7 @@ def train(model, loss_fn, optimizer, trainloader):
         if batch_idx % 5 == 0:
             logging.info('Train Epoch: [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 trainloader.batch_size * batch_idx, count,
-                100. * trainloader.batch_size * batch_idx / count, loss.data[0]))
+                100. * trainloader.batch_size * batch_idx / count, loss.data[0].item()))
 
     t2 = timeit.default_timer()
     logging.info('Train Epoch took {} seconds'.format(t2-t1))
@@ -121,7 +136,7 @@ def test(model, loss_fn, testloader):
         t2 = timeit.default_timer()
         #print('fwd:', t2-t1)
 
-        test_loss += loss_fn(output, batch_labels).data[0]
+        test_loss += loss_fn(output, batch_labels).data[0].item()
         pred = output.data.max(1, keepdim=True)[1]
         correct += pred.eq(batch_labels.data.view_as(pred)).long().cpu().sum()
         
@@ -138,16 +153,10 @@ def test(model, loss_fn, testloader):
         }
 
     
-def main(args):
+def main(checkpoint_dir, resume, config):
 
-    if os.path.isdir(args.checkpoint_dir):
-        logging.error('checkpoint dir already exists: {}'.format(args.checkpoint_dir))
-        return
-
-    os.makedirs(args.checkpoint_dir)
-    
     logging.info('loading data into memory')
-    with h5py.File(args.data_hdf5, 'r') as f:
+    with h5py.File(config['data_hdf5'], 'r') as f:
         train_data_raw = np.asarray(f['train_data_raw'])
         train_data_labels = np.asarray(f['train_data_labels'])
         test_data_raw = np.asarray(f['test_data_raw'])
@@ -167,55 +176,56 @@ def main(args):
     ])
 
     trainset = Cifar10(train_data_raw, train_data_labels, transform=transform_train)
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size, shuffle=True, num_workers=2)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=config['batch_size'], shuffle=True, num_workers=2)
 
     testset = Cifar10(test_data_raw, test_data_labels, transform=transform_test)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size, shuffle=False, num_workers=2)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=config['batch_size'], shuffle=False, num_workers=2)
     
-    shutil.copy(args.data_hdf5, args.checkpoint_dir)
+    shutil.copy(config['data_hdf5'], checkpoint_dir)
 
-    metadata = {
-        'creation_time' : time.strftime("%Y-%m-%d-%H:%M:%S", time.gmtime()),
-        'data_hdf5' : os.path.abspath(args.data_hdf5),
-        'checkpoint_dir' : os.path.abspath(args.checkpoint_dir),
-        'batch_size' : args.batch_size,
-        'netowrk_name' : args.net,
-        'learning_rate' : args.lr,
-        'training_epochs' : NUM_EPOCHS, 
-        }
-    
-    with open(os.path.join(args.checkpoint_dir, 'metadata.json'), 'w') as f:
-        f.write(json.dumps(metadata, indent=4, sort_keys=True))
-
-    networks = {
-        'resnet18' : resnet.ResNet18(),
-        'resnet101' : resnet.ResNet101(),
-        'mobilenetv2' : mobilenetv2.MobileNetV2(),
-        'densenet121' : densenet.DenseNet121(),
-        'densenet121' : densenet.DenseNet121(),
-        'dpn92' : dpn.DPN92()
-    }
-        
-    net = networks[args.net]
+    net = networks[config['network_name']]
     if use_cuda:
         net.cuda()
     
-    optimizer = optim.Adam(net.parameters(), lr=args.lr)
+    #optimizer = optim.Adam(net.parameters(), lr=args.lr)
     #optimizer = optim.Adagrad(net.parameters(), lr=args.lr, lr_decay=0.01)
     #optimizer = optim.RMSprop(net.parameters(), lr=args.lr)
     loss_fn = torch.nn.CrossEntropyLoss()
 
-    with open(os.path.join(args.checkpoint_dir, 'training_log.csv'), 'w') as logfile:
+    with open(os.path.join(checkpoint_dir, 'training_log.csv'), 'a') as logfile:
 
-        logfile.write('# {\n')
-        for k in metadata.keys():
-            logfile.write('#     "{}": "{}",\n'.format(k, metadata[k]))
-        logfile.write('# }\n')
+        initial_epoch = 1
+        if resume:
+            checkpoints = glob.glob(os.path.join(checkpoint_dir, 'checkpoint-epoch*.h5'))
+            checkpoints = sorted(checkpoints).reverse()
+
+            latest_checkpoint = checkpoints[0]
+            logging.info('loading from last checkpoint: {}'.format(latest_checkpoint))
+
+            latest_epoch = latest_checkpoint.split('.h5')[0].split('checkpoint-epoch')[-1]
+            logging.info('setting epoch: {}'.format(latest_epoch))
+
+            latest_epoch = int(latest_epoch)
+            initial_epoch = latest_epoch
+
+            logging.info('loading parameters from last checkpoint: {}'.format(latest_checkpoint))
+            with h5py.File(checkpoint_filename, 'r') as f:
+
+                for key in model_params.keys():
+                    model_params[key] = f[key]
+
+                    
+        current_lr = get_learning_rate(initial_epoch, config['learning_rate'])
+        logging.info('initial learning rate: {}'.format(current_lr))
+        optimizer = optim.SGD(net.parameters(), lr=current_lr, momentum=0.9, weight_decay=5e-4)
         
-        logfile.write('epoch, train_acc_top1, train_loss, validation_acc_top1, validation_loss, model_checkpoint\n') 
-        logfile.flush()
-        
-        for epoch in range(1, NUM_EPOCHS+1):
+        for epoch in range(initial_epoch, config['num_epochs']+1):
+
+            new_lr = get_learning_rate(initial_epoch, config['learning_rate'])
+            if new_lr != current_lr:
+                logging.info('learning rate changed to: {}'.format(current_lr))
+                optimizer = optim.SGD(net.parameters(), lr=new_lr, momentum=0.9, weight_decay=5e-4)
+                current_lr = new_lr
             
             logging.info('begin training epoch: {}'.format(epoch))
             train_log = train(net, loss_fn, optimizer, trainloader)
@@ -224,8 +234,8 @@ def main(args):
             test_log = test(net, loss_fn, testloader)
 
             if epoch % 5 == 0 or epoch in [1,2,3,4,5]:
-                checkpoint_filename = os.path.abspath(os.path.join(args.checkpoint_dir,
-                                                   'checkpoint-epoch{}.h5'.format(str(epoch).zfill(4))))
+                checkpoint_filename = os.path.abspath(os.path.join(checkpoint_dir,
+                                                   'checkpoint-epoch{}.h5'.format(str(epoch).zfill(5))))
                 model_params = net.state_dict()
                 with h5py.File(checkpoint_filename, 'w') as f:
                     for param_name in model_params.keys():
@@ -239,26 +249,119 @@ def main(args):
                                                            checkpoint_filename))
                 logfile.flush()
 
-                    
+                
+def get_learning_rate(epoch, learning_rate_dict):
+
+    num2key = {}
+    for key in learning_rate_dict.keys():
+        num2key[int(key)] = key
+
+    nums = list(num2key.keys())
+    nums = list(reversed(sorted(nums))) # sorted highest to lowest
+    
+    current_learning_rate = None
+    for lr_num in nums:
+        if lr_num <= epoch:
+            break
+
+        current_learning_rate = lr_num
+        
+    return learning_rate_dict[num2key[current_learning_rate]]
+    
+
+def check_for_required_params(d):
+
+    keys = d.keys()
+    assert 'data_hdf5' in keys
+    assert 'network_name' in keys
+    assert 'learning_rate' in keys
+    assert 'batch_size' in keys
+    assert 'num_epochs' in keys
+    assert 'parameter_initialization' in keys
+
+    
 if __name__ == '__main__':
     
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument('data_hdf5', type=str)
     parser.add_argument('checkpoint_dir', type=str)
+    parser.add_argument('--resume',  action='store_true')
 
-    # parser.add_argument('--compaction_factor', type=float, default=1.0)
-    parser.add_argument('--net', type=str,
-                        help='the name of the net to train.')                        
-    parser.add_argument('--lr', type=float, default=0.001, 
-                        help='learning rate (default: 0.001)')
-    parser.add_argument('--batch_size', type=int, default=250,
-                        help='train/test batch_size (default: 250)')
-    # parser.add_argument('--resnet_blocks', type=str, default='[2,2,2,2]',
-    #                     help='ex. [2,2,2,2]')
-    
+    parser.add_argument('--json_config', type=str)
+
     args = parser.parse_args()
-    main(args)
 
+    if args.resume and args.json_config:
+        parser.error('the "resume" and "json_config" args cannot be set at the same time.')
+        
+    if (args.resume is None) and (args.json_config is None):
+        parser.error('either "resume" or "json_config" args must be set.')
+
+    experiment_configuration = {}
+        
+    if args.resume:
+        metadata_filename = os.path.join(args.checkpoint_dir, 'metadata.json')
+        logging.info('loading parameters from checkpoint: {}.'.format(metadata_filename))
+
+        with open(metadata_filename, 'r') as f:
+            config = json.loads(f.read())
+            
+        check_for_required_params(config)
+        assert 'creation_time' in keys
+        assert 'data_hdf5' in keys
+        assert 'checkpoint_dir' in keys    
+            
+        for key in config.keys():
+            experiment_configuration[key] = config[key]
+
+            
+    elif args.json_config:
+        logging.info('reading configuration from json formatted config file: {}.'.format(args.json_config))
+        
+        with open(args.json_config) as f:
+            config = json.loads(f.read())
+
+        check_for_required_params(config)
+            
+        assert os.path.exists(config['data_hdf5']), 'the data_hdf5" field must be set and the data file must exist.'
+        assert config['network_name'] in networks, 'the "network_name" field must be set and name a known network.'
+        for key in config['learning_rate'].keys():
+            lr = config['learning_rate'][key]
+            assert lr > 0, 'the "learning_rate" field must be set and be greater than 0.'
+        assert config['batch_size'] > 0, 'the "batch_size" field must be set and be greater than 0.'
+        
+        for key in config.keys():
+            experiment_configuration[key] = config[key]
+
+
+        if os.path.isdir(args.checkpoint_dir):
+            logging.error('checkpoint dir already exists: {}'.format(args.checkpoint_dir))
+            sys.exit(0)
     
+        os.makedirs(args.checkpoint_dir)
+            
+        experiment_configuration['creation_time'] = time.strftime("%Y-%m-%d-%H:%M:%S", time.gmtime())
+        experiment_configuration['checkpoint_dir'] = os.path.abspath(args.checkpoint_dir)
+        
+        with open(os.path.join(args.checkpoint_dir, 'metadata.json'), 'w') as f:
+            f.write(json.dumps(experiment_configuration, indent=4, sort_keys=True))
 
 
+        with open(os.path.join(args.checkpoint_dir, 'training_log.csv'), 'w') as logfile:
+
+            logfile.write('# {\n')
+            for k in experiment_configuration.keys():
+                logfile.write('#     "{}": "{}",\n'.format(k, experiment_configuration[k]))
+            logfile.write('# }\n')
+            
+            logfile.write('epoch, train_acc_top1, train_loss, validation_acc_top1, validation_loss, model_checkpoint\n') 
+            logfile.flush()
+
+            
+    else:
+        raise(Exception('neither "resume" nor "json_config" were set.'))
+
+        
+    logging.info('using the following configuration...')
+    logging.info(json.dumps(experiment_configuration, indent=4, sort_keys=True))
+
+    main(args.checkpoint_dir, args.resume, experiment_configuration)
