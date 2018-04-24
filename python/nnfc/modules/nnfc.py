@@ -3,16 +3,15 @@ from torch.nn.modules.module import Module
 from ..functions.nnfc import NnfcEncoderFunc
 from ..functions.nnfc import NnfcDecoderFunc
 
-from .._ext import nnfc_wrapper
+from .._ext import nnfc_codec
 
 class NnfcEncoder(Module):
 
     def __init__(self):
         super(NnfcEncoder, self).__init__()
-
+           
         self.mem1 = torch.FloatTensor()
         self.mem2 = torch.ByteTensor()
-
         
     def forward(self, inp, input_on_gpu=None):
 
