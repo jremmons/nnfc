@@ -5,7 +5,7 @@ extern "C" {
 
 #include "nnfc_decoder.hh"
    
-extern "C" PyObject* NNFCDecoderContext_new(PyTypeObject *type, PyObject *, PyObject *) {
+PyObject* NNFCDecoderContext_new(PyTypeObject *type, PyObject *, PyObject *) {
 
     NNFCDecoderContext *self;
 
@@ -18,12 +18,12 @@ extern "C" PyObject* NNFCDecoderContext_new(PyTypeObject *type, PyObject *, PyOb
     return (PyObject*) self;
 }
 
-extern "C" void NNFCDecoderContext_dealloc(NNFCDecoderContext* self) {
+void NNFCDecoderContext_dealloc(NNFCDecoderContext* self) {
 
     Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
-extern "C" int NNFCDecoderContext_init(NNFCDecoderContext *self, PyObject *args, PyObject *kwargs) {
+int NNFCDecoderContext_init(NNFCDecoderContext *self, PyObject *args, PyObject *kwargs) {
 
     // char *counter_name = NULL;
 
@@ -61,7 +61,7 @@ extern "C" int NNFCDecoderContext_init(NNFCDecoderContext *self, PyObject *args,
     return 0;
 }
 
-extern "C" PyObject* NNFCDecoderContext_decode(NNFCDecoderContext *self, PyObject *args){
+PyObject* NNFCDecoderContext_decode(NNFCDecoderContext *self, PyObject *args){
 
     THFloatTensor *input;
 
@@ -82,7 +82,7 @@ extern "C" PyObject* NNFCDecoderContext_decode(NNFCDecoderContext *self, PyObjec
     return val;
 }
 
-extern "C" PyObject* NNFCDecoderContext_backprop(NNFCDecoderContext *self, PyObject *args){
+PyObject* NNFCDecoderContext_backprop(NNFCDecoderContext *self, PyObject *args){
 
     THFloatTensor *input;
 

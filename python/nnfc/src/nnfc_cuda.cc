@@ -1,20 +1,18 @@
-extern "C"{
 #include <Python.h>
 #include <TH/TH.h>
-    //#include <THC/THC.h>
-}
+#include <THC/THC.h>
 
-#include <sys/mman.h>
+// #include <sys/mman.h>
+// #include <chrono>
+// #include <cstring>
+// #include <iostream>
 
-#include <chrono>
-#include <cstring>
-#include <iostream>
-
+#include "nnfc_cuda.hh"
 //#include "common.hh"
 
-//extern THCState *state;
+extern THCState *state;
 
-extern "C" PyObject* device_to_host_copy(PyObject *, PyObject *args, PyObject *){
+PyObject* NNFCinplace_copy_d2h(PyObject *, PyObject *args, PyObject *){
 
     // THFloatTensor *dest = (THFloatTensor*) dest_;
     // THCudaTensor *src = (THCudaTensor*) src_;

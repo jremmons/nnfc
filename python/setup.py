@@ -15,7 +15,7 @@ def get_def(header_filepath, definition_name):
         
 VERSION = get_def('../config.h', 'VERSION')
 
-base_sources=['nnfc/src/nnfc_codec.cc', 'nnfc/src/nnfc_cuda.cc',
+base_sources=['nnfc/src/nnfc_codec.cc',
               'nnfc/src/nnfc_encoder.cc', 'nnfc/src/nnfc_decoder.cc']
 base_define_macros=[('_NNFC_VERSION', VERSION)]
 base_include_dirs=[]

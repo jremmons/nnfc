@@ -6,7 +6,7 @@ extern "C" {
 #include "nnfc_encoder.hh"
 
     
-extern "C" PyObject* NNFCEncoderContext_new(PyTypeObject *type, PyObject *, PyObject *) {
+PyObject* NNFCEncoderContext_new(PyTypeObject *type, PyObject *, PyObject *) {
 
     NNFCEncoderContext *self;
 
@@ -19,12 +19,12 @@ extern "C" PyObject* NNFCEncoderContext_new(PyTypeObject *type, PyObject *, PyOb
     return (PyObject*) self;
 }
 
-extern "C" void NNFCEncoderContext_dealloc(NNFCEncoderContext* self) {
+void NNFCEncoderContext_dealloc(NNFCEncoderContext* self) {
 
     Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
-extern "C" int NNFCEncoderContext_init(NNFCEncoderContext *self, PyObject *args, PyObject *kwargs) {
+int NNFCEncoderContext_init(NNFCEncoderContext *self, PyObject *args, PyObject *kwargs) {
 
     // char *counter_name = NULL;
 
@@ -62,7 +62,7 @@ extern "C" int NNFCEncoderContext_init(NNFCEncoderContext *self, PyObject *args,
     return 0;
 }
 
-extern "C" PyObject* NNFCEncoderContext_encode(NNFCEncoderContext *self, PyObject *args){
+PyObject* NNFCEncoderContext_encode(NNFCEncoderContext *self, PyObject *args){
 
     THFloatTensor *input;
 
@@ -83,7 +83,7 @@ extern "C" PyObject* NNFCEncoderContext_encode(NNFCEncoderContext *self, PyObjec
     return val;
 }
 
-extern "C" PyObject* NNFCEncoderContext_backprop(NNFCEncoderContext *self, PyObject *args){
+PyObject* NNFCEncoderContext_backprop(NNFCEncoderContext *self, PyObject *args){
 
     THFloatTensor *input;
 
