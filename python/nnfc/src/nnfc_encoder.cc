@@ -5,15 +5,17 @@ extern "C" {
 #include <numpy/arrayobject.h>
 }
 
+#include <exception>
 #include <iostream>
 #include <string>
 
+#include "common.hh"
 // TOOD(jremmons) use the stable API exposed by nnfc (once ready)
 // rather than trying to compile against the internal header files
 // that might change quickly. 
 //#include "nnfc_API.hh"
 #include "nnfc.hh"
-
+#include "tensor.hh"
 #include "nnfc_encoder.hh"
 
 PyObject* NNFCEncoderContext_new(PyTypeObject *type, PyObject *, PyObject *) {
@@ -48,20 +50,23 @@ PyObject* NNFCEncoderContext_encode(NNFCEncoderContext *self, PyObject *args){
 
     PyArrayObject *input_array;
 
-    {
-        PyObject *input;
-        if (!PyArg_ParseTuple(args, "O", &input)){
-            return 0;
-        }
-        
-        if(!PyArray_Check(input)) {
-            PyErr_SetString(PyExc_ValueError, "the input to the encoder must be a 4D numpy.ndarray.");
-            return 0;
-        }
-
-        input_array = reinterpret_cast<PyArrayObject*>(input);
+    if (!PyArg_ParseTuple(args, "O", &input_array)){
+        return 0;
     }
+        
+    try {
+        auto input_tensor = array2tensor(input_array);
 
+        std::cerr << input_tensor.dimension(0) << std::endl;
+        
+    }
+    catch(std::exception e) {
+        std::string error_message = e.what();
+        PyErr_SetString(PyExc_Exception, error_message.c_str());
+        return 0;
+    }
+          
+    
     // TODO(jremmons) we probably don't need to force the arrays to be contiguous 
     // input_array = PyArray_GETCONTIGUOUS(input_array);
     // if(!input_array) {
