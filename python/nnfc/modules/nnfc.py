@@ -1,38 +1,53 @@
 import torch
+from torch.autograd import Variable 
 from torch.nn.modules.module import Module
-from ..functions.nnfc import NnfcEncoderFunc
-from ..functions.nnfc import NnfcDecoderFunc
+from torch.autograd import Function
 
 from .._ext import nnfc_codec
 
-class NnfcEncoder(Module):
+class CompressionLayer(Module):
 
-    def __init__(self):
-        super(NnfcEncoder, self).__init__()
-           
-        self.mem1 = torch.FloatTensor()
-        self.mem2 = torch.ByteTensor()
+    class CompressionLayerFunc(Function):
         
-    def forward(self, inp, input_on_gpu=None):
-
-        assert(input_on_gpu is not None)
-        output = NnfcEncoderFunc.apply(inp, self.mem1, self.mem2, input_on_gpu)
-
-        return output
-
-    
-class NnfcDecoder(Module):
-
-    def __init__(self):
-        super(NnfcDecoder, self).__init__()
-
-        self.mem1 = torch.FloatTensor()
+        @staticmethod
+        def forward(ctx, inputs, encoder, decoder):
+            inputs = inputs.numpy()
+            inputs = encoder.encode(inputs)
+            inputs = decoder.decode(inputs)
+            inputs = torch.from_numpy(inputs)
+            
+            return inputs
+        
+        @staticmethod
+        def backward(ctx, grad_output):
+            return grad_output, None, None
 
         
-    def forward(self, inp, put_output_on_gpu=None):
+    def __init__(self, codec_name='noop'):
+        super(CompressionLayer, self).__init__()
 
-        assert(put_output_on_gpu is not None)
-        output = NnfcDecoderFunc.apply(inp, self.mem1, put_output_on_gpu)
+        self.encoder = nnfc_codec.EncoderContext(codec_name=codec_name)
+        self.decode = nnfc_codec.DecoderContext(codec_name=codec_name)
+
+        self.outputs = torch.FloatTensor()        
+
+        
+    def forward(self, inputs):
+
+        # compressed, encoder_states = self.encoder.encode(inputs, states=None)
+
+        # outputs, states = self.decoder.decode(inputs, states=None)
+        
+        # assert(input_on_gpu is not None)
+        # outputs, compressed_binary_blobs, states = self.codec.encode_and_decode(inp,
+        #                                                                         states=None,
+        #                                                                         output_buffer=None)
+
+        # compressed_binary_blobs: is a python list of buffers corresponding to the compressed video
+        # states: is a python list of opaque buffers that are serialized versions of the encoder & decoder states
+        # output_buffer: should be the same size as the original input
+
+        outputs = CompressionLayer.CompressionLayerFunc.apply(inputs, self.encoder, self.decode)
                 
-        return output
-    
+        return outputs
+

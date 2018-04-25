@@ -9,8 +9,8 @@ class NoopEncoder(Module):
         super(NoopEncoder, self).__init__()
 
         
-    def forward(self, inp, input_on_gpu=None):
-        return inp
+    def forward(self, inp):
+        return NoopEncoderFunc.apply(inp)
 
     
 class NoopDecoder(Module):
@@ -19,6 +19,6 @@ class NoopDecoder(Module):
         super(NoopDecoder, self).__init__()
 
         
-    def forward(self, inp, put_output_on_gpu=None):                
-        return inp
+    def forward(self, inp):
+        return NoopDecoderFunc.apply(inp)
     

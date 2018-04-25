@@ -1,8 +1,10 @@
 extern "C" {
 #include <Python.h>
-#include <TH/TH.h>
+#define NO_IMPORT_ARRAY
+#define PY_ARRAY_UNIQUE_SYMBOL nnfc_codec_ARRAY_API
+#include <numpy/arrayobject.h>
 }
-
+    
 #include "nnfc_decoder.hh"
    
 PyObject* NNFCDecoderContext_new(PyTypeObject *type, PyObject *, PyObject *) {
@@ -20,7 +22,7 @@ PyObject* NNFCDecoderContext_new(PyTypeObject *type, PyObject *, PyObject *) {
 
 void NNFCDecoderContext_dealloc(NNFCDecoderContext* self) {
 
-    Py_TYPE(self)->tp_free((PyObject*)self);
+    //Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 int NNFCDecoderContext_init(NNFCDecoderContext *self, PyObject *args, PyObject *kwargs) {
@@ -63,43 +65,60 @@ int NNFCDecoderContext_init(NNFCDecoderContext *self, PyObject *args, PyObject *
 
 PyObject* NNFCDecoderContext_decode(NNFCDecoderContext *self, PyObject *args){
 
-    THFloatTensor *input;
-
+    //torch::THPVoidTensor *input;
+    PyObject * input;
+    
     if (!PyArg_ParseTuple(args, "O",
                           &input)){
         return 0;
     }
 
-    // try {
-    //     self->counter->start();
-    // }
-    // catch(const std::exception& e) {
-    //     PyErr_SetString(PyExc_ValueError, e.what());
-    //     return 0;
-    // }        
+    // torch::THPVoidTensor THPVoidTensorType;
+    // torch::THPVoidTensor *output = PyObject_New(torch::THPVoidTensor, (PyTypeObject*)&THPVoidTensorType);
 
-    PyObject *val = PyLong_FromUnsignedLongLong(static_cast<unsigned long long>(42));        
-    return val;
+    // THFloatTensor *input_tensor = reinterpret_cast<THFloatTensor*>(input->cdata);
+    // THFloatTensor *output_tensor = reinterpret_cast<THFloatTensor*>(output->cdata);
+    
+    // THFloatTensor_resizeAs(input_tensor, output_tensor);
+
+    // int nElements =  THFloatTensor_nElement(input_tensor);
+
+    // float *input_data = THFloatTensor_data(input_tensor);
+    // float *output_data = THFloatTensor_data(output_tensor);
+    // for(int i = 0; i < nElements; i++){
+    //     output_data[i] = input_data[i];
+    // }
+
+    Py_INCREF(input);
+    
+    return (PyObject *) input;
 }
 
 PyObject* NNFCDecoderContext_backprop(NNFCDecoderContext *self, PyObject *args){
 
-    THFloatTensor *input;
+    PyObject * input;
 
     if (!PyArg_ParseTuple(args, "O",
                           &input)){
         return 0;
     }
+    
+    //torch::THPVoidTensor *output; //= PyObject_New(torch::THPVoidTensor, &torch::THPVoidTensor);
+    //output = PyObject_Init(output, &torch::THPVoidTensor);
 
-    // try {
-    //     self->counter->start();
+    // THFloatTensor *output = THFloatTensor_new();
+    // THFloatTensor_resizeAs(input, output);
+
+    // int nElements =  THFloatTensor_nElement(input);
+
+    // float *input_data = THFloatTensor_data(input);
+    // float *output_data = THFloatTensor_data(input);
+    // for(int i = 0; i < nElements; i++){
+    //     output_data[i] = input_data[i];
     // }
-    // catch(const std::exception& e) {
-    //     PyErr_SetString(PyExc_ValueError, e.what());
-    //     return 0;
-    // }        
 
-    PyObject *val = PyLong_FromUnsignedLongLong(static_cast<unsigned long long>(42));        
-    return val;
+    Py_INCREF(input);
+    
+    return (PyObject *) input;
 }
 
