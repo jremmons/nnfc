@@ -13,18 +13,14 @@ namespace NNFC {
     template <typename T, int ndims>
     class Tensor {
     private:
-
-        Eigen::DSizes<Eigen::Index, ndims> size_;
         std::unique_ptr<T, void(*)(T*)> data_;
         Eigen::TensorMap<Eigen::Tensor<T, ndims>> tensor_;
 
     public:
-
         template<typename... DimSizes>
         Tensor(T* data, DimSizes&&... dims) :
-            size_(dims...),
             data_(data, [](T*){}), 
-            tensor_(Eigen::TensorMap<Eigen::Tensor<T, ndims>>(data_.get(), size_))
+            tensor_(Eigen::TensorMap<Eigen::Tensor<T, ndims>>(data_.get(), Eigen::DSizes<Eigen::Index, ndims>(dims...)))
         {            
             // note: the deleter for the data_ member was set to a noop
             // because when you use this constructor data_ is not owned by
@@ -35,9 +31,8 @@ namespace NNFC {
         // Should be replaced by something like std::make_unique.
         template<typename... DimSizes>
         Tensor(DimSizes&&... dims) :
-            size_(dims...),
-            data_(new T[size_.TotalSize()], [](T* ptr){ delete ptr; }), 
-            tensor_(Eigen::TensorMap<Eigen::Tensor<T, ndims>>(data_.get(), size_))
+            data_(new T[Eigen::DSizes<Eigen::Index, ndims>(dims...).TotalSize()], [](T* ptr){ delete ptr; }), 
+            tensor_(Eigen::TensorMap<Eigen::Tensor<T, ndims>>(data_.get(), Eigen::DSizes<Eigen::Index, ndims>(dims...)))
         { }
 
         Tensor(const Tensor<T, ndims>&) = delete;
@@ -48,8 +43,6 @@ namespace NNFC {
 
         Eigen::Index dimension(Eigen::Index dim) const
         {
-            
-            assert(size_[dim] == tensor_.dimension(dim));
             return tensor_.dimension(dim);
         }
 
