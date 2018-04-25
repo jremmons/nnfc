@@ -11,10 +11,16 @@ class CompressionLayer(Module):
         
         @staticmethod
         def forward(ctx, inputs, encoder, decoder):
-            inputs = inputs.numpy()
+
+            on_gpu = inputs.is_cuda
+            
+            inputs = inputs.cpu().numpy()
             inputs = encoder.encode(inputs)
             inputs = decoder.decode(inputs)
             inputs = torch.from_numpy(inputs)
+
+            if on_gpu:
+                inputs = inputs.cuda()
             
             return inputs
         
@@ -26,8 +32,8 @@ class CompressionLayer(Module):
     def __init__(self, codec_name='noop'):
         super(CompressionLayer, self).__init__()
 
-        self.encoder = nnfc_codec.EncoderContext(codec_name=codec_name)
-        self.decode = nnfc_codec.DecoderContext(codec_name=codec_name)
+        self.encoder = nnfc_codec.EncoderContext(codec_name)
+        self.decode = nnfc_codec.DecoderContext(codec_name)
 
         self.outputs = torch.FloatTensor()        
 

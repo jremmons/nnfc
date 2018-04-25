@@ -24,7 +24,7 @@ Defined the extension module below
 base_sources=['nnfc/src/nnfc_codec.cc',
               'nnfc/src/nnfc_encoder.cc', 'nnfc/src/nnfc_decoder.cc']
 base_define_macros=[('_NNFC_VERSION', VERSION)]
-base_include_dirs=[numpy.get_include()]
+base_include_dirs=[numpy.get_include(), '../src/modules']
 base_library_dirs=[]
 base_libraries=[]
 base_extra_compile_args=[]
