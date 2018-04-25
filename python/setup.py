@@ -2,6 +2,7 @@ import os
 import sys
 import re
 import torch
+import numpy
 
 from setuptools import setup, find_packages
 from torch.utils.cpp_extension import BuildExtension,  CppExtension, CUDAExtension
@@ -14,23 +15,27 @@ def get_def(header_filepath, definition_name):
         return version_found
         
 VERSION = get_def('../config.h', 'VERSION')
+EXTENSION_NAME = 'nnfc._ext.nnfc_codec'
+CUDA_AVAILABLE = torch.cuda.is_available()
 
+'''
+Defined the extension module below
+'''
 base_sources=['nnfc/src/nnfc_codec.cc',
               'nnfc/src/nnfc_encoder.cc', 'nnfc/src/nnfc_decoder.cc']
 base_define_macros=[('_NNFC_VERSION', VERSION)]
-base_include_dirs=[]
+base_include_dirs=[numpy.get_include()]
 base_library_dirs=[]
 base_libraries=[]
 base_extra_compile_args=[]
 base_extra_link_args=[]
 
-cuda_available = torch.cuda.is_available()
 
 module = None
-if cuda_available:
+if CUDA_AVAILABLE:
     print('CUDA is available! Compiling the additional CUDA extension code.')
 
-    module = CUDAExtension(name='nnfc_codec',
+    module = CUDAExtension(name=EXTENSION_NAME,
                           sources=base_sources + ['nnfc/src/nnfc_cuda.cc'],
                           define_macros=base_define_macros + [('_NNFC_CUDA_AVAILABLE',)],
                           include_dirs=base_include_dirs,
@@ -41,7 +46,7 @@ if cuda_available:
     )
 
 else:
-    module = CppExtension(name='nnfc_codec',
+    module = CppExtension(name=EXTENSION_NAME,
                           sources=base_sources,
                           define_macros=base_define_macros + [],
                           include_dirs=base_include_dirs,
@@ -62,7 +67,7 @@ setup(
     author_email='jemmons@cs.stanford.edu',
     install_requires=[],
     setup_requires=[],
-    packages=find_packages(exclude=['build']),
+    packages=find_packages(exclude=['build', 'extra_headers']),
     ext_modules=[module],
     cmdclass={
         'build_ext': BuildExtension

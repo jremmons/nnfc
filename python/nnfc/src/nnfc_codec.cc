@@ -1,6 +1,9 @@
+extern "C" {
 #include <Python.h>
-#include <TH/TH.h>
-
+#define PY_ARRAY_UNIQUE_SYMBOL nnfc_codec_ARRAY_API
+#include <numpy/arrayobject.h>
+}
+    
 #include "nnfc_encoder.hh"
 #include "nnfc_decoder.hh"
 
@@ -8,6 +11,7 @@
 #include "nnfc_cuda.hh"
 #endif
 
+extern void **PyArray_API;
 
 // define the NNFCEncoderContext /////////////////////////////////
 static PyMethodDef NNFCEncoderContext_methods[] = {
@@ -185,7 +189,7 @@ extern "C" {
 
         // set global module functions and parameters
         PyObject* module = PyModule_Create(&module_def);
-
+                
         if (module == NULL){
             PyErr_SetString(PyExc_ValueError, "could not create nnfc_codec module.");
             return 0;
@@ -216,7 +220,8 @@ extern "C" {
 
         Py_INCREF(&NNFCDecoderContextType);
         PyModule_AddObject(module, "DecoderContext", (PyObject *)&NNFCDecoderContextType);
-
+        
+        import_array(); // enable numpy support
         return module;
     }
 

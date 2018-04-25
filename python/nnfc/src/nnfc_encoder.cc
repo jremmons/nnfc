@@ -1,11 +1,16 @@
 extern "C" {
 #include <Python.h>
-#include <TH/TH.h>
+#define NO_IMPORT_ARRAY
+#define PY_ARRAY_UNIQUE_SYMBOL nnfc_codec_ARRAY_API
+#include <numpy/arrayobject.h>
 }
 
+#include <iostream>
+#include <string>
+
+//#include ""
 #include "nnfc_encoder.hh"
 
-    
 PyObject* NNFCEncoderContext_new(PyTypeObject *type, PyObject *, PyObject *) {
 
     NNFCEncoderContext *self;
@@ -24,7 +29,7 @@ void NNFCEncoderContext_dealloc(NNFCEncoderContext* self) {
     Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
-int NNFCEncoderContext_init(NNFCEncoderContext *self, PyObject *args, PyObject *kwargs) {
+int NNFCEncoderContext_init(NNFCEncoderContext *self, PyObject *args, PyObject *) {
 
     // char *counter_name = NULL;
 
@@ -64,43 +69,49 @@ int NNFCEncoderContext_init(NNFCEncoderContext *self, PyObject *args, PyObject *
 
 PyObject* NNFCEncoderContext_encode(NNFCEncoderContext *self, PyObject *args){
 
-    THFloatTensor *input;
+    PyArrayObject *input_array;
 
-    if (!PyArg_ParseTuple(args, "O",
-                          &input)){
+    {
+        PyObject *input;
+        if (!PyArg_ParseTuple(args, "O", &input)){
+            return 0;
+        }
+        
+        if(!PyArray_Check(input)) {
+            PyErr_SetString(PyExc_ValueError, "the input to the encoder must be a 4D numpy.ndarray.");
+            return 0;
+        }
+
+        input_array = reinterpret_cast<PyArrayObject*>(input);
+    }
+
+    // TODO(jremmons) we probably don't need to force the arrays to be contiguous 
+    input_array = PyArray_GETCONTIGUOUS(input_array);
+    if(!input_array) {
+        PyErr_SetString(PyExc_ValueError,  "could not convert input to an array with a contiguous memory layout.");
+        return 0;        
+    }
+    
+    const int ndims = PyArray_NDIM(input_array);
+    if(ndims != 4) {
+        std::string error_message("the input to the encoder must be a 4D numpy.ndarray. (The input dimensionality was: ");
+        error_message = error_message + std::to_string(ndims) + std::string(")");
+        PyErr_SetString(PyExc_ValueError,  error_message.c_str());
         return 0;
     }
 
-    // try {
-    //     self->counter->start();
-    // }
-    // catch(const std::exception& e) {
-    //     PyErr_SetString(PyExc_ValueError, e.what());
-    //     return 0;
-    // }        
+    
+    
+    // TODO(jremmons) call down to the libnnfc encode function
+    // TODO(jremmons) munge the output data so that 
 
-    PyObject *val = PyLong_FromUnsignedLongLong(static_cast<unsigned long long>(42));        
-    return val;
+    
+    PyArrayObject *output_array = input_array;
+    return reinterpret_cast<PyObject*>(output_array);
 }
 
 PyObject* NNFCEncoderContext_backprop(NNFCEncoderContext *self, PyObject *args){
 
-    THFloatTensor *input;
-
-    if (!PyArg_ParseTuple(args, "O",
-                          &input)){
-        return 0;
-    }
-
-    // try {
-    //     self->counter->start();
-    // }
-    // catch(const std::exception& e) {
-    //     PyErr_SetString(PyExc_ValueError, e.what());
-    //     return 0;
-    // }        
-
-    PyObject *val = PyLong_FromUnsignedLongLong(static_cast<unsigned long long>(42));        
-    return val;
+    Py_RETURN_NONE;
 }
 

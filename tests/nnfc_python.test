@@ -4,27 +4,23 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 
-from nnfc.modules.nnfc import NnfcEncoder
-from nnfc.modules.nnfc import NnfcDecoder
+from nnfc.modules.nnfc import CompressionLayer
 
 class MyNetwork(nn.Module):
     def __init__(self):
         super(MyNetwork, self).__init__()
-        self.nnfc_encoder = NnfcEncoder()
-        self.nnfc_decoder = NnfcDecoder()
+        self.nnfc_compression_layer = CompressionLayer(codec_name='noop')
 
     def forward(self, inp):
-        use_gpu = inp.is_cuda
-        encoded = self.nnfc_encoder(inp, use_gpu)
-        decoded = self.nnfc_decoder(encoded, use_gpu)
-        return decoded
+        inp = self.nnfc_compression_layer(inp)
+        return inp
 
 model = MyNetwork()
+model.train()
 
-x = torch.randn(13, 7, 5, 11)  % 256
+inp = Variable(torch.randn(13, 7, 5, 11)  % 256)
 
 print('cpu only test')
-inp = Variable(x)
 out = model(inp)
 print('input on gpu?', inp.is_cuda)
 print('output on gpu?', out.is_cuda)
@@ -34,7 +30,7 @@ print()
 
 if torch.cuda.is_available():
     print('gpu only test')
-    inp = Variable(x).cuda()
+    inp = inp.cuda()
     out = model(inp)
     print('input on gpu?', inp.is_cuda)
     print('output on gpu?', out.is_cuda)
