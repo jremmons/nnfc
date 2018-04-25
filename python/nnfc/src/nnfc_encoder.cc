@@ -8,7 +8,12 @@ extern "C" {
 #include <iostream>
 #include <string>
 
-//#include ""
+// TOOD(jremmons) use the stable API exposed by nnfc (once ready)
+// rather than trying to compile against the internal header files
+// that might change quickly. 
+//#include "nnfc_API.hh"
+#include "nnfc.hh"
+
 #include "nnfc_encoder.hh"
 
 PyObject* NNFCEncoderContext_new(PyTypeObject *type, PyObject *, PyObject *) {
@@ -31,39 +36,11 @@ void NNFCEncoderContext_dealloc(NNFCEncoderContext* self) {
 
 int NNFCEncoderContext_init(NNFCEncoderContext *self, PyObject *args, PyObject *) {
 
-    // char *counter_name = NULL;
-
-    // static char *kwlist[] = { "counter_name", NULL };
-    // if (!PyArg_ParseTupleAndKeywords(args,
-    //                                  kwargs,
-    //                                  "s",
-    //                                  kwlist,
-    //                                  &counter_name)){
-
-    //     PyErr_SetString(PyExc_ValueError, "NNFCEncoderContext failed while parsing constructor args/kwargs.");
-    //     return 0;
-    // }
-
-    // if(counter_name == NULL) {
-
-    //     PyErr_SetString(PyExc_ValueError, "NNFCEncoderContext requires `counter_name` to be specified.");
-    //     return 0;
-    // }
-
-    // // std::cerr << "got it: '" << counter_name << "'\n";
-    // try {
-
-    //     libperf::NNFCEncoderContext *p = new libperf::NNFCEncoderContext{std::string(counter_name)};
-    //     self->counter = p;
-    // }
-    // catch(const std::exception& e) {
-
-    //     std::string error_message = std::string(e.what());
-    //     error_message += std::string(" Try running `nnfc_codec.get_available_counters()` to list the available counters on your system.");
-    //     PyErr_SetString(PyExc_ValueError, error_message.c_str());
-    //     return 0;
-    // }
-
+    char *codec_name = NULL;
+    if (!PyArg_ParseTuple(args, "s", &codec_name)){
+        return 0;
+    }
+        
     return 0;
 }
 
@@ -86,26 +63,25 @@ PyObject* NNFCEncoderContext_encode(NNFCEncoderContext *self, PyObject *args){
     }
 
     // TODO(jremmons) we probably don't need to force the arrays to be contiguous 
-    input_array = PyArray_GETCONTIGUOUS(input_array);
-    if(!input_array) {
-        PyErr_SetString(PyExc_ValueError,  "could not convert input to an array with a contiguous memory layout.");
-        return 0;        
-    }
+    // input_array = PyArray_GETCONTIGUOUS(input_array);
+    // if(!input_array) {
+    //     PyErr_SetString(PyExc_ValueError,  "could not convert input to an array with a contiguous memory layout.");
+    //     return 0;        
+    // }
     
-    const int ndims = PyArray_NDIM(input_array);
-    if(ndims != 4) {
-        std::string error_message("the input to the encoder must be a 4D numpy.ndarray. (The input dimensionality was: ");
-        error_message = error_message + std::to_string(ndims) + std::string(")");
-        PyErr_SetString(PyExc_ValueError,  error_message.c_str());
-        return 0;
-    }
-
-    
+    // const int ndims = PyArray_NDIM(input_array);
+    // if(ndims != 4) {
+    //     std::string error_message("the input to the encoder must be a 4D numpy.ndarray. (The input dimensionality was: ");
+    //     error_message = error_message + std::to_string(ndims) + std::string(")");
+    //     PyErr_SetString(PyExc_ValueError,  error_message.c_str());
+    //     return 0;
+    // }
     
     // TODO(jremmons) call down to the libnnfc encode function
     // TODO(jremmons) munge the output data so that 
 
-    
+
+    Py_INCREF(input_array);
     PyArrayObject *output_array = input_array;
     return reinterpret_cast<PyObject*>(output_array);
 }
