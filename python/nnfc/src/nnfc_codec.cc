@@ -11,8 +11,6 @@ extern "C" {
 #include "nnfc_cuda.hh"
 #endif
 
-extern void **PyArray_API;
-
 // define the NNFCEncoderContext /////////////////////////////////
 static PyMethodDef NNFCEncoderContext_methods[] = {
     {"encode", (PyCFunction)NNFCEncoderContext_encode, METH_VARARGS,
@@ -186,7 +184,6 @@ extern "C" {
     PyMODINIT_FUNC
     PyInit_nnfc_codec(void)
     {
-
         // set global module functions and parameters
         PyObject* module = PyModule_Create(&module_def);
                 
@@ -209,7 +206,6 @@ extern "C" {
             return 0;
         }
 
-        Py_INCREF(&NNFCEncoderContextType);
         PyModule_AddObject(module, "EncoderContext", (PyObject *)&NNFCEncoderContextType);
 
         // add the NNFCDecoderContext python class to the nnfc_codec module
@@ -218,7 +214,6 @@ extern "C" {
             return 0;
         }
 
-        Py_INCREF(&NNFCDecoderContextType);
         PyModule_AddObject(module, "DecoderContext", (PyObject *)&NNFCDecoderContextType);
         
         import_array(); // enable numpy support
