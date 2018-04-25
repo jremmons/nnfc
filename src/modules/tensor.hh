@@ -6,6 +6,7 @@
 #include <cstring>
 #include <cstdarg>
 #include <memory>
+#include <string>
 
 namespace NNFC {
 
@@ -24,12 +25,14 @@ namespace NNFC {
             size_(dims...),
             data_(data, [](T*){}), 
             tensor_(Eigen::TensorMap<Eigen::Tensor<T, ndims>>(data_.get(), size_))
-        {
+        {            
             // note: the deleter for the data_ member was set to a noop
             // because when you use this constructor data_ is not owned by
             // this object. 
         }
-
+        
+        // TODO(jremmons) get rid of the "new" for memory allocation.
+        // Should be replaced by something like std::make_unique.
         template<typename... DimSizes>
         Tensor(DimSizes&&... dims) :
             size_(dims...),
@@ -39,19 +42,32 @@ namespace NNFC {
 
         Tensor(const Tensor<T, ndims>&) = delete;
         Tensor(const Tensor<T, ndims>&&) = delete;
-        ~Tensor() {}
+        ~Tensor() { }
 
         Tensor<T, ndims>& operator=(Tensor<T, ndims> &rhs) = delete;    
 
-        Eigen::Index dimension(Eigen::Index dim) const {
-
+        Eigen::Index dimension(Eigen::Index dim) const
+        {
+            
             assert(size_[dim] == tensor_.dimension(dim));
             return tensor_.dimension(dim);
         }
 
-        // Eigen::Index nElements(void) const {
-        //     return ;
-        // }
+        Eigen::Index size(void) const
+        {
+            return tensor_.size();
+        }
+
+        Eigen::Index rank(void) const
+        {
+            return tensor_.rank();
+        }
+
+        template<typename... Indices>
+        T operator()(Indices&& ...indices)
+        {
+            return tensor_(indices...);
+        }
         
     };
 
