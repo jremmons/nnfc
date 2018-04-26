@@ -20,10 +20,10 @@ extern "C" {
 class nnfc_python_exception : public std::exception {
 private:
     PyObject* error_type_;
-    std::string error_message_;
+    const std::string error_message_;
 
 public:
-    nnfc_python_exception(PyObject* error_type, std::string error_message) :
+    nnfc_python_exception(PyObject* error_type, const std::string error_message) :
         error_type_(error_type),
         error_message_(error_message)
     { }
@@ -45,9 +45,9 @@ public:
 
 inline void NNFCPythonAssert(bool expr,
                              PyObject* error_type,
-                             std::string error_message,
-                             char *file,
-                             long long int line)
+                             const std::string error_message,
+                             const char *file,
+                             const long long int line)
 {
 
     if(!expr){
