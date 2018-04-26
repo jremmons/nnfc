@@ -18,20 +18,29 @@ class MyNetwork(nn.Module):
 model = MyNetwork()
 model.train()
 
-inp = Variable(torch.randn(13, 7, 5, 11)  % 256)
+inp = Variable(torch.randn(13, 7, 5, 11))
 
 print('cpu only test')
 out = model(inp)
 print('input on gpu?', inp.is_cuda)
 print('output on gpu?', out.is_cuda)
-print('nnfc success:', (inp == out).all() and inp.is_cuda == out.is_cuda)
+cpu_success = bool((inp == out).all().item() and inp.is_cuda == out.is_cuda)
+print('nnfc success:', cpu_success)
+
+print(inp - out)
 
 print()
 
+gpu_success = True
 if torch.cuda.is_available():
     print('gpu only test')
     inp = inp.cuda()
     out = model(inp)
     print('input on gpu?', inp.is_cuda)
     print('output on gpu?', out.is_cuda)
-    print('nnfc success:', (inp == out).all() and inp.is_cuda == out.is_cuda)
+    gpu_success = bool((inp == out).all().item() and inp.is_cuda == out.is_cuda)
+    print('nnfc success:', gpu_success)
+
+assert cpu_success and gpu_success, 'test failed'
+print('test passed')
+    
