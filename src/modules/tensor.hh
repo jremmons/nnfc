@@ -76,11 +76,6 @@ namespace NNFC {
             return tensor_(indices...);
         }
 
-        T* data(void) const
-        {
-            return tensor_.data();
-        }
-
     };
 
 }

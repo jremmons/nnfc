@@ -62,8 +62,12 @@ static PyObject* tensors2blob(std::vector<NNFC::Tensor<float, 3>> input_tensors)
 
     float *array_data = static_cast<float*>(PyArray_DATA(array));
         
+    // TODO(jremmons) do a smarter memcpy. The current implementation
+    // assumes the data is contiguous in memory and in c-style, but we
+    // should check this before doing a memcpy! 
     for(size_t i = 0; i < num_tensors; i++) {
-        std::memcpy(&array_data[tensor_size * i], input_tensors[i].data(), sizeof(float)*tensor_size);
+        auto tensor = std::move(input_tensors[i]);
+        std::memcpy(&array_data[tensor_size * i], &tensor(0,0,0), sizeof(float)*tensor_size);
     }
     
     return reinterpret_cast<PyObject*>(array);
