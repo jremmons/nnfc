@@ -2,37 +2,33 @@
 
 #include <cstdint>
 #include <vector>
-#include <Eigen/CXX11/Tensor>
-
-#include "blob.hh"
-#include "blob1d.hh"
-#include "blob4d.hh"
+#include "tensor.hh"
 
 namespace NNFC {
-    void encode(const Blob<float, 4> &input_blob, Blob<uint8_t, 1> &output);
-    void decode(const Blob<uint8_t, 1> &input_blob, Blob<float, 4> &output_blob);
+    // void encode(const Blob<float, 4> &input_blob, Blob<uint8_t, 1> &output);
+    // void decode(const Blob<uint8_t, 1> &input_blob, Blob<float, 4> &output_blob);
 
-    // class NoopEncoder
-    // {
-    // private:
+    class SimpleEncoder
+    {
+    private:
         
-    // public:
-    //     NoopEncoder();
-    //     ~NoopEncoder();
-
-    //     std::vector<uint8_t> encode(input_blob, output_buffer=std::vector<uint8_t>());
-    // };
+    public:
+        SimpleEncoder();
+        ~SimpleEncoder();
+        
+        std::vector<uint8_t> encode(NNFC::Tensor<float, 3> input);
+    };
     
-    // class NoopDecoder
-    // {
-    // private:
+    class SimpleDecoder
+    {
+    private:
         
-    // public:
-    //     NoopDecoder();
-    //     ~NoopDecoder();
+    public:
+        SimpleDecoder();
+        ~SimpleDecoder();
 
-    //     output_blob decode(std::vector<uint8_t> compressed_blob, output_buffer);
-    // };
+        NNFC::Tensor<float, 3> decode(std::vector<uint8_t> input);
+    };
 
 }
 
