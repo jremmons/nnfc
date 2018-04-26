@@ -65,11 +65,22 @@ namespace NNFC {
         }
 
         template<typename... Indices>
-        T operator()(Indices&& ...indices)
+        inline T& operator()(Indices&& ...indices)
         {
             return tensor_(indices...);
         }
-        
+
+        template<typename... Indices>
+        inline const T& operator()(Indices&& ...indices) const
+        {
+            return tensor_(indices...);
+        }
+
+        T* data(void) const
+        {
+            return tensor_.data();
+        }
+
     };
 
 }
