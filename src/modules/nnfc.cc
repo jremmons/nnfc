@@ -89,11 +89,12 @@ NNFC::Tensor<float, 3> SimpleDecoder::decode(std::vector<uint8_t> input)
                 float element;
                 uint8_t *bytes = reinterpret_cast<uint8_t*>(&element);
 
-                bytes[0] = input[dim1*dim2 * i + dim2 * j + k];
-                bytes[1] = input[dim1*dim2 * i + dim2 * j + k + 1];
-                bytes[2] = input[dim1*dim2 * i + dim2 * j + k + 2];
-                bytes[3] = input[dim1*dim2 * i + dim2 * j + k + 3];
-
+                size_t offset = sizeof(float) * (dim1*dim2 * i + dim2 * j + k);
+                bytes[0] = input[offset];
+                bytes[1] = input[offset + 1];
+                bytes[2] = input[offset + 2];
+                bytes[3] = input[offset + 3];
+                
                 output(i, j, k) = element;
             }
         }

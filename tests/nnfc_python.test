@@ -19,6 +19,7 @@ model = MyNetwork()
 model.train()
 
 inp = Variable(torch.randn(13, 7, 5, 11))
+#inp = Variable(42 * torch.ones(3, 2, 1, 2))
 
 print('cpu only test')
 out = model(inp)
@@ -27,7 +28,8 @@ print('output on gpu?', out.is_cuda)
 cpu_success = bool((inp == out).all().item() and inp.is_cuda == out.is_cuda)
 print('nnfc success:', cpu_success)
 
-print(inp - out)
+#print('input', inp)
+#print('output', out)
 
 print()
 

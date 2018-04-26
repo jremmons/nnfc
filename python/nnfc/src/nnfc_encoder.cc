@@ -30,12 +30,7 @@ static std::vector<NNFC::Tensor<float, 3>> blob2tensors(PyArrayObject *input_arr
     }
 
     const int ndims = PyArray_NDIM(input_array);
-    if(ndims != 4) {
-        std::string error_message("the input to the encoder must be a 4D numpy.ndarray. (The input dimensionality was: ");
-        error_message = error_message + std::to_string(ndims) + std::string(")");
-        PyErr_SetString(PyExc_TypeError,  error_message.c_str());
-        PyErr_Print();
-    }
+    WrapperAssert(ndims == 4, PyExc_TypeError, std::string("the input to the encoder must be a 4D numpy.ndarray. (The input dimensionality was: ") + std::to_string(ndims) + std::string(")"));
 
     Eigen::Index dim0 = PyArray_DIM(input_array, 0);
     Eigen::Index dim1 = PyArray_DIM(input_array, 1);
@@ -118,9 +113,6 @@ PyObject* NNFCEncoderContext_encode(NNFCEncoderContext *self, PyObject *args){
         PyErr_Print();
     }
 
-    Py_INCREF(input_array);
-    return (PyObject*) input_array;
-    
     if(!PyArray_Check(input_array)) {
         PyErr_SetString(PyExc_TypeError, "the input to the encoder must be a 4D numpy.ndarray.");
         PyErr_Print();
@@ -128,11 +120,9 @@ PyObject* NNFCEncoderContext_encode(NNFCEncoderContext *self, PyObject *args){
 
     try {
         std::vector<NNFC::Tensor<float, 3>> input_tensors = blob2tensors(input_array);
-        
         std::vector<std::vector<uint8_t>> buffers;
         
         for(size_t i = 0; i < input_tensors.size(); i++) {
-
             std::vector<uint8_t> buffer = self->encoder->encode(std::move(input_tensors[i]));
             buffers.push_back(buffer);
         }

@@ -23,8 +23,8 @@ static std::vector<std::vector<uint8_t>> pylist2buffers(PyObject* input_pylist) 
         WrapperAssert(PyArray_TYPE(array) == NPY_UINT8, PyExc_TypeError, "the elements of the input python list must be uint8 numpy arrays.");
 
         size_t nElements = PyArray_SIZE(array);
-        size_t stride0 = PyArray_STRIDE(array, 0) + 1;
-        WrapperAssert(nElements == stride0, PyExc_RuntimeError, "nElements == stride0");
+        //size_t stride0 = PyArray_STRIDE(array, 0);
+        //WrapperAssert(nElements == stride0, PyExc_RuntimeError, "nElements==stride0: " + std::to_string(nElements) + std::string("==") + std::to_string(stride0));
         uint8_t *data = static_cast<uint8_t*>(PyArray_DATA(array));
 
         std::vector<uint8_t> buffer(nElements);
@@ -39,40 +39,31 @@ static std::vector<std::vector<uint8_t>> pylist2buffers(PyObject* input_pylist) 
 static PyObject* tensors2blob(std::vector<NNFC::Tensor<float, 3>> input_tensors) {
 
     size_t num_tensors = input_tensors.size();
-    size_t dim0;
-    size_t dim1;
-    size_t dim2;
-
     if(num_tensors == 0){
         PyErr_SetString(PyExc_RuntimeError, "No input tensors! (this is a library bug)");
         PyErr_Print();
     }
 
-    dim0 = input_tensors[0].dimension(0);
-    dim1 = input_tensors[0].dimension(1);
-    dim2 = input_tensors[0].dimension(2);
-
+    size_t dim0 = input_tensors[0].dimension(0);
+    size_t dim1 = input_tensors[0].dimension(1);
+    size_t dim2 = input_tensors[0].dimension(2);
+    const size_t tensor_size = dim0*dim1*dim2;
+    
     for(size_t i = 0; i < num_tensors; i++) {
-        // WrapperAssert(input_tensors[i].dimension(0) == dim0, "decoded tensors dimensions do not match.");
-        // WrapperAssert(input_tensors[i].dimension(1) == dim1, "decoded tensors dimensions do not match.");
-        // WrapperAssert(input_tensors[i].dimension(2) == dim2, "decoded tensors dimensions do not match.");
+        WrapperAssert(input_tensors[i].dimension(0) == dim0, PyExc_TypeError, "decoded tensors dimensions do not match.");
+        WrapperAssert(input_tensors[i].dimension(1) == dim1, PyExc_TypeError, "decoded tensors dimensions do not match.");
+        WrapperAssert(input_tensors[i].dimension(2) == dim2, PyExc_TypeError, "decoded tensors dimensions do not match.");
+        WrapperAssert(input_tensors[i].size() == tensor_size, PyExc_TypeError, "decoded tensors size is not correct.");
     }
 
-    npy_intp size[4] = { num_tensors, dim0, dim1, dim2 };
-    PyArrayObject *array = reinterpret_cast<PyArrayObject*>(PyArray_SimpleNew(4, size, NPY_FLOAT32));
+    npy_intp array_size[4] = { num_tensors, dim0, dim1, dim2 };
+    PyArrayObject *array = reinterpret_cast<PyArrayObject*>(PyArray_SimpleNew(4, array_size, NPY_FLOAT32));
+    WrapperAssert(PyArray_ISCARRAY(array), PyExc_TypeError, "the output array must be a c-style array and conriguous in memory. (this is a library bug)");
 
-    if(!PyArray_ISCARRAY(array)){
-        PyErr_SetString(PyExc_TypeError, "the output array must be a c-style array and conriguous in memory. (this is a library bug)");
-        PyErr_Print();
-    }
-
-    float *data = static_cast<float*>(PyArray_DATA(array));
-    size_t stride0 = PyArray_STRIDE(array, 0);
-
+    float *array_data = static_cast<float*>(PyArray_DATA(array));
+        
     for(size_t i = 0; i < num_tensors; i++) {
-        // WrapperAssert(stride0 == sizeof(float)*input_tensors[i].size(), "decoded tensor does not match allocate array dimension. (this is a library bug).");
-
-        std::memcpy(data + stride0 * i, input_tensors[i].data(), stride0);
+        std::memcpy(&array_data[tensor_size * i], input_tensors[i].data(), sizeof(float)*tensor_size);
     }
     
     return reinterpret_cast<PyObject*>(array);
@@ -118,9 +109,6 @@ PyObject* NNFCDecoderContext_decode(NNFCDecoderContext *self, PyObject *args){
         PyErr_Print();
     }
 
-    Py_INCREF(input_pylist);
-    return input_pylist;
-    
     if(!PyList_Check(input_pylist)) {
         PyErr_SetString(PyExc_TypeError, "the input should be a python list of numpy array");
         PyErr_Print();
