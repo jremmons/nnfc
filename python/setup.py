@@ -24,7 +24,7 @@ Defined the extension module below
 base_sources=['nnfc/src/nnfc_codec.cc',
               'nnfc/src/nnfc_encoder.cc', 'nnfc/src/nnfc_decoder.cc']
 base_define_macros=[('_NNFC_VERSION', VERSION)]
-base_include_dirs=[numpy.get_include(), '../src/modules']
+base_include_dirs=[numpy.get_include(), '../src/modules', './extra_headers']
 base_library_dirs=['../src/modules/.libs']
 base_libraries=[]
 base_extra_compile_args=[]
@@ -37,11 +37,11 @@ if CUDA_AVAILABLE:
 
     module = CUDAExtension(name=EXTENSION_NAME,
                           sources=base_sources + ['nnfc/src/nnfc_cuda.cc'],
-                          define_macros=base_define_macros + [('_NNFC_CUDA_AVAILABLE',)],
+                          define_macros=base_define_macros,
                           include_dirs=base_include_dirs,
                           library_dirs=base_library_dirs,
                           libraries=base_libraries,
-                          extra_compile_args=base_extra_compile_args,
+                          extra_compile_args=base_extra_compile_args + ['-D=_NNFC_CUDA_AVAILABLE=1'],
                           extra_link_args=base_extra_link_args
     )
 
