@@ -160,8 +160,8 @@ static PyObject* nnfc_available_decoders(PyObject *args) {
 }
 
 static PyMethodDef module_methods[] = {
-    { "available_encoders", (PyCFunction)nnfc_available_encoders, METH_NOARGS, "returns a list of strings that name the available NNFC encoders (i.e. the ones exported by your version of libnnfc)." },
     { "available_decoders", (PyCFunction)nnfc_available_decoders, METH_NOARGS, "returns a list of strings that name the available NNFC decoders (i.e. the ones exported by your version of libnnfc)." },
+    { "available_encoders", (PyCFunction)nnfc_available_encoders, METH_NOARGS, "returns a list of strings that name the available NNFC encoders (i.e. the ones exported by your version of libnnfc)." },
     #ifdef _NNFC_CUDA_AVAILABLE
     { "inplace_copy_d2h", (PyCFunction)NNFCinplace_copy_d2h, METH_VARARGS, "copy a GPU (device) tensor directly into a CPU (host) tensor (the destination and source tensors must be the same size)." },
     #endif

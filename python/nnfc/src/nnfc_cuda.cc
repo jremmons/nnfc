@@ -2,8 +2,15 @@ extern "C" {
 #include <Python.h>
 }
 
-#include <TH/TH.h>
-#include <THC/THC.h>
+// #include <pybind11/pybind11.h>
+#include <torch/torch.h>
+#include <torch/csrc/utils/python_arg_parser.h>
+// #include <TH/TH.h>
+// #include <THC/THC.h>
+
+#include <vector>
+#include <string>
+#include <iostream>
 
 // #include <sys/mman.h>
 // #include <chrono>
@@ -13,14 +20,22 @@ extern "C" {
 #include "nnfc_cuda.hh"
 //#include "common.hh"
 
-extern THCState *state;
+//extern THCState *state;
 
-PyObject* NNFCinplace_copy_d2h(PyObject *, PyObject *args, PyObject *){
+PyObject* NNFCinplace_copy_d2h(PyObject *self, PyObject *args, PyObject *kwargs){
 
-    // THFloatTensor *dest = (THFloatTensor*) dest_;
-    // THCudaTensor *src = (THCudaTensor*) src_;
+    torch::PythonArgParser parser({ "func(Tensor dest, Tensor src)" });
+    torch::ParsedArgs<2> parsed_args;
+
+    auto r = parser.parse(args, kwargs, parsed_args);
+
+    at::Tensor src = r.tensor(0);
+    at::Tensor dest = r.tensor(1);
+    std::cerr << "rank: " << src.ndimension() << std::endl;
+
+    Py_RETURN_NONE;
     
-    // // sanity checking
+    // sanity checking
     // THArgCheck(THCudaTensor_isContiguous(state, src), 2, "src tensor must be contiguous");
     // THArgCheck(THCudaTensor_nDimension(state, src) == 4, 2, "src tensor must be 4D");
 
@@ -43,7 +58,4 @@ PyObject* NNFCinplace_copy_d2h(PyObject *, PyObject *args, PyObject *){
 
     // // copy memory
     // THCudaCheck(cudaMemcpy(dest_blob.data, src_data, sizeof(float)*dest_blob.size(), cudaMemcpyDeviceToHost));
-    
-    Py_RETURN_NONE;
-    
 }
