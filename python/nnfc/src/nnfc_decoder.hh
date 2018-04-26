@@ -1,11 +1,16 @@
 #ifndef _NNFC_DECODER
 #define _NNFC_DECODER
 
+extern "C" {
 #include <Python.h>
+}
+
+#include "nnfc.hh"
 
 typedef struct {
 
     PyObject_HEAD
+    NNFC::SimpleDecoder *decoder;
     
 } NNFCDecoderContext;
 

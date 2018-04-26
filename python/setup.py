@@ -25,10 +25,10 @@ base_sources=['nnfc/src/nnfc_codec.cc',
               'nnfc/src/nnfc_encoder.cc', 'nnfc/src/nnfc_decoder.cc']
 base_define_macros=[('_NNFC_VERSION', VERSION)]
 base_include_dirs=[numpy.get_include(), '../src/modules']
-base_library_dirs=[]
+base_library_dirs=['../src/modules/.libs']
 base_libraries=[]
 base_extra_compile_args=[]
-base_extra_link_args=[]
+base_extra_link_args=['-lnnfc']
 
 
 module = None

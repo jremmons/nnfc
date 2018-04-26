@@ -15,14 +15,15 @@ class CompressionLayer(Module):
             on_gpu = inputs.is_cuda
             
             inputs = inputs.cpu().numpy()
-            inputs = encoder.encode(inputs)
-            inputs = decoder.decode(inputs)
-            inputs = torch.from_numpy(inputs)
+            compress_decompress = decoder.decode( encoder.encode(inputs) )
+            outputs = torch.from_numpy(compress_decompress)
 
-            if on_gpu:
-                inputs = inputs.cuda()
+            output = outputs + 1
             
-            return inputs
+            if on_gpu:
+                outputs = outputs.cuda()
+            
+            return outputs
         
         @staticmethod
         def backward(ctx, grad_output):

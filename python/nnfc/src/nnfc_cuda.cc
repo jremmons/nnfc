@@ -1,4 +1,7 @@
+extern "C" {
 #include <Python.h>
+}
+
 #include <TH/TH.h>
 #include <THC/THC.h>
 
