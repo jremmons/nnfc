@@ -2,19 +2,91 @@ extern "C" {
 #include <Python.h>
 #define NO_IMPORT_ARRAY
 #define PY_ARRAY_UNIQUE_SYMBOL nnfc_codec_ARRAY_API
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 }
-    
+
+#include <iostream>
+
+#include "common.hh"
 #include "nnfc_decoder.hh"
-   
+
+static std::vector<std::vector<uint8_t>> pylist2buffers(PyObject* input_pylist) {
+
+    Py_ssize_t length = PyList_Size(input_pylist);
+    std::vector<std::vector<uint8_t>> buffers;
+
+    for(Py_ssize_t i = 0; i < length; i++) {
+        PyArrayObject *array = reinterpret_cast<PyArrayObject*>(PyList_GetItem(input_pylist, i));
+
+        WrapperAssert(PyArray_Check(array), PyExc_TypeError, "the elements of the input python list must be uint8 numpy arrays.");
+        WrapperAssert(PyArray_TYPE(array) == NPY_UINT8, PyExc_TypeError, "the elements of the input python list must be uint8 numpy arrays.");
+
+        size_t nElements = PyArray_SIZE(array);
+        size_t stride0 = PyArray_STRIDE(array, 0) + 1;
+        WrapperAssert(nElements == stride0, PyExc_RuntimeError, "nElements == stride0");
+        uint8_t *data = static_cast<uint8_t*>(PyArray_DATA(array));
+
+        std::vector<uint8_t> buffer(nElements);
+        std::memcpy(buffer.data(), data, nElements);
+
+        buffers.push_back(buffer);
+    }
+    
+    return buffers;
+}
+
+static PyObject* tensors2blob(std::vector<NNFC::Tensor<float, 3>> input_tensors) {
+
+    size_t num_tensors = input_tensors.size();
+    size_t dim0;
+    size_t dim1;
+    size_t dim2;
+
+    if(num_tensors == 0){
+        PyErr_SetString(PyExc_RuntimeError, "No input tensors! (this is a library bug)");
+        PyErr_Print();
+    }
+
+    dim0 = input_tensors[0].dimension(0);
+    dim1 = input_tensors[0].dimension(1);
+    dim2 = input_tensors[0].dimension(2);
+
+    for(size_t i = 0; i < num_tensors; i++) {
+        // WrapperAssert(input_tensors[i].dimension(0) == dim0, "decoded tensors dimensions do not match.");
+        // WrapperAssert(input_tensors[i].dimension(1) == dim1, "decoded tensors dimensions do not match.");
+        // WrapperAssert(input_tensors[i].dimension(2) == dim2, "decoded tensors dimensions do not match.");
+    }
+
+    npy_intp size[4] = { num_tensors, dim0, dim1, dim2 };
+    PyArrayObject *array = reinterpret_cast<PyArrayObject*>(PyArray_SimpleNew(4, size, NPY_FLOAT32));
+
+    if(!PyArray_ISCARRAY(array)){
+        PyErr_SetString(PyExc_TypeError, "the output array must be a c-style array and conriguous in memory. (this is a library bug)");
+        PyErr_Print();
+    }
+
+    float *data = static_cast<float*>(PyArray_DATA(array));
+    size_t stride0 = PyArray_STRIDE(array, 0);
+
+    for(size_t i = 0; i < num_tensors; i++) {
+        // WrapperAssert(stride0 == sizeof(float)*input_tensors[i].size(), "decoded tensor does not match allocate array dimension. (this is a library bug).");
+
+        std::memcpy(data + stride0 * i, input_tensors[i].data(), stride0);
+    }
+    
+    return reinterpret_cast<PyObject*>(array);
+}
+
+
 PyObject* NNFCDecoderContext_new(PyTypeObject *type, PyObject *, PyObject *) {
 
     NNFCDecoderContext *self;
 
     self = (NNFCDecoderContext*)type->tp_alloc(type, 0);
     if(self == NULL) {
-        PyErr_SetString(PyExc_ValueError, "Could not alloc a new NNFCDecoderContext.");
-        return 0;
+        PyErr_SetString(PyExc_RuntimeError, "Could not alloc a new NNFCDecoderContext.");
+        PyErr_Print();
     }
 
     return (PyObject*) self;
@@ -22,103 +94,67 @@ PyObject* NNFCDecoderContext_new(PyTypeObject *type, PyObject *, PyObject *) {
 
 void NNFCDecoderContext_dealloc(NNFCDecoderContext* self) {
 
-    //Py_TYPE(self)->tp_free((PyObject*)self);
+    delete self->decoder;
+    Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
-int NNFCDecoderContext_init(NNFCDecoderContext *self, PyObject *args, PyObject *kwargs) {
+int NNFCDecoderContext_init(NNFCDecoderContext *self, PyObject *args, PyObject *) {
 
-    // char *counter_name = NULL;
+    char *codec_name = NULL;
+    if (!PyArg_ParseTuple(args, "s", &codec_name)){
+        return 0;
+    }
 
-    // static char *kwlist[] = { "counter_name", NULL };
-    // if (!PyArg_ParseTupleAndKeywords(args,
-    //                                  kwargs,
-    //                                  "s",
-    //                                  kwlist,
-    //                                  &counter_name)){
-
-    //     PyErr_SetString(PyExc_ValueError, "NNFCDecoderContext failed while parsing constructor args/kwargs.");
-    //     return 0;
-    // }
-
-    // if(counter_name == NULL) {
-
-    //     PyErr_SetString(PyExc_ValueError, "NNFCDecoderContext requires `counter_name` to be specified.");
-    //     return 0;
-    // }
-
-    // // std::cerr << "got it: '" << counter_name << "'\n";
-    // try {
-
-    //     libperf::NNFCDecoderContext *p = new libperf::NNFCDecoderContext{std::string(counter_name)};
-    //     self->counter = p;
-    // }
-    // catch(const std::exception& e) {
-
-    //     std::string error_message = std::string(e.what());
-    //     error_message += std::string(" Try running `nnfc_codec.get_available_counters()` to list the available counters on your system.");
-    //     PyErr_SetString(PyExc_ValueError, error_message.c_str());
-    //     return 0;
-    // }
-
+    self->decoder = new NNFC::SimpleDecoder();
     return 0;
+
 }
 
 PyObject* NNFCDecoderContext_decode(NNFCDecoderContext *self, PyObject *args){
 
-    //torch::THPVoidTensor *input;
-    PyObject * input;
+    PyObject *input_pylist;
+
+    if (!PyArg_ParseTuple(args, "O", &input_pylist)){
+        PyErr_Print();
+    }
+
+    Py_INCREF(input_pylist);
+    return input_pylist;
     
-    if (!PyArg_ParseTuple(args, "O",
-                          &input)){
+    if(!PyList_Check(input_pylist)) {
+        PyErr_SetString(PyExc_TypeError, "the input should be a python list of numpy array");
+        PyErr_Print();
+    }
+    
+    try {
+        std::vector<std::vector<uint8_t>> input_buffers = pylist2buffers(input_pylist);
+
+        std::vector<NNFC::Tensor<float, 3>> tensors;
+        
+        for(size_t i = 0; i < input_buffers.size(); i++) {
+
+            NNFC::Tensor<float, 3> tensor = std::move(self->decoder->decode(input_buffers[i]));
+
+            tensors.push_back(std::move(tensor));
+        }
+
+        PyObject *array = tensors2blob(std::move(tensors));
+        return array;
+        
+    }
+    catch(nnfc_python_exception e) {
+        PyErr_SetString(e.type(), e.what());
+        return 0;
+    }
+    catch(std::exception e) {
+        PyErr_SetString(PyExc_RuntimeError, e.what());
         return 0;
     }
 
-    // torch::THPVoidTensor THPVoidTensorType;
-    // torch::THPVoidTensor *output = PyObject_New(torch::THPVoidTensor, (PyTypeObject*)&THPVoidTensorType);
-
-    // THFloatTensor *input_tensor = reinterpret_cast<THFloatTensor*>(input->cdata);
-    // THFloatTensor *output_tensor = reinterpret_cast<THFloatTensor*>(output->cdata);
-    
-    // THFloatTensor_resizeAs(input_tensor, output_tensor);
-
-    // int nElements =  THFloatTensor_nElement(input_tensor);
-
-    // float *input_data = THFloatTensor_data(input_tensor);
-    // float *output_data = THFloatTensor_data(output_tensor);
-    // for(int i = 0; i < nElements; i++){
-    //     output_data[i] = input_data[i];
-    // }
-
-    Py_INCREF(input);
-    
-    return (PyObject *) input;
 }
 
-PyObject* NNFCDecoderContext_backprop(NNFCDecoderContext *self, PyObject *args){
+PyObject* NNFCDecoderContext_backprop(NNFCDecoderContext *, PyObject *){
 
-    PyObject * input;
-
-    if (!PyArg_ParseTuple(args, "O",
-                          &input)){
-        return 0;
-    }
-    
-    //torch::THPVoidTensor *output; //= PyObject_New(torch::THPVoidTensor, &torch::THPVoidTensor);
-    //output = PyObject_Init(output, &torch::THPVoidTensor);
-
-    // THFloatTensor *output = THFloatTensor_new();
-    // THFloatTensor_resizeAs(input, output);
-
-    // int nElements =  THFloatTensor_nElement(input);
-
-    // float *input_data = THFloatTensor_data(input);
-    // float *output_data = THFloatTensor_data(input);
-    // for(int i = 0; i < nElements; i++){
-    //     output_data[i] = input_data[i];
-    // }
-
-    Py_INCREF(input);
-    
-    return (PyObject *) input;
+    Py_RETURN_NONE;
 }
 

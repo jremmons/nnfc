@@ -1,11 +1,15 @@
 #ifndef _NNFC_ENCODER
 #define _NNFC_ENCODER
-
+extern "C" {
 #include <Python.h>
-    
+}
+
+#include "nnfc.hh"
+
 typedef struct {
 
     PyObject_HEAD
+    NNFC::SimpleEncoder *encoder;
     
 } NNFCEncoderContext;
 
