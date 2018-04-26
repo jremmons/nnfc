@@ -55,40 +55,23 @@ PyObject* NNFCEncoderContext_encode(NNFCEncoderContext *self, PyObject *args){
     }
         
     try {
-        auto input_tensor = array2tensor(input_array);
 
-        std::cerr << input_tensor.dimension(0) << std::endl;
+        auto input_tensors = array2tensor(input_array);
+
+        // TODO(jremmons) call down to the libnnfc encode function
+        // TODO(jremmons) munge the output into a 
         
+        
+        Py_INCREF(input_array);
+        PyArrayObject *output_array = input_array;
+        return reinterpret_cast<PyObject*>(output_array);
     }
     catch(std::exception e) {
         std::string error_message = e.what();
         PyErr_SetString(PyExc_Exception, error_message.c_str());
         return 0;
     }
-          
     
-    // TODO(jremmons) we probably don't need to force the arrays to be contiguous 
-    // input_array = PyArray_GETCONTIGUOUS(input_array);
-    // if(!input_array) {
-    //     PyErr_SetString(PyExc_ValueError,  "could not convert input to an array with a contiguous memory layout.");
-    //     return 0;        
-    // }
-    
-    // const int ndims = PyArray_NDIM(input_array);
-    // if(ndims != 4) {
-    //     std::string error_message("the input to the encoder must be a 4D numpy.ndarray. (The input dimensionality was: ");
-    //     error_message = error_message + std::to_string(ndims) + std::string(")");
-    //     PyErr_SetString(PyExc_ValueError,  error_message.c_str());
-    //     return 0;
-    // }
-    
-    // TODO(jremmons) call down to the libnnfc encode function
-    // TODO(jremmons) munge the output data so that 
-
-
-    Py_INCREF(input_array);
-    PyArrayObject *output_array = input_array;
-    return reinterpret_cast<PyObject*>(output_array);
 }
 
 PyObject* NNFCEncoderContext_backprop(NNFCEncoderContext *self, PyObject *args){

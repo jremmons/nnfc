@@ -9,6 +9,7 @@ extern "C" {
 #include <exception>
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include "tensor.hh"
 
@@ -20,7 +21,7 @@ inline void WrapperAssert(bool expr, const std::string message="unnammed runtime
     #endif
 }
 
-inline NNFC::Tensor<float, 4> array2tensor(PyArrayObject *input_array) {
+inline std::vector<NNFC::Tensor<float, 3>> array2tensor(PyArrayObject *input_array) {
     
     if(!PyArray_Check(input_array)) {
         PyErr_SetString(PyExc_ValueError, "the input to the encoder must be a 4D numpy.ndarray.");
@@ -40,15 +41,25 @@ inline NNFC::Tensor<float, 4> array2tensor(PyArrayObject *input_array) {
         error_message = error_message + std::to_string(ndims) + std::string(")");
         PyErr_SetString(PyExc_ValueError,  error_message.c_str());
     }
-    
+
     Eigen::Index dim0 = PyArray_DIM(input_array, 0);
     Eigen::Index dim1 = PyArray_DIM(input_array, 1);
     Eigen::Index dim2 = PyArray_DIM(input_array, 2);
     Eigen::Index dim3 = PyArray_DIM(input_array, 3);
 
+    size_t stride0 = PyArray_STRIDE(input_array, 0);
+    size_t nElements = PyArray_SIZE(input_array);
+        
     float *data = static_cast<float*>(PyArray_DATA(input_array));
 
-    return std::move(NNFC::Tensor<float, 4>(data, dim0, dim1, dim2, dim3));    
+    std::vector<NNFC::Tensor<float, 3>> tensors;
+    tensors.reserve(dim0);
+
+    for(size_t offset = 0; offset < nElements; offset += stride0) {
+        tensors.emplace_back(data + offset, dim1, dim2, dim3);
+    }
+
+    return tensors;
 }
 
 #endif // _NNFC_COMMON
