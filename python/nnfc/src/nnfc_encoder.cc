@@ -122,7 +122,7 @@ PyObject* NNFCEncoderContext_encode(NNFCEncoderContext *self, PyObject *args){
         std::vector<std::vector<uint8_t>> buffers;
         
         for(size_t i = 0; i < input_tensors.size(); i++) {
-            std::vector<uint8_t> buffer = self->encoder->encode(std::move(input_tensors[i]));
+            std::vector<uint8_t> buffer = self->encoder->encode(input_tensors[i]);
             buffers.push_back(buffer);
         }
 
