@@ -14,7 +14,7 @@ namespace NNFC {
     class Tensor {
     private:
         const Eigen::DSizes<Eigen::Index, ndims> size_;
-        std::unique_ptr<T, void(*)(T*)> data_;
+        std::shared_ptr<T> data_;
         Eigen::TensorMap<Eigen::Tensor<T, ndims>> tensor_;
 
     public:
@@ -44,7 +44,12 @@ namespace NNFC {
             tensor_(Eigen::TensorMap<Eigen::Tensor<T, ndims>>(data_.get(), size_))
         { }
 
-        Tensor(const Tensor<T, ndims>&) = delete;
+        Tensor(const Tensor<T, ndims>& other) noexcept :
+            size_(other.size_),
+            data_(other.data_),
+            tensor_(Eigen::TensorMap<Eigen::Tensor<T, ndims>>(data_.get(), size_))
+        { }
+
         Tensor<T, ndims>& operator=(Tensor<T, ndims> &rhs) = delete;    
 
         ~Tensor() { }
