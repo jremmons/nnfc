@@ -1,13 +1,11 @@
 #ifndef _NNFC_COMMON
 #define _NNFC_COMMON
 
-extern "C" {
 #include <Python.h>
-#include <numpy/arrayobject.h>
-}
 
 #include <exception>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -19,7 +17,7 @@ extern "C" {
 
 class nnfc_python_exception : public std::exception {
 private:
-    PyObject* error_type_;
+    std::shared_ptr<PyObject> error_type_;
     const std::string error_message_;
 
 public:
@@ -28,12 +26,14 @@ public:
         error_message_(error_message)
     { }
 
+    
+    
     const char* what() const noexcept {
         return error_message_.c_str();
     }
     
     PyObject* type() const noexcept {
-        return error_type_;
+        return error_type_.get();
     }    
 };
 

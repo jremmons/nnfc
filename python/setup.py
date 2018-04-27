@@ -4,8 +4,7 @@ import re
 import torch
 import numpy
 
-from setuptools import setup, find_packages, Extension
-
+from setuptools import setup, find_packages, Extension 
 from torch.utils.cpp_extension import BuildExtension, include_paths, library_paths
 
 def get_def(header_filepath, definition_name):
@@ -34,7 +33,8 @@ module = Extension(EXTENSION_NAME,
                    include_dirs=[numpy.get_include()],
                    library_dirs=['../src/modules/.libs'] + pytorch_libdirs,
                    libraries=[] + pytorch_libs,
-                   extra_compile_args=['-I../src/modules', '-isystem', './extra_headers'] + pytorch_include,
+                   extra_compile_args=['-I../src/modules',
+                                       '-isystem', './extra_headers'] + pytorch_include,
                    extra_link_args=['-Wl,-Bdynamic', '-lnnfc']
                    )
 

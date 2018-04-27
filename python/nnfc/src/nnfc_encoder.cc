@@ -1,10 +1,8 @@
-extern "C" {
 #include <Python.h>
 #define NO_IMPORT_ARRAY
 #define PY_ARRAY_UNIQUE_SYMBOL nnfc_codec_ARRAY_API
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
-}
 
 #include <exception>
 #include <iostream>
@@ -44,7 +42,8 @@ static std::vector<NNFC::Tensor<float, 3>> blob2tensors(PyArrayObject *input_arr
     float *data = static_cast<float*>(PyArray_DATA(input_array));
 
     std::vector<NNFC::Tensor<float, 3>> tensors;
-
+    tensors.reserve(dim0);
+    
     for(size_t offset = 0; offset < nElements; offset += nStride0) {
         tensors.emplace_back(&data[offset], dim1, dim2, dim3);
     }

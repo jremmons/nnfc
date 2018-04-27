@@ -1,10 +1,8 @@
-extern "C" {
 #include <Python.h>
 #define NO_IMPORT_ARRAY
 #define PY_ARRAY_UNIQUE_SYMBOL nnfc_codec_ARRAY_API
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
-}
 
 #include <iostream>
 
@@ -38,18 +36,18 @@ static std::vector<std::vector<uint8_t>> pylist2buffers(PyObject* input_pylist) 
 
 static PyObject* tensors2blob(std::vector<NNFC::Tensor<float, 3>> input_tensors) {
 
-    size_t num_tensors = input_tensors.size();
+    npy_intp num_tensors = input_tensors.size();
     if(num_tensors == 0){
         PyErr_SetString(PyExc_RuntimeError, "No input tensors! (this is a library bug)");
         PyErr_Print();
     }
 
-    size_t dim0 = input_tensors[0].dimension(0);
-    size_t dim1 = input_tensors[0].dimension(1);
-    size_t dim2 = input_tensors[0].dimension(2);
-    const size_t tensor_size = dim0*dim1*dim2;
+    npy_intp dim0 = input_tensors[0].dimension(0);
+    npy_intp dim1 = input_tensors[0].dimension(1);
+    npy_intp dim2 = input_tensors[0].dimension(2);
+    const npy_intp tensor_size = dim0*dim1*dim2;
     
-    for(size_t i = 0; i < num_tensors; i++) {
+    for(npy_intp i = 0; i < num_tensors; i++) {
         WrapperAssert(input_tensors[i].dimension(0) == dim0, PyExc_TypeError, "decoded tensors dimensions do not match.");
         WrapperAssert(input_tensors[i].dimension(1) == dim1, PyExc_TypeError, "decoded tensors dimensions do not match.");
         WrapperAssert(input_tensors[i].dimension(2) == dim2, PyExc_TypeError, "decoded tensors dimensions do not match.");
@@ -65,7 +63,7 @@ static PyObject* tensors2blob(std::vector<NNFC::Tensor<float, 3>> input_tensors)
     // TODO(jremmons) do a smarter memcpy. The current implementation
     // assumes the data is contiguous in memory and in c-style, but we
     // should check this before doing a memcpy! 
-    for(size_t i = 0; i < num_tensors; i++) {
+    for(npy_intp i = 0; i < num_tensors; i++) {
         auto tensor = std::move(input_tensors[i]);
         std::memcpy(&array_data[tensor_size * i], &tensor(0,0,0), sizeof(float)*tensor_size);
     }
