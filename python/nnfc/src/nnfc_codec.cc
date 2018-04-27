@@ -5,6 +5,7 @@ extern "C" {
 #include <numpy/arrayobject.h>
 }
     
+#include "common.hh"
 #include "nnfc_encoder.hh"
 #include "nnfc_decoder.hh"
 
@@ -12,7 +13,9 @@ extern "C" {
 #include "nnfc_cuda.hh"
 #endif
 
-// define the NNFCEncoderContext /////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+// define the NNFCEncoderContext /////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
 static PyMethodDef NNFCEncoderContext_methods[] = {
     {"encode", (PyCFunction)NNFCEncoderContext_encode, METH_VARARGS,
      "Encodes a batch of intermediate activations. Expects a PyTorch float tensor as input."
@@ -24,7 +27,7 @@ static PyMethodDef NNFCEncoderContext_methods[] = {
 };
 
 static PyTypeObject NNFCEncoderContextType = {
-    PyObject_HEAD_INIT(NULL)
+    PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "nnfc_codec.EncoderContext",
     .tp_basicsize = sizeof(NNFCEncoderContext),
     .tp_itemsize = 0,
@@ -74,7 +77,9 @@ static PyTypeObject NNFCEncoderContextType = {
     .tp_finalize = 0,
 };
 
-// define the NNFCDecoderContext /////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+// define the NNFCDecoderContext /////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
 static PyMethodDef NNFCDecoderContext_methods[] = {
     {"decode", (PyCFunction)NNFCDecoderContext_decode, METH_VARARGS,
      "Decodes a batch of intermediate activations. Expects a PyTorch byte tensor as input."
@@ -86,7 +91,7 @@ static PyMethodDef NNFCDecoderContext_methods[] = {
 };
 
 static PyTypeObject NNFCDecoderContextType = {
-    PyObject_HEAD_INIT(NULL)
+    PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "nnfc_codec.NNFCDecoderContext",
     .tp_basicsize = sizeof(NNFCDecoderContext),
     .tp_itemsize = 0,
@@ -136,27 +141,23 @@ static PyTypeObject NNFCDecoderContextType = {
     .tp_finalize = 0,
 };
 
-// define the nnfc_codec extension module  ///////////////////////
+//////////////////////////////////////////////////////////////////////
+// define the nnfc_codec extension module  ///////////////////////////
+//////////////////////////////////////////////////////////////////////
 struct module_state {
     PyObject *error;
 };
 
-static PyObject* nnfc_available_encoders(PyObject *, PyObject *args) {
+static PyObject* nnfc_available_encoders(PyObject *, PyObject *, PyObject *) {
 
     PyErr_SetString(PyExc_NotImplementedError, "NOT YET IMPLEMENTED");
     return nullptr;
-
-    PyObject *hello = PyUnicode_FromString("encoders");
-    return hello;
 }
 
-static PyObject* nnfc_available_decoders(PyObject *args) {
+static PyObject* nnfc_available_decoders(PyObject *, PyObject *, PyObject *) {
 
     PyErr_SetString(PyExc_NotImplementedError, "NOT YET IMPLEMENTED");
     return nullptr;
-    
-    PyObject *hello = PyUnicode_FromString("decoders");
-    return hello;
 }
 
 static PyMethodDef module_methods[] = {

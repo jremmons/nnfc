@@ -1,28 +1,18 @@
-extern "C" {
 #include <Python.h>
-}
 
-// #include <pybind11/pybind11.h>
 #include <torch/torch.h>
 #include <torch/csrc/utils/python_arg_parser.h>
-// #include <TH/TH.h>
-// #include <THC/THC.h>
 
 #include <vector>
 #include <string>
 #include <iostream>
 
-// #include <sys/mman.h>
-// #include <chrono>
-// #include <cstring>
-// #include <iostream>
-
+#include "common.hh"
 #include "nnfc_cuda.hh"
-//#include "common.hh"
 
 //extern THCState *state;
 
-PyObject* NNFCinplace_copy_d2h(PyObject *self, PyObject *args, PyObject *kwargs){
+PyObject* NNFCinplace_copy_d2h(PyObject *, PyObject *args, PyObject *kwargs){
 
     torch::PythonArgParser parser({ "func(Tensor dest, Tensor src)" });
     torch::ParsedArgs<2> parsed_args;
