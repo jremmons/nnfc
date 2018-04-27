@@ -23,7 +23,7 @@ for lib in include_paths(cuda=CUDA_AVAILABLE):
     pytorch_include += ['-isystem', lib]
 
 pytorch_libdirs = library_paths(cuda=CUDA_AVAILABLE)
-pytorch_libs = ['cudart']
+pytorch_libs = ['cudart'] if CUDA_AVAILABLE else [] 
 pytorch_defines = [('_NNFC_CUDA_AVAILABLE', 1)] if CUDA_AVAILABLE else []
 
 module = Extension(EXTENSION_NAME,
