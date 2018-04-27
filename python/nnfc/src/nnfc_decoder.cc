@@ -64,7 +64,7 @@ static PyObject* tensors2blob(std::vector<NNFC::Tensor<float, 3>> input_tensors)
     // assumes the data is contiguous in memory and in c-style, but we
     // should check this before doing a memcpy! 
     for(npy_intp i = 0; i < num_tensors; i++) {
-        auto tensor = std::move(input_tensors[i]);
+        auto tensor = input_tensors[i];
         std::memcpy(&array_data[tensor_size * i], &tensor(0,0,0), sizeof(float)*tensor_size);
     }
     
@@ -123,12 +123,12 @@ PyObject* NNFCDecoderContext_decode(NNFCDecoderContext *self, PyObject *args){
         
         for(size_t i = 0; i < input_buffers.size(); i++) {
 
-            NNFC::Tensor<float, 3> tensor = std::move(self->decoder->decode(input_buffers[i]));
+            NNFC::Tensor<float, 3> tensor = self->decoder->decode(input_buffers[i]);
 
-            tensors.push_back(std::move(tensor));
+            tensors.push_back(tensor);
         }
 
-        PyObject *array = tensors2blob(std::move(tensors));
+        PyObject *array = tensors2blob(tensors);
         return array;
         
     }

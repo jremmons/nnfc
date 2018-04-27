@@ -172,7 +172,7 @@ static PyMethodDef module_methods[] = {
 static struct PyModuleDef module_def = {
     PyModuleDef_HEAD_INIT,
     .m_name = "nnfc_codec",
-    .m_doc = "a python library for accessing CPU performance counters on linux.",
+    .m_doc = "NNFC: the neural network feature codec!",
     .m_size = sizeof(struct module_state),
     .m_methods = module_methods,
     .m_slots = 0,
