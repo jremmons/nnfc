@@ -15,7 +15,7 @@ int main(int argc, char* argv[]){
 
     float *data = new float[sizeof(float) * 100 * 32 * 32 * 3];
 
-    NNFC::Tensor<float, 4> tensor(data, 100, 32, 32, 3);
+    NN::Tensor<float, 4> tensor(data, 100, 32, 32, 3);
 
     std::cout << tensor.dimension(0) << std::endl;
     std::cout << tensor.dimension(1) << std::endl;
@@ -27,11 +27,11 @@ int main(int argc, char* argv[]){
 
     std::cout << tensor(0,0,1,3) << std::endl;
     
-    NNFC::Tensor<float, 2> new_tensor(data, 32, 32);
+    NN::Tensor<float, 2> new_tensor(data, 32, 32);
     // std::cout << new_tensor.dimension(0) << std::endl;
     // std::cout << new_tensor.dimension(1) << std::endl;
 
-    NNFC::Tensor<float, 2> create_tensor(32, 32);
+    NN::Tensor<float, 2> create_tensor(32, 32);
     std::cout << create_tensor.dimension(0) << std::endl;
     std::cout << create_tensor.dimension(1) << std::endl;
 

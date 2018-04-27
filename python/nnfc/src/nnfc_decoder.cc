@@ -34,7 +34,7 @@ static std::vector<std::vector<uint8_t>> pylist2buffers(PyObject* input_pylist) 
     return buffers;
 }
 
-static PyObject* tensors2blob(std::vector<NNFC::Tensor<float, 3>> input_tensors) {
+static PyObject* tensors2blob(std::vector<NN::Tensor<float, 3>> input_tensors) {
 
     npy_intp num_tensors = input_tensors.size();
     if(num_tensors == 0){
@@ -119,11 +119,11 @@ PyObject* NNFCDecoderContext_decode(NNFCDecoderContext *self, PyObject *args){
     try {
         std::vector<std::vector<uint8_t>> input_buffers = pylist2buffers(input_pylist);
 
-        std::vector<NNFC::Tensor<float, 3>> tensors;
+        std::vector<NN::Tensor<float, 3>> tensors;
         
         for(size_t i = 0; i < input_buffers.size(); i++) {
 
-            NNFC::Tensor<float, 3> tensor = self->decoder->decode(input_buffers[i]);
+            NN::Tensor<float, 3> tensor = self->decoder->decode(input_buffers[i]);
 
             tensors.push_back(tensor);
         }

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _NN_TENSOR
+#define _NN_TENSOR
 
 #include <Eigen/CXX11/Tensor>
 
@@ -8,7 +9,7 @@
 #include <memory>
 #include <string>
 
-namespace NNFC {
+namespace NN {
 
     template <typename T, int ndims>
     class Tensor {
@@ -84,3 +85,5 @@ namespace NNFC {
     };
 
 }
+
+#endif // _NN_TENSOR

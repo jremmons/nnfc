@@ -15,7 +15,7 @@
 
 #include "nnfc_encoder.hh"
 
-static std::vector<NNFC::Tensor<float, 3>> blob2tensors(PyArrayObject *input_array) {
+static std::vector<NN::Tensor<float, 3>> blob2tensors(PyArrayObject *input_array) {
 
     if(!PyArray_ISCARRAY(input_array)){
         PyErr_SetString(PyExc_TypeError, "the input array must be a c-style array and conriguous in memory.");
@@ -41,7 +41,7 @@ static std::vector<NNFC::Tensor<float, 3>> blob2tensors(PyArrayObject *input_arr
         
     float *data = static_cast<float*>(PyArray_DATA(input_array));
 
-    std::vector<NNFC::Tensor<float, 3>> tensors;
+    std::vector<NN::Tensor<float, 3>> tensors;
     tensors.reserve(dim0);
     
     for(size_t offset = 0; offset < nElements; offset += nStride0) {
@@ -118,7 +118,7 @@ PyObject* NNFCEncoderContext_encode(NNFCEncoderContext *self, PyObject *args){
     }
 
     try {
-        std::vector<NNFC::Tensor<float, 3>> input_tensors = blob2tensors(input_array);
+        std::vector<NN::Tensor<float, 3>> input_tensors = blob2tensors(input_array);
         std::vector<std::vector<uint8_t>> buffers;
         
         for(size_t i = 0; i < input_tensors.size(); i++) {

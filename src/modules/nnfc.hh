@@ -14,7 +14,7 @@ namespace NNFC {
         SimpleEncoder();
         ~SimpleEncoder();
         
-        std::vector<uint8_t> encode(NNFC::Tensor<float, 3> input);
+        std::vector<uint8_t> encode(NN::Tensor<float, 3> input);
     };
     
     class SimpleDecoder
@@ -25,7 +25,7 @@ namespace NNFC {
         SimpleDecoder();
         ~SimpleDecoder();
 
-        NNFC::Tensor<float, 3> decode(std::vector<uint8_t> input);
+        NN::Tensor<float, 3> decode(std::vector<uint8_t> input);
     };
 
 }
