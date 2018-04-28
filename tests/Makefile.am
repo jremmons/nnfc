@@ -1,4 +1,6 @@
-AM_CPPFLAGS = $(CXX14_FLAGS) $(JPEG_INCLUDE) $(HDF5_CFLAGS) $(HDF5_CPPFLAGS) -I../src/modules
+AM_CPPFLAGS = $(CXX14_FLAGS) $(JPEG_INCLUDE) \
+              $(EIGEN3_CFLAGS) $(EIGEN3_UNSUPPORTED_CFLAGS) \
+              $(HDF5_CFLAGS) $(HDF5_CPPFLAGS) -I../src/modules
 AM_CXXFLAGS = $(PICKY_CXXFLAGS) 
 
 check_PROGRAMS = avgpool.bin batchnorm.bin conv2d.bin fc.bin relu.bin simplecnn.bin #resnet18.bin

@@ -14,16 +14,19 @@ TMPDIR = os.environ['NNFC_TEST_TMPDIR']
 
 batch_size = 13
 num_channels = 128
-height = 7
-width = 5
+height = 61
+width = 19
 inputs = Variable(10*torch.randn(batch_size, num_channels, height, width))
+
+print(inputs[0,0,:,:])
+print(inputs[1,0,:,:])
 print('inputs.shape', inputs.shape)
 
 outputs = F.avg_pool2d(inputs, (height, width))
 
 hdf5_file = os.path.join(TMPDIR, 'avgpool.h5')
 with h5py.File(hdf5_file, 'w') as f:
-    f.create_dataset('input', data=inputs.data.numpy())
-    f.create_dataset('output', data=outputs.data.numpy())
+    f.create_dataset('input', data=np.asarray(inputs.data.numpy(), dtype=np.float32))
+    f.create_dataset('output', data=np.asarray(outputs.data.numpy(), dtype=np.float32))
 
 sub.check_call(['./avgpool.bin', hdf5_file])

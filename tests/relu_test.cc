@@ -3,7 +3,7 @@
 
 #include <memory>
 
-#include "blob4d.hh"
+#include "tensor.hh"
 #include "activation.hh"
 
 int main(int argc, char* argv[]){
@@ -30,10 +30,10 @@ int main(int argc, char* argv[]){
 
     size_t input_size = input_dims[0] * input_dims[1] * input_dims[2] * input_dims[3];
     size_t output_size = output_dims[0] * output_dims[1] * output_dims[2] * output_dims[3];
-    
-    std::unique_ptr<float> input_data(new float[input_size]);
-    std::unique_ptr<float> output_data(new float[output_size]);
-    std::unique_ptr<float> output_data_correct(new float[output_size]);
+
+    std::unique_ptr<float[]> input_data(new float[input_size]);
+    std::unique_ptr<float[]> output_data(new float[output_size]);
+    std::unique_ptr<float[]> output_data_correct(new float[output_size]);
 
     for(size_t i = 0; i < input_size; i++) {
         output_data.get()[i] = i; 
@@ -43,16 +43,16 @@ int main(int argc, char* argv[]){
     input.read(input_data.get(), H5::PredType::NATIVE_FLOAT);
     output.read(output_data_correct.get(), H5::PredType::NATIVE_FLOAT);
 
-    Blob4D<float> input_blob{input_data.get(), input_dims[0], input_dims[1], input_dims[2], input_dims[3]};
-    Blob4D<float> output_blob{output_data.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
+    NN::Tensor<float, 4> input_blob{input_data.get(), input_dims[0], input_dims[1], input_dims[2], input_dims[3]};
+    NN::Tensor<float, 4> output_blob{output_data.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
 
-    Blob4D<float> output_blob_correct{output_data_correct.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
+    NN::Tensor<float, 4> output_blob_correct{output_data_correct.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
     
     NN::relu(input_blob, output_blob); // run the actication function
 
     // check output blob
     for(size_t i = 0; i < input_size; i++) {
-        if(output_data.get()[i] != output_data_correct.get()[i]){
+        if(output_data[i] != output_data_correct[i]){
             throw std::runtime_error("There was a discrepancy between the PyTorch and the nnfc output.");
         }
     }
