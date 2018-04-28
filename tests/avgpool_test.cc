@@ -3,6 +3,7 @@
 
 #include <memory>
 
+#include "tensor.hh"
 #include "blob4d.hh"
 #include "pool.hh"
 
@@ -33,29 +34,23 @@ int main(int argc, char* argv[]){
     size_t input_size = input_dims[0] * input_dims[1] * input_dims[2] * input_dims[3];
     size_t output_size = output_dims[0] * output_dims[1] * output_dims[2] * output_dims[3];
 
-    std::unique_ptr<float> input_data(new float[input_size]);
-    
-    std::unique_ptr<float> output_data(new float[output_size]);
-    std::unique_ptr<float> output_data_correct(new float[output_size]);
-
-    for(size_t i = 0; i < output_size; i++) {
-        output_data.get()[i] = i; 
-    }
+    std::unique_ptr<float[]> input_data(new float[input_size]);    
+    std::unique_ptr<float[]> output_data(new float[output_size]);
+    std::unique_ptr<float[]> output_data_correct(new float[output_size]);
 
     // load the input and correct result
     input.read(input_data.get(), H5::PredType::NATIVE_FLOAT);
     output.read(output_data_correct.get(), H5::PredType::NATIVE_FLOAT);
 
-    Blob4D<float> input_blob{input_data.get(), input_dims[0], input_dims[1], input_dims[2], input_dims[3]};
-    Blob4D<float> output_blob{output_data.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
+    NN::Tensor<float, 4> input_blob{input_data.get(), input_dims[0], input_dims[1], input_dims[2], input_dims[3]};
+    NN::Tensor<float, 4> output_blob{output_data.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
 
-    Blob4D<float> output_blob_correct{output_data_correct.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
+    NN::Tensor<float, 4> output_blob_correct{output_data_correct.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
 
     NN::average_pooling(input_blob, output_blob);
 
-    // check output blob
     for(size_t i = 0; i < output_size; i++) {
-        const double error = output_data.get()[i] - output_data_correct.get()[i];
+        const double error = output_data[i] - output_data_correct[i];
         const double squared_error = error*error;
         if( squared_error >= tolerance  ){
             std::cerr << "expected:" << output_data_correct.get()[i] << " but got (C++ code computed):" << output_data.get()[i] << std::endl; 

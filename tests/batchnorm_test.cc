@@ -40,18 +40,18 @@ int main(int argc, char* argv[]){
 
     size_t bn_size = output_dims[1];
     
-    std::unique_ptr<float> input_data(new float[input_size]);
-    std::unique_ptr<float> means_data(new float[bn_size]);
-    std::unique_ptr<float> variances_data(new float[bn_size]);
+    std::unique_ptr<float[]> input_data(new float[input_size]);
+    std::unique_ptr<float[]> means_data(new float[bn_size]);
+    std::unique_ptr<float[]> variances_data(new float[bn_size]);
 
-    std::unique_ptr<float> weight_data(new float[bn_size]);
-    std::unique_ptr<float> bias_data(new float[bn_size]);
+    std::unique_ptr<float[]> weight_data(new float[bn_size]);
+    std::unique_ptr<float[]> bias_data(new float[bn_size]);
 
-    std::unique_ptr<float> output_data(new float[output_size]);
-    std::unique_ptr<float> output_data_correct(new float[output_size]);
+    std::unique_ptr<float[]> output_data(new float[output_size]);
+    std::unique_ptr<float[]> output_data_correct(new float[output_size]);
 
     for(size_t i = 0; i < input_size; i++) {
-        output_data.get()[i] = i; 
+        output_data[i] = i; 
     }
 
     // load the input and correct result
@@ -66,6 +66,7 @@ int main(int argc, char* argv[]){
     
     output.read(output_data_correct.get(), H5::PredType::NATIVE_FLOAT);
 
+    //NN::Tensor<float, 3> input_blob{input_data.get(), input_dims[1], input_dims[2], input_dims[3]};
     Blob4D<float> input_blob{input_data.get(), input_dims[0], input_dims[1], input_dims[2], input_dims[3]};
 
     Blob1D<float> means_blob{means_data.get(), input_dims[1]};
@@ -74,18 +75,20 @@ int main(int argc, char* argv[]){
     Blob1D<float> weight_blob{weight_data.get(), input_dims[1]};
     Blob1D<float> bias_blob{bias_data.get(), input_dims[1]};
 
+    //NN::Tensor<float, 3> output_blob{output_data.get(), output_dims[1], output_dims[2], output_dims[3]};
     Blob4D<float> output_blob{output_data.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
 
+    //NN::Tensor<float, 3> output_blob_correct{output_data_correct.get(), output_dims[1], output_dims[2], output_dims[3]};
     Blob4D<float> output_blob_correct{output_data_correct.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
     
     NN::batch_norm(input_blob, means_blob, variances_blob, weight_blob, bias_blob, output_blob, epsilon_val);
 
     // check output blob
     for(size_t i = 0; i < input_size; i++) {
-        const float error = output_data.get()[i] - output_data_correct.get()[i];
+        const float error = output_data[i] - output_data_correct[i];
         const float squared_error = error*error;
         if( squared_error > tolerance ){
-            std::cerr << "expected:" << output_data_correct.get()[i] << " but got computed:" << output_data.get()[i] << "\n"; 
+            std::cerr << "expected:" << output_data_correct.get()[i] << " but got computed:" << output_data[i] << "\n"; 
             throw std::runtime_error("There was a discrepancy between the PyTorch and the nnfc output.");
         }
     }
