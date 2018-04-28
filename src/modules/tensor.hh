@@ -11,19 +11,21 @@
 
 namespace NN {
 
+    typedef Eigen::Index Index;
+    
     template <typename T, int ndims>
     class Tensor {
     private:
         const Eigen::DSizes<Eigen::Index, ndims> size_;
         std::shared_ptr<T> data_;
-        Eigen::TensorMap<Eigen::Tensor<T, ndims>> tensor_;
+        Eigen::TensorMap<Eigen::Tensor<T, ndims, Eigen::RowMajor>> tensor_;
 
     public:
         template<typename... DimSizes>
         Tensor(T* data, DimSizes&&... dims) :
             size_(dims...),
             data_(data, [](T*){}), 
-            tensor_(Eigen::TensorMap<Eigen::Tensor<T, ndims>>(data_.get(), size_))
+            tensor_(Eigen::TensorMap<Eigen::Tensor<T, ndims, Eigen::RowMajor>>(data_.get(), size_))
         {            
             // note: the deleter for the data_ member was set to a noop
             // because when you use this constructor data_ is not owned by
@@ -36,19 +38,19 @@ namespace NN {
         Tensor(DimSizes... dims) :
             size_(dims...),
             data_(new T[size_.TotalSize()], [](T* ptr){ delete ptr; }), 
-            tensor_(Eigen::TensorMap<Eigen::Tensor<T, ndims>>(data_.get(), size_))
+            tensor_(Eigen::TensorMap<Eigen::Tensor<T, ndims, Eigen::RowMajor>>(data_.get(), size_))
         { }
             
         Tensor(Tensor<T, ndims>&& other) noexcept :
             size_(std::move(other.size_)),
             data_(std::move(other.data_)),
-            tensor_(Eigen::TensorMap<Eigen::Tensor<T, ndims>>(data_.get(), size_))
+            tensor_(Eigen::TensorMap<Eigen::Tensor<T, ndims, Eigen::RowMajor>>(data_.get(), size_))
         { }
 
         Tensor(const Tensor<T, ndims>& other) noexcept :
             size_(other.size_),
             data_(other.data_),
-            tensor_(Eigen::TensorMap<Eigen::Tensor<T, ndims>>(data_.get(), size_))
+            tensor_(Eigen::TensorMap<Eigen::Tensor<T, ndims, Eigen::RowMajor>>(data_.get(), size_))
         { }
 
         Tensor<T, ndims>& operator=(Tensor<T, ndims> &rhs) = delete;    
