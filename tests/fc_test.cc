@@ -3,6 +3,7 @@
 
 #include <memory>
 
+#include "tensor.hh"
 #include "blob2d.hh"
 #include "blob4d.hh"
 #include "fullyconnected.hh"
@@ -53,12 +54,12 @@ int main(int argc, char* argv[]){
     weights.read(weights_data.get(), H5::PredType::NATIVE_FLOAT);
     output.read(output_data_correct.get(), H5::PredType::NATIVE_FLOAT);
 
-    Blob4D<float> input_blob{input_data.get(), input_dims[0], input_dims[1], input_dims[2], input_dims[3]};
-    Blob2D<float> weights_blob{weights_data.get(), output_dims[1], input_dims[1]};
+    NN::Tensor<float, 4> input_blob{input_data.get(), input_dims[0], input_dims[1], input_dims[2], input_dims[3]};
+    NN::Tensor<float, 2> weights_blob{weights_data.get(), output_dims[1], input_dims[1]};
 
-    Blob4D<float> output_blob{output_data.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
+    NN::Tensor<float, 4> output_blob{output_data.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
 
-    Blob4D<float> output_blob_correct{output_data_correct.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
+    NN::Tensor<float, 4> output_blob_correct{output_data_correct.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
 
     NN::fully_connected(input_blob, weights_blob, output_blob);
 
