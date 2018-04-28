@@ -3,6 +3,7 @@
 #include <iostream>
 #include <stdexcept>
 
+#include "tensor.hh"
 #include "convolution.hh"
 
 const double tolerance = 1e-6;
@@ -42,11 +43,11 @@ int main(int argc, char* argv[]){
 
     size_t kernel_size = kernel_dims[0] * kernel_dims[1] * kernel_dims[2] * kernel_dims[3];
 
-    std::unique_ptr<float> input_data(new float[input_size]);
-    std::unique_ptr<float> kernel_data(new float[kernel_size]);
+    std::unique_ptr<float[]> input_data(new float[input_size]);
+    std::unique_ptr<float[]> kernel_data(new float[kernel_size]);
     
-    std::unique_ptr<float> output_data(new float[output_size]);
-    std::unique_ptr<float> output_data_correct(new float[output_size]);
+    std::unique_ptr<float[]> output_data(new float[output_size]);
+    std::unique_ptr<float[]> output_data_correct(new float[output_size]);
 
     for(size_t i = 0; i < output_size; i++) {
         output_data.get()[i] = i; 
@@ -64,11 +65,11 @@ int main(int argc, char* argv[]){
 
     output.read(output_data_correct.get(), H5::PredType::NATIVE_FLOAT);
 
-    Blob4D<float> input_blob{input_data.get(), input_dims[0], input_dims[1], input_dims[2], input_dims[3]};
-    Blob4D<float> kernel_blob{kernel_data.get(), kernel_dims[0], kernel_dims[1], kernel_dims[2], kernel_dims[3]};
+    NN::Tensor<float, 4> input_blob{input_data.get(), input_dims[0], input_dims[1], input_dims[2], input_dims[3]};
+    NN::Tensor<float, 4> kernel_blob{kernel_data.get(), kernel_dims[0], kernel_dims[1], kernel_dims[2], kernel_dims[3]};
 
-    Blob4D<float> output_blob{output_data.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
-    Blob4D<float> output_blob_correct{output_data_correct.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
+    NN::Tensor<float, 4> output_blob{output_data.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
+    NN::Tensor<float, 4> output_blob_correct{output_data_correct.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
     
     NN::conv2d(input_blob, kernel_blob, output_blob, stride_, zero_padding_);
 
