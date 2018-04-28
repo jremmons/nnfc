@@ -4,7 +4,6 @@
 #include <memory>
 
 #include "tensor.hh"
-#include "blob4d.hh"
 #include "pool.hh"
 
 const double tolerance = 1e-6;

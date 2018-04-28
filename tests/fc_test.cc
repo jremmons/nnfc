@@ -4,8 +4,6 @@
 #include <memory>
 
 #include "tensor.hh"
-#include "blob2d.hh"
-#include "blob4d.hh"
 #include "fullyconnected.hh"
 
 const double tolerance = 1e-6;
