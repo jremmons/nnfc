@@ -4,7 +4,7 @@
 AC_PREREQ([2.68])
 AC_INIT([nnfc], [0.1], [jemmons@cs.stanford.edu])
 AM_INIT_AUTOMAKE([foreign])
-AC_CONFIG_SRCDIR([src/modules/nnfc.hh])
+AC_CONFIG_SRCDIR([src/nnfc/nnfc.hh])
 AC_CONFIG_HEADERS([config.h])
 
 # include extra macros
@@ -63,7 +63,8 @@ AX_PYTHON_MODULE_VERSION([torch], [0.4.0], [python3])
 
 AC_CONFIG_FILES([Makefile 
          src/Makefile
-         src/modules/Makefile
+         src/nn/Makefile
+         src/nnfc/Makefile
          src/frontend/Makefile
          python/Makefile
          tests/Makefile

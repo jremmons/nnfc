@@ -10,7 +10,7 @@ from torch.utils.cpp_extension import BuildExtension, include_paths, library_pat
 def get_def(header_filepath, definition_name):
     with open(header_filepath, 'r') as f:
         headerfile = f.read().strip()        
-        version_found = re.search('\s*\#define\s*{def_name}\s*(\"(\d+\.)*\d+"?)[ \t]*$'.format(def_name=definition_name),
+        version_found = re.search('\s*\#define\s*{def_name}\s*\"((\d+\.)*\d+?)"[ \t]*$'.format(def_name=definition_name),
                                   headerfile, re.MULTILINE).group(1)
         return version_found
         
@@ -29,11 +29,11 @@ pytorch_defines = [('_NNFC_CUDA_AVAILABLE', 1)] if CUDA_AVAILABLE else []
 module = Extension(EXTENSION_NAME,
                    sources=['nnfc/src/nnfc_codec.cc', 'nnfc/src/nnfc_cuda.cc', 
                             'nnfc/src/nnfc_encoder.cc', 'nnfc/src/nnfc_decoder.cc'],
-                   define_macros=[('_NNFC_VERSION', VERSION)] + pytorch_defines,
+                   define_macros=[('_NNFC_VERSION', '"'+VERSION+'"')] + pytorch_defines,
                    include_dirs=[numpy.get_include()],
-                   library_dirs=['../src/modules/.libs'] + pytorch_libdirs,
+                   library_dirs=['../src/nnfc/.libs'] + pytorch_libdirs,
                    libraries=[] + pytorch_libs,
-                   extra_compile_args=['-I../src/modules',
+                   extra_compile_args=['-I../src/nn', '-I../src/nnfc',
                                        '-isystem', './extra_headers'] + pytorch_include,
                    extra_link_args=['-Wl,-Bdynamic', '-lnnfc']
                    )

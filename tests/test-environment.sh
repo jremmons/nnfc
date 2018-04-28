@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../src/modules/.libs
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../src/nnfc/.libs
 
 lib_count=$(ls ../python/build/ | grep 'lib' | wc -l)
 if [[ $lib_count != '1' ]]; then

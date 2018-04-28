@@ -1,1 +1,1 @@
-SUBDIRS = modules frontend
+SUBDIRS = nn nnfc frontend
