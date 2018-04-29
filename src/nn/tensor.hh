@@ -1,5 +1,5 @@
-#ifndef _NN_TENSOR
-#define _NN_TENSOR
+#ifndef _NN_TENSOR_H
+#define _NN_TENSOR_H
 
 #include <Eigen/CXX11/Tensor>
 
@@ -12,7 +12,7 @@
 namespace NN {
 
     typedef Eigen::Index Index;
-    
+
     template <typename T, int ndims>
     class Tensor {
     private:
@@ -20,6 +20,11 @@ namespace NN {
         std::shared_ptr<T> data_;
         Eigen::TensorMap<Eigen::Tensor<T, ndims, Eigen::RowMajor>> tensor_;
 
+        T* data()
+        {
+            return tensor_.data();
+        }
+        
     public:
         template<typename... DimSizes>
         Tensor(T* data, DimSizes&&... dims) :
@@ -40,7 +45,19 @@ namespace NN {
             data_(new T[size_.TotalSize()], [](T* ptr){ delete ptr; }), 
             tensor_(Eigen::TensorMap<Eigen::Tensor<T, ndims, Eigen::RowMajor>>(data_.get(), size_))
         { }
-            
+
+        Tensor(T* data, Eigen::DSizes<Eigen::Index, ndims> size) :
+            size_(size),
+            data_(data, [](T*){}),
+            tensor_(Eigen::TensorMap<Eigen::Tensor<T, ndims, Eigen::RowMajor>>(data_.get(), size_))
+        { }
+               
+        Tensor(Eigen::DSizes<Eigen::Index, ndims> size) :
+            size_(size),
+            data_(new T[size_.TotalSize()], [](T* ptr){ delete ptr; }),
+            tensor_(Eigen::TensorMap<Eigen::Tensor<T, ndims, Eigen::RowMajor>>(data_.get(), size_))
+        { }
+        
         Tensor(Tensor<T, ndims>&& other) noexcept :
             size_(std::move(other.size_)),
             data_(std::move(other.data_)),
@@ -53,10 +70,20 @@ namespace NN {
             tensor_(Eigen::TensorMap<Eigen::Tensor<T, ndims, Eigen::RowMajor>>(data_.get(), size_))
         { }
 
-        Tensor<T, ndims>& operator=(Tensor<T, ndims> &rhs) = delete;    
-
         ~Tensor() { }
 
+        Tensor<T, ndims>& operator=(Tensor<T, ndims> &rhs) const 
+        {
+            return rhs;
+        }
+        
+        Tensor deepcopy() const
+        {
+            Tensor<T, ndims> new_tensor(size_);
+            std::memcpy(new_tensor.data(), tensor_.data(), size_.TotalSize());
+            return new_tensor;
+        }
+        
         Eigen::Index dimension(Eigen::Index dim) const
         {
             return tensor_.dimension(dim);
@@ -88,4 +115,4 @@ namespace NN {
 
 }
 
-#endif // _NN_TENSOR
+#endif // _NN_TENSOR_H

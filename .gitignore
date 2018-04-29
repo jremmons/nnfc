@@ -9,7 +9,10 @@ tests/avgpool.bin
 tests/simplecnn.bin
 tests/resnet18.bin
 
+src/nn/.libs/
 src/nnfc/.libs/
+src/frontend/.libs/
+
 src/nnfc/libnnfc.la
 src/nnfc/nnfc.lo
 src/nn/nn.a
