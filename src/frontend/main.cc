@@ -39,6 +39,21 @@ int main(int argc, char* argv[]){
     std::cout << move_tensor.dimension(0) << std::endl;
     std::cout << move_tensor.dimension(1) << std::endl;
 
+    auto eq_tensor = move_tensor;
+    std::cout << eq_tensor.dimension(0) << std::endl;
+    std::cout << eq_tensor.dimension(1) << std::endl;
+
+    tensor(0,0,0,0) = -1;
+    auto shallowcopy = tensor;
+    auto deepcopy = tensor.deepcopy();
+
+    shallowcopy(0,0,0,0) = 17;
+    deepcopy(0,0,0,0) = 42;
+ 
+    std::cout << tensor(0,0,0,0) << std::endl;
+    std::cout << shallowcopy(0,0,0,0) << std::endl;
+    std::cout << deepcopy(0,0,0,0) << std::endl;
+    
     //auto copy_tensor = create_tensor;
     // forward pass of nn
     // todo add code here
