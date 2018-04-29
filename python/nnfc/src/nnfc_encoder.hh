@@ -9,7 +9,7 @@ extern "C" {
 typedef struct {
 
     PyObject_HEAD
-    NNFC::SimpleEncoder *encoder;
+    nnfc::SimpleEncoder *encoder;
     
 } NNFCEncoderContext;
 

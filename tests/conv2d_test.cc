@@ -65,13 +65,13 @@ int main(int argc, char* argv[]){
 
     output.read(output_data_correct.get(), H5::PredType::NATIVE_FLOAT);
 
-    NN::Tensor<float, 4> input_blob{input_data.get(), input_dims[0], input_dims[1], input_dims[2], input_dims[3]};
-    NN::Tensor<float, 4> kernel_blob{kernel_data.get(), kernel_dims[0], kernel_dims[1], kernel_dims[2], kernel_dims[3]};
+    nn::Tensor<float, 4> input_blob{input_data.get(), input_dims[0], input_dims[1], input_dims[2], input_dims[3]};
+    nn::Tensor<float, 4> kernel_blob{kernel_data.get(), kernel_dims[0], kernel_dims[1], kernel_dims[2], kernel_dims[3]};
 
-    NN::Tensor<float, 4> output_blob{output_data.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
-    NN::Tensor<float, 4> output_blob_correct{output_data_correct.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
+    nn::Tensor<float, 4> output_blob{output_data.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
+    nn::Tensor<float, 4> output_blob_correct{output_data_correct.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
     
-    NN::conv2d(input_blob, kernel_blob, output_blob, stride_, zero_padding_);
+    nn::conv2d(input_blob, kernel_blob, output_blob, stride_, zero_padding_);
 
     // check output blob
     for(size_t i = 0; i < output_size; i++) {

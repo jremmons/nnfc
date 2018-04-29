@@ -15,7 +15,7 @@ int main(int argc, char* argv[]){
 
     float *data = new float[sizeof(float) * 100 * 32 * 32 * 3];
 
-    NN::Tensor<float, 4> tensor(data, 100, 32, 32, 3);
+    nn::Tensor<float, 4> tensor(data, 100, 32, 32, 3);
 
     std::cout << tensor.dimension(0) << std::endl;
     std::cout << tensor.dimension(1) << std::endl;
@@ -27,11 +27,11 @@ int main(int argc, char* argv[]){
 
     std::cout << tensor(0,0,1,3) << std::endl;
     
-    NN::Tensor<float, 2> new_tensor(data, 32, 32);
+    nn::Tensor<float, 2> new_tensor(data, 32, 32);
     // std::cout << new_tensor.dimension(0) << std::endl;
     // std::cout << new_tensor.dimension(1) << std::endl;
 
-    NN::Tensor<float, 2> create_tensor(32, 32);
+    nn::Tensor<float, 2> create_tensor(32, 32);
     std::cout << create_tensor.dimension(0) << std::endl;
     std::cout << create_tensor.dimension(1) << std::endl;
 
@@ -61,7 +61,7 @@ int main(int argc, char* argv[]){
     //Blob4D<float> inputs{nullptr, 0, 0, 0, 0};
     //Blob4D<float> outputs{nullptr, 0, 0, 0, 0};
 
-    //NN::forward(images, predictions);
+    //nn::forward(images, predictions);
     
     return 0;
 }

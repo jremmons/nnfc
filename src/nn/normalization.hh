@@ -1,9 +1,9 @@
-#ifndef _NN_NORMALIZATION
-#define _NN_NORMALIZATION
+#ifndef _NN_NORMALIZATION_H
+#define _NN_NORMALIZATION_H
 
 #include "tensor.hh"
 
-namespace NN {
+namespace nn {
     
     void batch_norm(const Tensor<float, 4> input, 
                     const Tensor<float, 1> means,
@@ -15,4 +15,4 @@ namespace NN {
 
 }
 
-#endif // _NN_NORMALIZATION
+#endif // _NN_NORMALIZATION_H

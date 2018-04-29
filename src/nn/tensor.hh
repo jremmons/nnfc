@@ -9,7 +9,7 @@
 #include <memory>
 #include <string>
 
-namespace NN {
+namespace nn {
 
     typedef Eigen::Index Index;
 

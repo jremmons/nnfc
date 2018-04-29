@@ -7,13 +7,13 @@
 #include "tensor.hh"
 
 
-NNFC::SimpleEncoder::SimpleEncoder()
+nnfc::SimpleEncoder::SimpleEncoder()
 { }
 
-NNFC::SimpleEncoder::~SimpleEncoder()
+nnfc::SimpleEncoder::~SimpleEncoder()
 { }
 
-std::vector<uint8_t> NNFC::SimpleEncoder::encode(NN::Tensor<float, 3> input)
+std::vector<uint8_t> nnfc::SimpleEncoder::encode(nn::Tensor<float, 3> input)
 {
     uint64_t dim0 = input.dimension(0);
     uint64_t dim1 = input.dimension(1);
@@ -53,13 +53,13 @@ std::vector<uint8_t> NNFC::SimpleEncoder::encode(NN::Tensor<float, 3> input)
 }
 
 
-NNFC::SimpleDecoder::SimpleDecoder()
+nnfc::SimpleDecoder::SimpleDecoder()
 { }
 
-NNFC::SimpleDecoder::~SimpleDecoder()
+nnfc::SimpleDecoder::~SimpleDecoder()
 { }
 
-NN::Tensor<float, 3> NNFC::SimpleDecoder::decode(std::vector<uint8_t> input)
+nn::Tensor<float, 3> nnfc::SimpleDecoder::decode(std::vector<uint8_t> input)
 {
 
     uint64_t dim0;
@@ -79,7 +79,7 @@ NN::Tensor<float, 3> NNFC::SimpleDecoder::decode(std::vector<uint8_t> input)
         dim2_bytes[i] = input[i + dim2_offset];
     }
 
-    NN::Tensor<float, 3> output(dim0, dim1, dim2);
+    nn::Tensor<float, 3> output(dim0, dim1, dim2);
 
     for(size_t i = 0; i < dim0; i++){
         for(size_t j = 0; j < dim1; j++){

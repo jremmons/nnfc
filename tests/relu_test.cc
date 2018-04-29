@@ -43,12 +43,12 @@ int main(int argc, char* argv[]){
     input.read(input_data.get(), H5::PredType::NATIVE_FLOAT);
     output.read(output_data_correct.get(), H5::PredType::NATIVE_FLOAT);
 
-    NN::Tensor<float, 4> input_blob{input_data.get(), input_dims[0], input_dims[1], input_dims[2], input_dims[3]};
-    NN::Tensor<float, 4> output_blob{output_data.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
+    nn::Tensor<float, 4> input_blob{input_data.get(), input_dims[0], input_dims[1], input_dims[2], input_dims[3]};
+    nn::Tensor<float, 4> output_blob{output_data.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
 
-    NN::Tensor<float, 4> output_blob_correct{output_data_correct.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
+    nn::Tensor<float, 4> output_blob_correct{output_data_correct.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
     
-    NN::relu(input_blob, output_blob); // run the actication function
+    nn::relu(input_blob, output_blob); // run the actication function
 
     // check output blob
     for(size_t i = 0; i < input_size; i++) {

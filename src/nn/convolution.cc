@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-void NN::conv2d(const Tensor<float, 4> input,
+void nn::conv2d(const Tensor<float, 4> input,
                 const Tensor<float, 4> kernel,
                 Tensor<float, 4> output,
                 const size_t stride,
@@ -14,27 +14,27 @@ void NN::conv2d(const Tensor<float, 4> input,
     assert(output.dimension(1) == kernel.dimension(0));
     assert(input.dimension(1) == kernel.dimension(1)); 
    
-    const NN::Index h_extent = (input.dimension(2) - kernel.dimension(2) + 2*zero_padding) / stride + 1;
-    const NN::Index w_extent = (input.dimension(3) - kernel.dimension(3) + 2*zero_padding) / stride + 1;
+    const nn::Index h_extent = (input.dimension(2) - kernel.dimension(2) + 2*zero_padding) / stride + 1;
+    const nn::Index w_extent = (input.dimension(3) - kernel.dimension(3) + 2*zero_padding) / stride + 1;
 
     assert(output.dimension(2) == h_extent);
     assert(output.dimension(3) == w_extent);
 
-    for(NN::Index i = 0; i < input.dimension(0); i++){
+    for(nn::Index i = 0; i < input.dimension(0); i++){
 
-        for(NN::Index j = 0; j < output.dimension(1); j++){
+        for(nn::Index j = 0; j < output.dimension(1); j++){
 
-            for(NN::Index n = 0; n < output.dimension(2); n++){
-                for(NN::Index m = 0; m < output.dimension(3); m++){
+            for(nn::Index n = 0; n < output.dimension(2); n++){
+                for(nn::Index m = 0; m < output.dimension(3); m++){
 
                     float val = 0.0;
 
                     const int64_t y = static_cast<int64_t>(stride * n) - zero_padding;
                     const int64_t x = static_cast<int64_t>(stride * m) - zero_padding;
 
-                    for(NN::Index k = 0; k < input.dimension(1); k++){
-                        for(NN::Index h = 0; h < kernel.dimension(2); h++){ 
-                            for(NN::Index w = 0; w < kernel.dimension(3); w++){
+                    for(nn::Index k = 0; k < input.dimension(1); k++){
+                        for(nn::Index h = 0; h < kernel.dimension(2); h++){ 
+                            for(nn::Index w = 0; w < kernel.dimension(3); w++){
                                 
                                 const int64_t y_image = y + h;
                                 const int64_t x_image = x + w;
