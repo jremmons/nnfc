@@ -1,12 +1,12 @@
-#ifndef _NN_ACTIVATION
-#define _NN_ACTIVATION
+#ifndef _NN_ACTIVATION_H
+#define _NN_ACTIVATION_H
 
 #include "tensor.hh"
 
-namespace NN {
+namespace nn {
 
     void relu(const Tensor<float, 4> input, Tensor<float, 4> output);
     
 }
 
-#endif // _NN_ACTIVATION
+#endif // _NN_ACTIVATION_H

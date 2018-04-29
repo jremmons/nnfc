@@ -43,11 +43,11 @@ int main(int argc, char* argv[]){
     input.read(input_data.get(), H5::PredType::NATIVE_FLOAT);
     output.read(output_data_correct.get(), H5::PredType::NATIVE_FLOAT);
     
-    NN::Tensor<float, 4> input_blob{input_data.get(), input_dims[0], input_dims[1], input_dims[2], input_dims[3]};
-    NN::Tensor<float, 4> output_blob{output_data.get(), output_dims[0], output_dims[1], 1, 1};
-    //NN::Tensor<float, 4> output_blob_correct{output_data_correct.get(), output_dims[0], output_dims[1], 1, 1};
+    nn::Tensor<float, 4> input_blob{input_data.get(), input_dims[0], input_dims[1], input_dims[2], input_dims[3]};
+    nn::Tensor<float, 4> output_blob{output_data.get(), output_dims[0], output_dims[1], 1, 1};
+    //nn::Tensor<float, 4> output_blob_correct{output_data_correct.get(), output_dims[0], output_dims[1], 1, 1};
 
-    // process the input and check its output after going through CNN
+    // process the input and check its output after going through Cnn
 
     // layer1 convoluation ///////////////////////////////////////////
     
@@ -61,7 +61,7 @@ int main(int argc, char* argv[]){
     std::unique_ptr<float> kernel_data(new float[kernel_size]);
     //kernel.read(kernel_data.get(), H5::PredType::NATIVE_FLOAT);
 
-    NN::Tensor<float, 4> kernel_blob{kernel_data.get(), kernel_dims[0], kernel_dims[1], kernel_dims[2], kernel_dims[3]};
+    nn::Tensor<float, 4> kernel_blob{kernel_data.get(), kernel_dims[0], kernel_dims[1], kernel_dims[2], kernel_dims[3]};
     
     // load the stride and padding paramters of the conv
     //H5::DataSet stride = test_file.openDataSet("conv1.stride");
@@ -74,9 +74,9 @@ int main(int argc, char* argv[]){
 
     // create output 
     std::unique_ptr<float> conv1_output_data(new float[input_dims[0] * kernel_dims[0] * input_dims[2] * input_dims[3]]);
-    NN::Tensor<float, 4> conv1_output_blob{conv1_output_data.get(), input_dims[0], kernel_dims[0], input_dims[2], input_dims[3]};
+    nn::Tensor<float, 4> conv1_output_blob{conv1_output_data.get(), input_dims[0], kernel_dims[0], input_dims[2], input_dims[3]};
     
-    NN::conv2d(input_blob, kernel_blob, conv1_output_blob, stride_, zero_padding_);
+    nn::conv2d(input_blob, kernel_blob, conv1_output_blob, stride_, zero_padding_);
 
     // layer1 batch normalization ////////////////////////////////////
 
@@ -101,22 +101,22 @@ int main(int argc, char* argv[]){
     float epsilon_val = 0.00001;
     //epsilon.read(&epsilon_val, H5::PredType::NATIVE_FLOAT);
 
-    NN::Tensor<float, 1> means_blob{means_data.get(), bn_size};
-    NN::Tensor<float, 1> variances_blob{variances_data.get(), bn_size};
-    NN::Tensor<float, 1> weight_blob{weight_data.get(), bn_size};
-    NN::Tensor<float, 1> bn_bias_blob{bn_bias_data.get(), bn_size};
+    nn::Tensor<float, 1> means_blob{means_data.get(), bn_size};
+    nn::Tensor<float, 1> variances_blob{variances_data.get(), bn_size};
+    nn::Tensor<float, 1> weight_blob{weight_data.get(), bn_size};
+    nn::Tensor<float, 1> bn_bias_blob{bn_bias_data.get(), bn_size};
 
     std::unique_ptr<float> bn_output_data(new float[1 * 64 * input_dims[2] * input_dims[3]]);
-    NN::Tensor<float, 4> bn_output_blob{bn_output_data.get(), 1, 64, input_dims[2], input_dims[3]};
+    nn::Tensor<float, 4> bn_output_blob{bn_output_data.get(), 1, 64, input_dims[2], input_dims[3]};
     
-    NN::batch_norm(conv1_output_blob, means_blob, variances_blob, weight_blob, bn_bias_blob, bn_output_blob, epsilon_val);
+    nn::batch_norm(conv1_output_blob, means_blob, variances_blob, weight_blob, bn_bias_blob, bn_output_blob, epsilon_val);
 
     // average pooling layer /////////////////////////////////////////
 
     std::unique_ptr<float> ap_output_data(new float[1 * 64 * 1 * 1]);
-    NN::Tensor<float, 4> ap_output_blob{ap_output_data.get(), 1, 64, 1, 1};
+    nn::Tensor<float, 4> ap_output_blob{ap_output_data.get(), 1, 64, 1, 1};
 
-    NN::average_pooling(bn_output_blob, ap_output_blob);
+    nn::average_pooling(bn_output_blob, ap_output_blob);
 
     // fc layer //////////////////////////////////////////////////////
 
@@ -125,9 +125,9 @@ int main(int argc, char* argv[]){
     std::unique_ptr<float> weights_data(new float[weights_size]);
     weights.read(weights_data.get(), H5::PredType::NATIVE_FLOAT);
 
-    NN::Tensor<float, 2> weights_blob{weights_data.get(), 10, 64};
+    nn::Tensor<float, 2> weights_blob{weights_data.get(), 10, 64};
     
-    NN::fully_connected(ap_output_blob, weights_blob, output_blob);
+    nn::fully_connected(ap_output_blob, weights_blob, output_blob);
     
     // check output blob
     for(size_t i = 0; i < output_size; i++) {

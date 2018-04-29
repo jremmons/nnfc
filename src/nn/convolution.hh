@@ -1,9 +1,9 @@
-#ifndef _NN_CONVOLUTION
-#define _NN_CONVOLUTION
+#ifndef _NN_CONVOLUTION_H
+#define _NN_CONVOLUTION_H
 
 #include "tensor.hh"
 
-namespace NN {
+namespace nn {
 
     void conv2d(const Tensor<float, 4> input,
                 const Tensor<float, 4> kernel,
@@ -13,4 +13,4 @@ namespace NN {
     
 }
 
-#endif // _NN_CONVOLUTION
+#endif // _NN_CONVOLUTION_H

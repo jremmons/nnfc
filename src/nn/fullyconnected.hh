@@ -1,9 +1,9 @@
-#ifndef _NN_FULLYCONNECTED
-#define _NN_FULLYCONNECTED
+#ifndef _NN_FULLYCONNECTED_H
+#define _NN_FULLYCONNECTED_H
 
 #include "tensor.hh"
 
-namespace NN {
+namespace nn {
 
     void fully_connected(const Tensor<float, 4> input,
                          const Tensor<float, 2> weights,
@@ -11,4 +11,4 @@ namespace NN {
     
 }
 
-#endif // _NN_FULLYCONNECTED
+#endif // _NN_FULLYCONNECTED_H

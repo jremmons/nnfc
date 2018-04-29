@@ -4,7 +4,7 @@
 #include <vector>
 #include "tensor.hh"
 
-namespace NNFC {
+namespace nnfc {
 
     class SimpleEncoder
     {
@@ -14,7 +14,7 @@ namespace NNFC {
         SimpleEncoder();
         ~SimpleEncoder();
         
-        std::vector<uint8_t> encode(NN::Tensor<float, 3> input);
+        std::vector<uint8_t> encode(nn::Tensor<float, 3> input);
     };
     
     class SimpleDecoder
@@ -25,7 +25,7 @@ namespace NNFC {
         SimpleDecoder();
         ~SimpleDecoder();
 
-        NN::Tensor<float, 3> decode(std::vector<uint8_t> input);
+        nn::Tensor<float, 3> decode(std::vector<uint8_t> input);
     };
 
 }
