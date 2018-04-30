@@ -42,7 +42,6 @@ std::vector<uint8_t> read_image(std::string filename)
     file.seekg(0, std::ios::end);
     size_t compressed_size = file.tellg();
     file.seekg(0);
-
     
     std::vector<uint8_t> compressed_buffer(compressed_size);
     file.read(reinterpret_cast<char*>(compressed_buffer.data()), compressed_size);
