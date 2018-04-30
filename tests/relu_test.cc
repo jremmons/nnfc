@@ -1,6 +1,8 @@
 #include <H5Cpp.h>
 #include <iostream>
 
+#include <math.h>
+
 #include <memory>
 
 #include "tensor.hh"
@@ -52,7 +54,7 @@ int main(int argc, char* argv[]){
 
     // check output blob
     for(size_t i = 0; i < input_size; i++) {
-        if(output_data[i] != output_data_correct[i]){
+        if(output_data[i] != output_data_correct[i] or std::isnan(output_data[i])){
             throw std::runtime_error("There was a discrepancy between the PyTorch and the nnfc output.");
         }
     }

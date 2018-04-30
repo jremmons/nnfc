@@ -1,5 +1,5 @@
 #include <H5Cpp.h>
-
+#include <math.h>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -104,7 +104,7 @@ int main(int argc, char* argv[]){
 
                     std::cout << " expected:" << correct_value << " but computed:" << computed_value << "\n"; 
                     
-                    if( squared_error > tolerance ){
+                    if( squared_error > tolerance or std::isnan(computed_value)){
                         std::cout << " expected:" << correct_value << " but computed:" << computed_value << "\n"; 
                         return -1;
                     }

@@ -14,18 +14,13 @@ import subprocess as sub
 class TinyNet2(nn.Module):
     def __init__(self, num_classes=10):
         super(TinyNet2, self).__init__()
-        self.in_planes = 64
 
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(64)
-        
-        self.linear = nn.Linear(64, num_classes, bias=False)
+        self.conv1 = nn.Conv2d(3, 3, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(3)
 
     def forward(self, x):
-        out = self.bn1(self.conv1(x))
-        out = F.avg_pool2d(out, 32)
-        out = out.view(out.size(0), -1)
-        out = self.linear(out)
+        out = self.conv1(x)
+        out = self.bn1(out)
         return out
 
 def TinyNet():
@@ -44,8 +39,12 @@ net = TinyNet()
 net.eval()
 
 model_params = net.state_dict()
+
+# for param_name in model_params.keys():
+#     shape = model_params[param_name].size()
+#     model_params[param_name] = torch.randn(shape)
     
-hdf5_file = os.path.join(TMPDIR, 'simplecnn.h5')
+hdf5_file = os.path.join(TMPDIR, 'composed_hl.h5')
 
 with h5py.File(hdf5_file, 'w') as f:
     for param_name in model_params.keys():
@@ -54,8 +53,7 @@ with h5py.File(hdf5_file, 'w') as f:
     f.create_dataset('hdf5_version', data=six.u(h5py.version.hdf5_version))
 
     outputs = net(inputs)
-    print(outputs)
-    f.create_dataset('input', data=inputs.data.numpy())
-    f.create_dataset('output', data=outputs.data.numpy())
+    f.create_dataset('input', data=inputs.data.numpy().astype(np.float32))
+    f.create_dataset('output', data=outputs.data.numpy().astype(np.float32))
     
-sub.check_call(['./simplecnn.bin', hdf5_file])
+sub.check_call(['./composed_hl.bin', hdf5_file])

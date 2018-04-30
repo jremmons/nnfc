@@ -6,9 +6,13 @@ AM_CPPFLAGS = $(CXX14_FLAGS) $(JPEG_INCLUDE) \
 AM_CXXFLAGS = $(PICKY_CXXFLAGS) $(HDF5_LDFLAGS) $(HDF5_LIBS) \
               -L$(srcdir)/../src/nn -lnn
 
-check_PROGRAMS = avgpool.bin batchnorm.bin batchnorm_hl.bin \
-                 conv2d.bin conv2d_hl.bin fc.bin \
-                 relu.bin relu_hl.bin simplecnn.bin simplecnn_hl.bin
+check_PROGRAMS = avgpool.bin \
+                 batchnorm.bin batchnorm_hl.bin \
+                 conv2d.bin conv2d_hl.bin \
+                 fc.bin \
+                 relu.bin relu_hl.bin \
+                 composed_hl.bin \
+                 simplecnn.bin simplecnn_hl.bin
 
 avgpool_bin_SOURCES = avgpool_test.cc
 avgpool_bin_LDADD =
@@ -34,6 +38,9 @@ relu_bin_LDADD =
 relu_hl_bin_SOURCES = relu_hl_test.cc
 relu_hl_bin_LDADD =
 
+composed_hl_bin_SOURCES = composed_hl_test.cc
+composed_hl_bin_LDADD =
+
 simplecnn_bin_SOURCES = simplecnn_test.cc
 simplecnn_bin_LDADD =
 
@@ -53,8 +60,9 @@ dist_check_SCRIPTS = pythonpath_python.test \
                      fc_cpp.test \
                      relu_cpp.test \
                      relu_hl_cpp.test \
-                     simplecnn_cpp.test \
+                     composed_hl_cpp.test \
                      simplecnn_hl_cpp.test
+                     #simplecnn_cpp.test 
 
 AM_TESTS_ENVIRONMENT = ./test-environment.sh
 
