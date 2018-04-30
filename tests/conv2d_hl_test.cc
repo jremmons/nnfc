@@ -67,8 +67,6 @@ int main(int argc, char* argv[]){
 
     nn::Tensor<float, 4> output_blob_correct{output_data_correct.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
 
-    std::cout << "stride:" << stride_ << " padding:" << zero_padding_ << std::endl;
-    
     nn::Net simple_cnn{};
     simple_cnn += nn::make_convolution_from_hdf5(input_dims[0],
                                                  kernel_dims[0],
@@ -90,6 +88,9 @@ int main(int argc, char* argv[]){
                     float sq_error = error * error;
 
                     if(sq_error > tolerance){
+
+                        std::cout << "stride:" << stride_ << " padding:" << zero_padding_ << std::endl;
+
                         std::cout << __FILE__ << ". There was an error in the computed value" << std::endl;
                         std::cout << __FILE__ << ". Expected:" << output_blob_correct(n,c,h,w) << " computed:" << output_blob(n,c,h,w) << std::endl;
                         return -1;

@@ -4,11 +4,14 @@ tests/pythonpath.txt
 tests/conv2d.bin
 tests/relu.bin
 tests/batchnorm.bin
+tests/batchnorm_hl.bin
 tests/fc.bin
 tests/avgpool.bin
 tests/simplecnn.bin
 tests/resnet18.bin
 tests/simplecnn_hl.bin
+tests/conv2d_hl.bin
+tests/relu_hl.bin
 
 src/nn/.libs/
 src/nnfc/.libs/
