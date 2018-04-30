@@ -26,11 +26,11 @@ model_params = net.state_dict()
 
 for param_name in model_params.keys():
     shape = model_params[param_name].size()
-    model_params[param_name] = torch.randn(shape) + 0.5
+    model_params[param_name] = torch.randn(shape)
 
 net.eval()
     
-hdf5_file = os.path.join(TMPDIR, 'simplecnn.h5')
+hdf5_file = os.path.join(TMPDIR, 'simplecnn_hl.h5')
 
 with h5py.File(hdf5_file, 'w') as f:
     for param_name in model_params.keys():
@@ -43,4 +43,4 @@ with h5py.File(hdf5_file, 'w') as f:
     f.create_dataset('input', data=inputs.data.numpy())
     f.create_dataset('output', data=outputs.data.numpy())
     
-sub.check_call(['./simplecnn.bin', hdf5_file])
+sub.check_call(['./simplecnn_hl.bin', hdf5_file])

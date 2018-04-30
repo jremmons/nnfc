@@ -8,6 +8,7 @@ tests/fc.bin
 tests/avgpool.bin
 tests/simplecnn.bin
 tests/resnet18.bin
+tests/simplecnn_hl.bin
 
 src/nn/.libs/
 src/nnfc/.libs/

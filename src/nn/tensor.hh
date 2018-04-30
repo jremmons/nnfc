@@ -16,7 +16,7 @@ namespace nn {
     template <typename T, int ndims>
     class Tensor {
     private:
-        const Eigen::DSizes<Eigen::Index, ndims> size_;
+        Eigen::DSizes<Eigen::Index, ndims> size_;
         std::shared_ptr<T> data_;
         Eigen::TensorMap<Eigen::Tensor<T, ndims, Eigen::RowMajor>> tensor_;
 
@@ -72,11 +72,8 @@ namespace nn {
 
         ~Tensor() { }
 
-        Tensor<T, ndims>& operator=(Tensor<T, ndims> &rhs) const 
-        {
-            return rhs;
-        }
-        
+        Tensor<T, ndims> operator=(Tensor<T, ndims> rhs) = delete;
+
         Tensor deepcopy() const
         {
             Tensor<T, ndims> new_tensor(size_);

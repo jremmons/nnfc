@@ -6,7 +6,7 @@ AM_CPPFLAGS = $(CXX14_FLAGS) $(JPEG_INCLUDE) \
 AM_CXXFLAGS = $(PICKY_CXXFLAGS) $(HDF5_LDFLAGS) $(HDF5_LIBS) \
               -L$(srcdir)/../src/nn -lnn
 
-check_PROGRAMS = avgpool.bin batchnorm.bin conv2d.bin fc.bin relu.bin simplecnn.bin #resnet18.bin
+check_PROGRAMS = avgpool.bin batchnorm.bin conv2d.bin fc.bin relu.bin simplecnn.bin simplecnn_hl.bin #resnet18.bin
 
 avgpool_bin_SOURCES = avgpool_test.cc
 avgpool_bin_LDADD =
@@ -26,6 +26,9 @@ relu_bin_LDADD =
 simplecnn_bin_SOURCES = simplecnn_test.cc
 simplecnn_bin_LDADD =
 
+simplecnn_hl_bin_SOURCES = simplecnn_hl_test.cc
+simplecnn_hl_bin_LDADD =
+
 dist_check_SCRIPTS = pythonpath_python.test \
 	                 import_python.test \
                      noop_python.test \
@@ -36,7 +39,8 @@ dist_check_SCRIPTS = pythonpath_python.test \
                      convolution_cpp.test \
                      fc_cpp.test \
                      relu_cpp.test \
-                     simplecnn_cpp.test
+                     simplecnn_cpp.test \
+                     simplecnn_hl_cpp.test
 
 AM_TESTS_ENVIRONMENT = ./test-environment.sh
 

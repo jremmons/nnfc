@@ -4,6 +4,7 @@
 #include <stdexcept>
 
 #include "tensor.hh"
+#include "activation.hh"
 #include "convolution.hh"
 #include "normalization.hh"
 #include "fullyconnected.hh"
@@ -14,7 +15,8 @@ const double tolerance = 1e-6;
 int main(int argc, char* argv[]){
 
     if(argc != 2){
-        throw std::runtime_error(std::string("usage: ") + argv[1]  + "<input h5file>");
+        std::cerr << std::string("usage: ") + std::string(argv[1])  + "<input h5file>";
+        return -1;
     }
     
     H5::H5File test_file(argv[1], H5F_ACC_RDONLY);
@@ -106,17 +108,24 @@ int main(int argc, char* argv[]){
     nn::Tensor<float, 1> weight_blob{weight_data.get(), bn_size};
     nn::Tensor<float, 1> bn_bias_blob{bn_bias_data.get(), bn_size};
 
-    std::unique_ptr<float> bn_output_data(new float[1 * 64 * input_dims[2] * input_dims[3]]);
-    nn::Tensor<float, 4> bn_output_blob{bn_output_data.get(), 1, 64, input_dims[2], input_dims[3]};
+    std::unique_ptr<float> bn_output_data(new float[input_dims[0] * 64 * input_dims[2] * input_dims[3]]);
+    nn::Tensor<float, 4> bn_output_blob{bn_output_data.get(), input_dims[0], 64, input_dims[2], input_dims[3]};
     
     nn::batch_norm(conv1_output_blob, means_blob, variances_blob, weight_blob, bn_bias_blob, bn_output_blob, epsilon_val);
 
+    // relu //////////////////////////////////////////////////////////
+    
+    std::unique_ptr<float> relu_output_data(new float[input_dims[0] * 64 * input_dims[2] * input_dims[3]]);
+    nn::Tensor<float, 4> relu_output_blob{bn_output_data.get(), input_dims[0], 64, input_dims[2], input_dims[3]};
+    
+    nn::relu(bn_output_blob, relu_output_blob);
+    
     // average pooling layer /////////////////////////////////////////
 
     std::unique_ptr<float> ap_output_data(new float[1 * 64 * 1 * 1]);
     nn::Tensor<float, 4> ap_output_blob{ap_output_data.get(), 1, 64, 1, 1};
 
-    nn::average_pooling(bn_output_blob, ap_output_blob);
+    nn::average_pooling(relu_output_blob, ap_output_blob);
 
     // fc layer //////////////////////////////////////////////////////
 
@@ -131,9 +140,6 @@ int main(int argc, char* argv[]){
     
     // check output blob
     for(size_t i = 0; i < output_size; i++) {
-        // std::cerr << i << std::endl;
-        // std::cerr << output_data_correct.get()[i] << std::endl;
-        // std::cerr << output_data.get()[i] << std::endl;
 
         const float error = output_data.get()[i] - output_data_correct.get()[i];
         const float squared_error = error*error;
