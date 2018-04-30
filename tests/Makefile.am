@@ -6,7 +6,8 @@ AM_CPPFLAGS = $(CXX14_FLAGS) $(JPEG_INCLUDE) \
 AM_CXXFLAGS = $(PICKY_CXXFLAGS) $(HDF5_LDFLAGS) $(HDF5_LIBS) \
               -L$(srcdir)/../src/nn -lnn
 
-check_PROGRAMS = avgpool.bin batchnorm.bin conv2d.bin conv2d_hl.bin fc.bin \
+check_PROGRAMS = avgpool.bin batchnorm.bin batchnorm_hl.bin \
+                 conv2d.bin conv2d_hl.bin fc.bin \
                  relu.bin relu_hl.bin simplecnn.bin simplecnn_hl.bin
 
 avgpool_bin_SOURCES = avgpool_test.cc
@@ -14,6 +15,9 @@ avgpool_bin_LDADD =
 
 batchnorm_bin_SOURCES = batchnorm_test.cc
 batchnorm_bin_LDADD =
+
+batchnorm_hl_bin_SOURCES = batchnorm_hl_test.cc
+batchnorm_hl_bin_LDADD =
 
 conv2d_bin_SOURCES = conv2d_test.cc
 conv2d_bin_LDADD =
@@ -43,6 +47,7 @@ dist_check_SCRIPTS = pythonpath_python.test \
                      gpu2cpu_python.test \
                      avgpool_cpp.test \
                      batchnorm_cpp.test \
+                     batchnorm_hl_cpp.test \
                      convolution_cpp.test \
                      convolution_hl_cpp.test \
                      fc_cpp.test \

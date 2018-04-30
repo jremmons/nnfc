@@ -1,0 +1,56 @@
+#!/usr/bin/env python3
+
+import torch
+import torch.nn.functional as F
+from torch.autograd import Variable
+from torch.nn.parameter import Parameter
+
+import h5py
+import numpy as np
+import os
+import subprocess as sub
+
+TMPDIR = os.environ['NNFC_TEST_TMPDIR']
+
+EPSILON = abs(np.random.randn(1)[0] / 10.0) + 0.00001
+
+batch_size = 13
+num_channels = 128
+height = 59
+width = 71
+inputs = Variable(100*torch.randn(batch_size, num_channels, height, width))
+print('inputs.shape', inputs.shape)
+
+means = torch.randn(num_channels)
+print('means.shape', means.shape)
+
+variances = torch.abs(torch.randn(num_channels)) + 0.5
+print('variances.shape', variances.shape)
+
+weight = Parameter(torch.randn(num_channels)+ 0.1)
+bias = Parameter(torch.randn(num_channels) + 0.1)
+
+# check both the nn.module and functional batch_norm interface
+bn = torch.nn.BatchNorm2d(num_channels, eps=EPSILON, momentum=0.0, affine=False)
+bn.training = False
+bn.weight = weight
+bn.bias = bias
+bn.running_mean = means
+bn.running_var = variances
+
+outputs_nn = bn(inputs)
+outputs_f = F.batch_norm(inputs, means, variances, weight, bias, False, 0.0, EPSILON)
+
+assert outputs_nn.equal(outputs_f)
+
+hdf5_file = os.path.join(TMPDIR, 'batchnorm_hl.h5')
+with h5py.File(hdf5_file, 'w') as f:
+    f.create_dataset('input', data=inputs.data.numpy())
+    f.create_dataset('means', data=means.numpy())
+    f.create_dataset('variances', data=variances.numpy())
+    f.create_dataset('weight', data=weight.data.numpy())
+    f.create_dataset('bias', data=bias.data.numpy())
+    f.create_dataset('eps', data=np.asarray([EPSILON]))
+    f.create_dataset('output', data=outputs_f.data.numpy())
+
+sub.check_call(['./batchnorm_hl.bin', hdf5_file])
