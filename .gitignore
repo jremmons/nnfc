@@ -12,6 +12,7 @@ tests/resnet18.bin
 tests/simplecnn_hl.bin
 tests/conv2d_hl.bin
 tests/relu_hl.bin
+tests/composed_hl.bin
 
 src/nn/.libs/
 src/nnfc/.libs/

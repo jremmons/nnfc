@@ -1,5 +1,7 @@
 #include <H5Cpp.h>
 
+#include <math.h>
+
 #include <iostream>
 #include <stdexcept>
 
@@ -47,7 +49,7 @@ int main(int argc, char* argv[]){
     
     nn::Tensor<float, 4> input_blob{input_data.get(), input_dims[0], input_dims[1], input_dims[2], input_dims[3]};
     nn::Tensor<float, 4> output_blob{output_data.get(), output_dims[0], output_dims[1], 1, 1};
-    //nn::Tensor<float, 4> output_blob_correct{output_data_correct.get(), output_dims[0], output_dims[1], 1, 1};
+    nn::Tensor<float, 4> output_blob_correct{output_data_correct.get(), output_dims[0], output_dims[1], 1, 1};
 
     // process the input and check its output after going through Cnn
 
@@ -128,7 +130,6 @@ int main(int argc, char* argv[]){
     nn::average_pooling(relu_output_blob, ap_output_blob);
 
     // fc layer //////////////////////////////////////////////////////
-
     H5::DataSet weights = test_file.openDataSet("linear.weight");
     size_t weights_size = 64 * 10;
     std::unique_ptr<float> weights_data(new float[weights_size]);
@@ -139,13 +140,25 @@ int main(int argc, char* argv[]){
     nn::fully_connected(ap_output_blob, weights_blob, output_blob);
     
     // check output blob
-    for(size_t i = 0; i < output_size; i++) {
+    for(nn::Index n = 0; n < output_blob_correct.dimension(0); n++) {
+        for(nn::Index c = 0; c < output_blob_correct.dimension(1); c++) {
+            for(nn::Index h = 0; h < output_blob_correct.dimension(2); h++) {
+                for(nn::Index w = 0; w < output_blob_correct.dimension(3); w++) {
 
-        const float error = output_data.get()[i] - output_data_correct.get()[i];
-        const float squared_error = error*error;
-        if( squared_error > tolerance ){
-            std::cerr << i << " expected:" << output_data_correct.get()[i] << " but computed:" << output_data.get()[i] << "\n"; 
-            throw std::runtime_error("There was a discrepancy between the PyTorch and the nnfc output.");
+                    float correct_value = output_blob_correct(n,c,h,w);
+                    float computed_value =  output_blob(n,c,h,w);
+                    const float error = correct_value - computed_value;
+                    const float squared_error = error*error;
+
+                    std::cout << " expected:" << correct_value << " but computed:" << computed_value << "\n"; 
+                    
+                    if( squared_error > tolerance or std::isnan(computed_value)){
+                        std::cout << " expected:" << correct_value << " but computed:" << computed_value << "\n"; 
+                        return -1;
+                    }
+                    
+                }
+            }
         }
     }
     

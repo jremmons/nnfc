@@ -22,7 +22,7 @@ class TinyNet2(nn.Module):
         self.linear = nn.Linear(64, num_classes, bias=False)
 
     def forward(self, x):
-        out = self.bn1(self.conv1(x)
+        out = self.bn1(self.conv1(x))
         out = F.avg_pool2d(out, 32)
         out = out.view(out.size(0), -1)
         out = self.linear(out)
@@ -42,12 +42,8 @@ print('inputs.shape', inputs.shape)
 
 net = TinyNet()
 net.eval()
+
 model_params = net.state_dict()
-
-for param_name in model_params.keys():
-    shape = model_params[param_name].size()
-    model_params[param_name] = torch.randn(shape)
-
     
 hdf5_file = os.path.join(TMPDIR, 'simplecnn_hl.h5')
 

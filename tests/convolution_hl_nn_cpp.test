@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.autograd import Variable
+
+import h5py
+import numpy as np
+import os
+import six
+import subprocess as sub
+
+TMPDIR = os.environ['NNFC_TEST_TMPDIR']
+
+batch_size = 1
+num_channels = 3
+height = 17
+width = 13
+inputs = Variable(10*torch.randn(batch_size, num_channels, height, width))
+print('inputs.shape', inputs.shape)
+
+num_kernels = 3
+kernel_size = 3
+stride = 2
+padding = 3
+#kernel = Variable(torch.randn(num_kernels, num_channels, kernel_height, kernel_width))
+#xprint('kernel.shape', kernel.shape)
+
+class TinyNet2(nn.Module):
+    def __init__(self, num_classes=10):
+        super(TinyNet2, self).__init__()
+
+        self.conv1 = nn.Conv2d(num_channels, num_kernels, kernel_size=kernel_size, stride=stride, padding=padding, bias=False)
+
+    def forward(self, x):
+        out = self.conv1(x)
+        return out
+
+def TinyNet():
+    return TinyNet2()
+
+net = TinyNet()
+model_params = net.state_dict()
+
+# for param_name in model_params.keys():
+#     shape = model_params[param_name].size()
+#     print(param_name, shape)
+#     model_params[param_name] = torch.randn(shape)
+
+# shape = model_params['conv1.weight'].size()
+# model_params['conv1.weight'] = torch.zeros(shape)
+
+# shape = model_params['conv1.bias'].size()
+# model_params['conv1.bias'] = torch.zeros(shape)
+
+net.eval()
+
+outputs = net(inputs)
+print(outputs)
+    
+outputsf = F.conv2d(inputs, model_params['conv1.weight'], bias=None, stride=stride, padding=padding, dilation=1, groups=1)
+print(outputsf)
+
+print(outputs - outputsf)
+
+hdf5_file = os.path.join(TMPDIR, 'convolution_hl.h5')
+with h5py.File(hdf5_file, 'w') as f:
+
+    f.create_dataset('kernel', data=model_params['conv1.weight'])
+    f.create_dataset('stride', data=np.asarray([stride]), dtype=np.uint64)
+    f.create_dataset('zero_padding', data=np.asarray([padding]), dtype=np.uint64)
+
+    # f.create_dataset('kernel', data=kernel.data.numpy())
+    # f.create_dataset('stride', data=np.asarray([stride]), dtype=np.uint64)
+    # f.create_dataset('zero_padding', data=np.asarray([padding]), dtype=np.uint64)
+
+    f.create_dataset('hdf5_version', data=six.u(h5py.version.hdf5_version))
+    
+    f.create_dataset('input', data=inputs.data.numpy())
+    f.create_dataset('output', data=outputs.data.numpy())
+    
+sub.check_call(['./conv2d_hl.bin', hdf5_file])

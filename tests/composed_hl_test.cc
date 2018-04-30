@@ -22,11 +22,7 @@ int main(int argc, char* argv[]){
     H5::H5File test_file(argv[1], H5F_ACC_RDONLY);
 
     H5::DataSet input = test_file.openDataSet("input");
-    // H5::DataSet means = test_file.openDataSet("means");
-    // H5::DataSet variances = test_file.openDataSet("variances");
-    // H5::DataSet weight = test_file.openDataSet("weight");
-    // H5::DataSet bias = test_file.openDataSet("bias");
-    H5::DataSet epsilon = test_file.openDataSet("eps");
+    // H5::DataSet epsilon = test_file.openDataSet("eps");
     H5::DataSet output = test_file.openDataSet("output");
 
     size_t input_ndims = input.getSpace().getSimpleExtentNdims();
@@ -43,59 +39,36 @@ int main(int argc, char* argv[]){
     size_t input_size = input_dims[0] * input_dims[1] * input_dims[2] * input_dims[3];
     size_t output_size = output_dims[0] * output_dims[1] * output_dims[2] * output_dims[3];
 
-    // size_t bn_size = output_dims[1];
-    
     std::unique_ptr<float[]> input_data(new float[input_size]);
-
-    // std::unique_ptr<float[]> means_data(new float[bn_size]);
-    // std::unique_ptr<float[]> variances_data(new float[bn_size]);
-
-    // std::unique_ptr<float[]> weight_data(new float[bn_size]);
-    // std::unique_ptr<float[]> bias_data(new float[bn_size]);
-
-    // std::unique_ptr<float[]> output_data(new float[output_size]);
     std::unique_ptr<float[]> output_data_correct(new float[output_size]);
-
-    // for(size_t i = 0; i < input_size; i++) {
-    //     output_data[i] = i; 
-    // }
-
-    // load the input and correct result
-    input.read(input_data.get(), H5::PredType::NATIVE_FLOAT);
-
-    // means.read(means_data.get(), H5::PredType::NATIVE_FLOAT);
-    // variances.read(variances_data.get(), H5::PredType::NATIVE_FLOAT);
-    // weight.read(weight_data.get(), H5::PredType::NATIVE_FLOAT);
-    // bias.read(bias_data.get(), H5::PredType::NATIVE_FLOAT);
-
-    float epsilon_val;
-    epsilon.read(&epsilon_val, H5::PredType::NATIVE_FLOAT);
     
+    input.read(input_data.get(), H5::PredType::NATIVE_FLOAT);
     output.read(output_data_correct.get(), H5::PredType::NATIVE_FLOAT);
-
     nn::Tensor<float, 4> input_blob{input_data.get(), input_dims[0], input_dims[1], input_dims[2], input_dims[3]};
-
-    // nn::Tensor<float, 1> means_blob{means_data.get(), input_dims[1]};
-    // nn::Tensor<float, 1> variances_blob{variances_data.get(), input_dims[1]};
-
-    // nn::Tensor<float, 1> weight_blob{weight_data.get(), input_dims[1]};
-    // nn::Tensor<float, 1> bias_blob{bias_data.get(), input_dims[1]};
-
-    // nn::Tensor<float, 4> output_blob{output_data.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
     nn::Tensor<float, 4> output_blob_correct{output_data_correct.get(), output_dims[0], output_dims[1], output_dims[2], output_dims[3]};
+
+    // float epsilon_val;
+    // epsilon.read(&epsilon_val, H5::PredType::NATIVE_FLOAT);    
     
     nn::Net simple_cnn{};
+    simple_cnn += nn::make_convolution_from_hdf5(input_dims[0],
+                                                 input_dims[1],
+                                                 input_dims[2],
+                                                 input_dims[3],
+                                                 test_file,
+                                                 "conv1.weight", 1, 1);
+    
     simple_cnn += nn::make_batch_norm_from_hdf5(input_dims[0],
                                                 input_dims[1],
                                                 input_dims[2],
                                                 input_dims[3],
                                                 test_file,
-                                                "means",
-                                                "variances",
-                                                "weight",
-                                                "bias",
-                                                epsilon_val);
-    
+                                                "bn1.running_mean",
+                                                "bn1.running_var",
+                                                "bn1.weight",
+                                                "bn1.bias",
+                                                0.00001);
+
     // run the network
     auto output_blob = simple_cnn.forward(input_blob);
 
