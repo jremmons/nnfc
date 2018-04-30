@@ -10,7 +10,7 @@ namespace nn {
                 Tensor<float, 4> output,
                 const size_t stride,
                 const size_t zero_padding);
-    
+
 }
 
 #endif // _NN_CONVOLUTION_H

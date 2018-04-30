@@ -7,6 +7,8 @@
 void nn::average_pooling(const Tensor<float, 4> input,
                          Tensor<float, 4> output) {
 
+    std::cerr << input.dimension(1) << " == " << output.dimension(1) << std::endl;
+    
     assert(input.dimension(0) == output.dimension(0));
     assert(input.dimension(1) == output.dimension(1));
 

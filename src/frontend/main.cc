@@ -6,7 +6,6 @@
 
 #include "tensor.hh"
 
-#include "nn.hh"
 #include "nnfc.hh"
 
 int main(int argc, char* argv[]){
