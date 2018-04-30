@@ -2,6 +2,7 @@
 
 #include <turbojpeg.h>
 
+#include <chrono>
 #include <cassert>
 #include <cstdint>
 #include <iostream>
@@ -250,9 +251,14 @@ int main(int argc, char* argv[])
     nn::Net simple_cnn{};
 
     build_simplenet(parameter_file, simple_cnn);
-  
-    nn::Tensor<float, 4> prediction = simple_cnn.forward(image_tensor);
 
+    // perform the forward pass
+    auto t1 = std::chrono::high_resolution_clock::now();
+    nn::Tensor<float, 4> prediction = simple_cnn.forward(image_tensor);
+    auto t2 = std::chrono::high_resolution_clock::now();
+    auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+    
+    // log the output the console
     float top_val = prediction(0, 0, 0, 0);
     int top_prediction = 0;
     for(nn::Index i = 0; i < 10; i++) {
@@ -266,6 +272,7 @@ int main(int argc, char* argv[])
     }
 
     std::cout << "\n" << "CNN predicted: " << labels[top_prediction] << ". (score: " << top_val << ")\n";
+    std::cout << "The prediction took: " << time_span.count() << " seconds\n";
     
     return 0;
 }

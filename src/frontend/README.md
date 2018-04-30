@@ -26,5 +26,5 @@ prediction(0, 8, 0, 0): 10.5126
 prediction(0, 9, 0, 0): 0.600184
 
 CNN predicted: ship. (score: 10.5126)
-
+The prediction took: 1.07545 seconds
 ```
