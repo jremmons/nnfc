@@ -130,7 +130,7 @@ HDF5 support is being disabled (equivalent to --with-hdf5=no).
         for arg in $HDF5_SHOW $HDF5_tmp_flags ; do
           case "$arg" in
             -I*) echo $HDF5_CPPFLAGS | $GREP -e "$arg" 2>&1 >/dev/null \
-                  || HDF5_CPPFLAGS="$arg $HDF5_CPPFLAGS"
+                  || HDF5_CPPFLAGS="$(echo $arg | sed -e 's/-I/-isystem /g') $HDF5_CPPFLAGS"
               ;;
             -L*) echo $HDF5_LDFLAGS | $GREP -e "$arg" 2>&1 >/dev/null \
                   || HDF5_LDFLAGS="$arg $HDF5_LDFLAGS"
@@ -179,7 +179,7 @@ HDF5 support is being disabled (equivalent to --with-hdf5=no).
             do
               case "$arg" in #(
                 -I*) echo $HDF5_FFLAGS | $GREP -e "$arg" >/dev/null \
-                      || HDF5_FFLAGS="$arg $HDF5_FFLAGS"
+                      || HDF5_FFLAGS="$(echo $arg | sed -e 's/-I/-isystem /g') $HDF5_FFLAGS"
                   ;;#(
                 -L*) echo $HDF5_FFLAGS | $GREP -e "$arg" >/dev/null \
                       || HDF5_FFLAGS="$arg $HDF5_FFLAGS"
