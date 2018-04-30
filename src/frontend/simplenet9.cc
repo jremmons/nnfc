@@ -219,14 +219,10 @@ void build_simplenet(H5::H5File &parameter_file, nn::Net &net)
     
     net += nn::make_pool_from_hdf5(1, 512, 1, 1);
 
-    net += nn::make_fc_from_hdf5(1, 10, 1, 1,
-                                 parameter_file,
-                                 "linear.weight");
-
-    // net += nn::make_fc_with_bias_from_hdf5(1, 10, 1, 1,
-    //                                        parameter_file,
-    //                                        "linear.weight",
-    //                                        "linear.bias");
+    net += nn::make_fc_with_bias_from_hdf5(1, 10, 1, 1,
+                                           parameter_file,
+                                           "linear.weight",
+                                           "linear.bias");
 }
 
 int main(int argc, char* argv[])

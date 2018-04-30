@@ -58,11 +58,11 @@ void nn::fully_connected_with_bias(const nn::Tensor<float, 4> input,
                 
                 float x = input(i, k, 0, 0);
                 float w = weights(j, k);
-                val += (w*x) + bias(j);
+                val += (w*x);
                    
             }
 
-            output(i, j, 0, 0) = val;
+            output(i, j, 0, 0) = val + bias(j);
             
         }
     }    
