@@ -9,9 +9,6 @@ void nn::conv2d(const Tensor<float, 4> input,
                 const size_t stride,
                 const size_t zero_padding) {
 
-
-    std::cerr << input.dimension(0) << " == " << output.dimension(0) << std::endl;
-    
     assert(input.dimension(0) == output.dimension(0));
     assert(output.dimension(1) == kernel.dimension(0));
     assert(input.dimension(1) == kernel.dimension(1)); 

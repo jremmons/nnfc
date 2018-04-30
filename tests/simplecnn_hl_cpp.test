@@ -1,16 +1,35 @@
 #!/usr/bin/env python3
 
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
-
-import resnet_models
 
 import h5py
 import numpy as np
 import os
 import six
 import subprocess as sub
+
+class TinyNet2(nn.Module):
+    def __init__(self, num_classes=10):
+        super(TinyNet2, self).__init__()
+        self.in_planes = 64
+
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(64)
+        
+        self.linear = nn.Linear(64, num_classes, bias=False)
+
+    def forward(self, x):
+        out = self.bn1(self.conv1(x)
+        out = F.avg_pool2d(out, 32)
+        out = out.view(out.size(0), -1)
+        out = self.linear(out)
+        return out
+
+def TinyNet():
+    return TinyNet2()
 
 TMPDIR = os.environ['NNFC_TEST_TMPDIR']
 
@@ -21,14 +40,14 @@ width = 32
 inputs = Variable(10*torch.randn(batch_size, num_channels, height, width))
 print('inputs.shape', inputs.shape)
 
-net = resnet_models.TinyNet()
+net = TinyNet()
+net.eval()
 model_params = net.state_dict()
 
 for param_name in model_params.keys():
     shape = model_params[param_name].size()
     model_params[param_name] = torch.randn(shape)
 
-net.eval()
     
 hdf5_file = os.path.join(TMPDIR, 'simplecnn_hl.h5')
 
@@ -40,7 +59,7 @@ with h5py.File(hdf5_file, 'w') as f:
 
     outputs = net(inputs)
     print(outputs)
-    f.create_dataset('input', data=inputs.data.numpy())
-    f.create_dataset('output', data=outputs.data.numpy())
+    f.create_dataset('input', data=inputs.data.numpy().astype(np.float32))
+    f.create_dataset('output', data=outputs.data.numpy().astype(np.float32))
     
 sub.check_call(['./simplecnn_hl.bin', hdf5_file])

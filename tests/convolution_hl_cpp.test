@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+
+import torch
+import torch.nn.functional as F
+from torch.autograd import Variable
+
+import h5py
+import numpy as np
+import os
+import six
+import subprocess as sub
+
+TMPDIR = os.environ['NNFC_TEST_TMPDIR']
+
+batch_size = 7
+num_channels = 5
+height = 17
+width = 13
+inputs = Variable(10*torch.randn(batch_size, num_channels, height, width))
+print('inputs.shape', inputs.shape)
+
+num_kernels = 3
+kernel_height = 5
+kernel_width = 7
+kernel = Variable(torch.randn(num_kernels, num_channels, kernel_height, kernel_width))
+print('kernel.shape', kernel.shape)
+
+stride = 2
+padding = 3
+outputs = F.conv2d(inputs, kernel, bias=None, stride=stride, padding=padding, dilation=1, groups=1)
+print('output.shape', outputs.shape)
+
+hdf5_file = os.path.join(TMPDIR, 'convolution_hl.h5')
+with h5py.File(hdf5_file, 'w') as f:
+    f.create_dataset('input', data=inputs.data.numpy())
+    f.create_dataset('kernel', data=kernel.data.numpy())
+    f.create_dataset('stride', data=np.asarray([stride]), dtype=np.uint64)
+    f.create_dataset('zero_padding', data=np.asarray([padding]), dtype=np.uint64)
+    f.create_dataset('output', data=outputs.data.numpy())
+
+    f.create_dataset('hdf5_version', data=six.u(h5py.version.hdf5_version))
+    
+sub.check_call(['./conv2d_hl.bin', hdf5_file])
