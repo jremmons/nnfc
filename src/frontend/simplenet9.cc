@@ -16,7 +16,7 @@
 
 // assumptions
 static_assert(sizeof(uint8_t) == sizeof(char), "sizeof(uint8_t) != sizeof(char)");
-static_assert(sizeof(uint8_t) == sizeof(unsigned char), "sizeof(uint8_t) != sizeof(char)");
+static_assert(sizeof(uint8_t) == sizeof(unsigned char), "sizeof(uint8_t) != sizeof(unsigned char)");
 
 const int width = 32;
 const int height = 32;
