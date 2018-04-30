@@ -1,5 +1,8 @@
 # binaries
 src/frontend/hello
+src/frontend/simplenet9
+src/frontend/nn
+
 tests/pythonpath.txt
 tests/conv2d.bin
 tests/relu.bin
@@ -13,6 +16,7 @@ tests/simplecnn_hl.bin
 tests/conv2d_hl.bin
 tests/relu_hl.bin
 tests/composed_hl.bin
+
 
 src/nn/.libs/
 src/nnfc/.libs/

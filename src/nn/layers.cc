@@ -53,6 +53,44 @@ std::shared_ptr<nn::LayerInterface> nn::make_fc_from_hdf5(size_t output_batch_si
     return std::static_pointer_cast<nn::LayerInterface>(layer);
 }
 
+std::shared_ptr<nn::LayerInterface> nn::make_fc_with_bias_from_hdf5(size_t output_batch_size,
+                                                                   size_t output_channels,
+                                                                   size_t output_height,
+                                                                   size_t output_width,
+                                                                   H5::H5File parameter_file,
+                                                                   std::string weights_name,
+                                                                   std::string bias_name)
+{
+
+    nn::Tensor<float, 4> output(output_batch_size, output_channels, output_height, output_width);
+
+    
+    H5::DataSet weights_ds = parameter_file.openDataSet(weights_name.c_str());
+    size_t weights_ndims = weights_ds.getSpace().getSimpleExtentNdims();
+    assert(weights_ndims == 2);
+
+    hsize_t weights_dims[2];
+    weights_ds.getSpace().getSimpleExtentDims(weights_dims, nullptr);
+
+    nn::Tensor<float, 2> weights(weights_dims[0], weights_dims[1]);
+    weights_ds.read(&weights(0,0), H5::PredType::NATIVE_FLOAT);
+
+    
+    H5::DataSet biases_ds = parameter_file.openDataSet(bias_name.c_str());
+    size_t biases_ndims = biases_ds.getSpace().getSimpleExtentNdims();
+    assert(biases_ndims == 1);
+
+    hsize_t biases_size;
+    biases_ds.getSpace().getSimpleExtentDims(&biases_size, nullptr);
+
+    nn::Tensor<float, 1> biases(biases_size);
+    biases_ds.read(&biases(0), H5::PredType::NATIVE_FLOAT);
+
+    
+    auto layer = std::make_shared<nn::FCWithBiasLayer>(output, weights, biases);
+    return std::static_pointer_cast<nn::LayerInterface>(layer);
+}
+
 std::shared_ptr<nn::LayerInterface> nn::make_batch_norm_from_hdf5(size_t output_batch_size,
                                                                   size_t output_channels,
                                                                   size_t output_height,

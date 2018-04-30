@@ -69,6 +69,29 @@ namespace nn {
         }
     };
 
+    class FCWithBiasLayer : public LayerInterface
+    {
+    private:
+        Tensor<float, 4> output_;
+        const Tensor<float, 2> weights_;
+        const Tensor<float, 1> bias_;
+        
+    public:
+        FCWithBiasLayer(Tensor<float, 4> output, Tensor<float, 2> weights, Tensor<float, 1> bias) :
+            output_(output),
+            weights_(weights),
+            bias_(bias)
+        { }
+
+        ~FCWithBiasLayer() { }
+
+        Tensor<float, 4> forward(const Tensor<float, 4> input)
+        {
+            fully_connected_with_bias(input, weights_, bias_, output_);
+            return output_;
+        }
+    };
+    
     class BatchNormLayer : public LayerInterface
     {
     private:
@@ -157,6 +180,14 @@ namespace nn {
                                                       H5::H5File weights_file,
                                                       std::string kernel_name);
             
+    std::shared_ptr<LayerInterface> make_fc_with_bias_from_hdf5(size_t output_batch_size,
+                                                                size_t output_channels,
+                                                                size_t output_height,
+                                                                size_t output_width,
+                                                                H5::H5File weights_file,
+                                                                std::string kernel_name,
+                                                                std::string bias_name);
+
     std::shared_ptr<LayerInterface> make_batch_norm_from_hdf5(size_t output_batch_size,
                                                               size_t output_channels,
                                                               size_t output_height,
