@@ -15,7 +15,7 @@ m4_include(m4/hdf5.m4)
 
 # Add picky CXXFLAGS
 CXX14_FLAGS="-std=c++14"
-PICKY_CXXFLAGS="-Wall -Wextra -Werror -Wno-non-virtual-dtor"
+PICKY_CXXFLAGS="-Wall -Wextra -Weffc++ -Wno-non-virtual-dtor -Werror"
 AC_SUBST([CXX14_FLAGS])
 AC_SUBST([PICKY_CXXFLAGS])
 
@@ -32,7 +32,6 @@ AM_PROG_LIBTOOL
 # Checks for libraries.
 PKG_CHECK_MODULES([JPEG], [libturbojpeg])
 AX_CHECK_HDF5_SERIAL()
-#BOOST_REQUIRE([1.54.0])
 
 # Important: need to add flags for AVX, SSE, etc.
 AC_CHECK_FILE([/usr/include/eigen3/unsupported/Eigen/CXX11/Tensor], [
@@ -44,7 +43,6 @@ AC_CHECK_FILE([/usr/include/eigen3/unsupported/Eigen/CXX11/Tensor], [
 ])
 
 # Checks for header files.
-#BOOST_MULTIARRAY()
 
 # Checks for typedefs, structures, and compiler characteristics.
 
