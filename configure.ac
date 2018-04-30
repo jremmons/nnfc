@@ -33,7 +33,7 @@ AM_PROG_LIBTOOL
 PKG_CHECK_MODULES([JPEG], [libturbojpeg])
 AX_CHECK_HDF5_SERIAL()
 
-# Important: need to add flags for AVX, SSE, etc.
+# Important: need to add flags for AVX, SSE, etc. to get good performance
 AC_CHECK_FILE([/usr/include/eigen3/unsupported/Eigen/CXX11/Tensor], [
     EIGEN3_CFLAGS="-isystem /usr/include/eigen3/"
     EIGEN3_UNSUPPORTED_CFLAGS="-isystem /usr/include/eigen3/unsupported/"
