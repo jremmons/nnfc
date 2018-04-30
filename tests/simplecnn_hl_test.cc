@@ -65,10 +65,10 @@ int main(int argc, char* argv[]){
                                                 "bn1.bias",
                                                 0.00001);
     
-    simple_cnn += nn::make_relu_from_hdf5(input_dims[0],
-                                          64,
-                                          input_dims[2],
-                                          input_dims[3]);    
+    // simple_cnn += nn::make_relu_from_hdf5(input_dims[0],
+    //                                       64,
+    //                                       input_dims[2],
+    //                                       input_dims[3]);    
     
     simple_cnn += nn::make_pool_from_hdf5(input_dims[0], 64, 1, 1);
 
