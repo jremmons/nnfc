@@ -1,6 +1,7 @@
 # binaries
 src/frontend/hello
 src/frontend/simplenet9
+src/frontend/*.h5
 src/frontend/nn
 
 tests/pythonpath.txt
