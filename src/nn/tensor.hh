@@ -13,23 +13,23 @@ namespace nn {
 
     typedef Eigen::Index Index;
 
-    template<typename T>
-    class Rawptr {
-    private:
-        std::shared_ptr<T> ptr_;
-        size_t size_;
+    // template<typename T>
+    // class Rawptr {
+    // private:
+    //     std::shared_ptr<T> ptr_;
+    //     size_t size_;
 
-    public:
-        rawptr(T* ptr, size_t size) :
-            ptr_(ptr),
-            size_(size)
-        { }
+    // public:
+    //     rawptr(T* ptr, size_t size) :
+    //         ptr_(ptr),
+    //         size_(size)
+    //     { }
 
-        ~rawptr() { }        
+    //     ~rawptr() { }        
 
-        std::shared_ptr<T> get() { return ptr_; }
-        size_t size() { return size_; }
-    };
+    //     std::shared_ptr<T> get() { return ptr_; }
+    //     size_t size() { return size_; }
+    // };
     
     template <typename T, int ndims>
     class Tensor {
