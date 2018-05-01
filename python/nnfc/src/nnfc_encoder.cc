@@ -8,7 +8,6 @@
 #include <iostream>
 #include <string>
 
-#include "nnfc_API.hh"
 #include "nnfc.hh"
 #include "common.hh"
 #include "tensor.hh"
