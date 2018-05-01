@@ -19,7 +19,7 @@ def detect(cfgfile, weightfile, imgfile):
     else:
         namesfile = 'data/names'
 
-    use_cuda = 1
+    use_cuda = 0
     if use_cuda:
         m.cuda()
 
@@ -51,7 +51,7 @@ def detect_cv2(cfgfile, weightfile, imgfile):
     else:
         namesfile = 'data/names'
 
-    use_cuda = 1
+    use_cuda = 0
     if use_cuda:
         m.cuda()
 
@@ -85,7 +85,7 @@ def detect_skimage(cfgfile, weightfile, imgfile):
     else:
         namesfile = 'data/names'
 
-    use_cuda = 1
+    use_cuda = 0
     if use_cuda:
         m.cuda()
 
