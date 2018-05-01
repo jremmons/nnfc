@@ -17,12 +17,10 @@ extern "C" {
 // define the NNFCEncoderContext /////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 static PyMethodDef NNFCEncoderContext_methods[] = {
-    {"encode", (PyCFunction)NNFCEncoderContext_encode, METH_VARARGS,
-     "Encodes a batch of intermediate activations. Expects a PyTorch float tensor as input."
-    },
-    {"backprop", (PyCFunction)NNFCEncoderContext_backprop, METH_VARARGS,
-     "Propagates gradients back through this operation."
-    },
+    { "encode", (PyCFunction)NNFCEncoderContext_encode, METH_VARARGS,
+      "Encodes a batch of intermediate activations. Expects a PyTorch float tensor as input." },
+    { "backprop", (PyCFunction)NNFCEncoderContext_backprop, METH_VARARGS,
+      "Propagates gradients back through this operation." },
     {NULL, NULL, METH_VARARGS, ""}  // Sentinel
 };
 
@@ -81,12 +79,10 @@ static PyTypeObject NNFCEncoderContextType = {
 // define the NNFCDecoderContext /////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 static PyMethodDef NNFCDecoderContext_methods[] = {
-    {"decode", (PyCFunction)NNFCDecoderContext_decode, METH_VARARGS,
-     "Decodes a batch of intermediate activations. Expects a PyTorch byte tensor as input."
-    },
-    {"backprop", (PyCFunction)NNFCDecoderContext_backprop, METH_VARARGS,
-     "Propagates gradients back through this operation."
-    },
+    { "decode", (PyCFunction)NNFCDecoderContext_decode, METH_VARARGS,
+      "Decodes a batch of intermediate activations. Expects a PyTorch byte tensor as input." },
+    { "backprop", (PyCFunction)NNFCDecoderContext_backprop, METH_VARARGS,
+      "Propagates gradients back through this operation." },
     {NULL, NULL, METH_VARARGS, ""}  // Sentinel
 };
 
@@ -161,10 +157,15 @@ static PyObject* nnfc_available_decoders(PyObject *, PyObject *, PyObject *) {
 }
 
 static PyMethodDef module_methods[] = {
-    { "available_decoders", (PyCFunction)nnfc_available_decoders, METH_NOARGS, "returns a list of strings that name the available NNFC decoders (i.e. the ones exported by your version of libnnfc)." },
-    { "available_encoders", (PyCFunction)nnfc_available_encoders, METH_NOARGS, "returns a list of strings that name the available NNFC encoders (i.e. the ones exported by your version of libnnfc)." },
+    { "available_decoders", (PyCFunction)nnfc_available_decoders, METH_NOARGS,
+      "Returns a list of strings that name the available NNFC decoders (i.e. the ones exported by your version of libnnfc)." },
+    { "available_encoders", (PyCFunction)nnfc_available_encoders, METH_NOARGS,
+      "Returns a list of strings that name the available NNFC encoders (i.e. the ones exported by your version of libnnfc)." },
     #ifdef _NNFC_CUDA_AVAILABLE
-    { "inplace_copy_d2h", (PyCFunction)NNFCinplace_copy_d2h, METH_VARARGS, "copy a GPU (device) tensor directly into a CPU (host) tensor (the destination and source tensors must be the same size)." },
+    { "tensor_memcpy_d2h", (PyCFunction)NNFCtensor_memcpy_d2h, METH_VARARGS,
+      "Copy a GPU (device) tensor directly into a CPU (host) tensor (the destination and source tensors must be the same size)." },
+    { "tensor_memcpy_h2d", (PyCFunction)NNFCtensor_memcpy_h2d, METH_VARARGS,
+      "Copy a CPU (host) tensor directly into a GPU (device) tensor (the destination and source tensors must be the same size)." },
     #endif
     {NULL, NULL, 0, NULL}  /* Sentinel */
 };
