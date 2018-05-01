@@ -13,6 +13,24 @@ namespace nn {
 
     typedef Eigen::Index Index;
 
+    template<typename T>
+    class Rawptr {
+    private:
+        std::shared_ptr<T> ptr_;
+        size_t size_;
+
+    public:
+        rawptr(T* ptr, size_t size) :
+            ptr_(ptr),
+            size_(size)
+        { }
+
+        ~rawptr() { }        
+
+        std::shared_ptr<T> get() { return ptr_; }
+        size_t size() { return size_; }
+    };
+    
     template <typename T, int ndims>
     class Tensor {
     private:
@@ -33,8 +51,8 @@ namespace nn {
             tensor_(Eigen::TensorMap<Eigen::Tensor<T, ndims, Eigen::RowMajor>>(data_.get(), size_))
         {            
             // note: the deleter for the data_ member was set to a noop
-            // because when you use this constructor data_ is not owned by
-            // this object. 
+            // because when you use this constructor data_ is not owned
+            // by this object. 
         }
 
         // TODO(jremmons) get rid of the "new" for memory allocation.
@@ -46,6 +64,7 @@ namespace nn {
             tensor_(Eigen::TensorMap<Eigen::Tensor<T, ndims, Eigen::RowMajor>>(data_.get(), size_))
         { }
 
+        // make this the real constructor for the object
         Tensor(T* data, Eigen::DSizes<Eigen::Index, ndims> size) :
             size_(size),
             data_(data, [](T*){}),
@@ -54,7 +73,7 @@ namespace nn {
                
         Tensor(Eigen::DSizes<Eigen::Index, ndims> size) :
             size_(size),
-            data_(new T[size_.TotalSize()], [](T* ptr){ delete ptr; }),
+            data_(new T[size_.TotalSize()]),
             tensor_(Eigen::TensorMap<Eigen::Tensor<T, ndims, Eigen::RowMajor>>(data_.get(), size_))
         { }
         
@@ -86,12 +105,12 @@ namespace nn {
             return tensor_.dimension(dim);
         }
 
-        Eigen::Index size(void) const
+        Eigen::Index size() const
         {
             return tensor_.size();
         }
 
-        Eigen::Index rank(void) const
+        Eigen::Index rank() const
         {
             return tensor_.rank();
         }
