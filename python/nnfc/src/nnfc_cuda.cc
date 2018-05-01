@@ -12,7 +12,7 @@
 
 //extern THCState *state;
 
-PyObject* NNFCinplace_copy_d2h(PyObject *, PyObject *args, PyObject *kwargs){
+PyObject* NNFCtensor_memcpy_d2h(PyObject *, PyObject *args, PyObject *kwargs){
 
     torch::PythonArgParser parser({ "func(Tensor dest, Tensor src)" });
     torch::ParsedArgs<2> parsed_args;
@@ -48,4 +48,8 @@ PyObject* NNFCinplace_copy_d2h(PyObject *, PyObject *args, PyObject *kwargs){
 
     // // copy memory
     // THCudaCheck(cudaMemcpy(dest_blob.data, src_data, sizeof(float)*dest_blob.size(), cudaMemcpyDeviceToHost));
+}
+
+PyObject* NNFCtensor_memcpy_h2d(PyObject *, PyObject *args, PyObject *kwargs){
+
 }

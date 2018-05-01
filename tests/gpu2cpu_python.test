@@ -5,8 +5,8 @@ import nnfc._ext.nnfc_codec as nc
 
 if torch.cuda.is_available():
     x = 42 * torch.ones(5)
-    y = torch.randn(5)
+    y = torch.randn(x.size())
 
     print(x)
 
-    nc.inplace_copy_d2h(x, y)
+    nc.tensor_memcpy_d2h(x, y)
