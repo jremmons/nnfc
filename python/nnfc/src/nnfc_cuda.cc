@@ -22,7 +22,7 @@ PyObject* NNFCtensor_memcpy_d2h(PyObject *, PyObject *args, PyObject *kwargs){
     at::Tensor src = r.tensor(0);
     at::Tensor dest = r.tensor(1);
     std::cerr << "rank: " << src.ndimension() << std::endl;
-
+    
     Py_RETURN_NONE;
     
     // sanity checking

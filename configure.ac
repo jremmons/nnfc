@@ -14,13 +14,13 @@ m4_include(m4/hdf5.m4)
 #m4_include(m4/boost.m4)
 
 # Add picky CXXFLAGS
-CXX14_FLAGS="-std=c++14"
+CXX14_FLAGS="-std=c++17"
 PICKY_CXXFLAGS="-Wall -Wextra -Weffc++ -Wno-non-virtual-dtor -Werror"
 AC_SUBST([CXX14_FLAGS])
 AC_SUBST([PICKY_CXXFLAGS])
 
 # add flags for python wrapper compilation
-PYWRAPPER_EXTRA_CFLAGS="-std=c++14 -Wall -Wextra -Weffc++"
+PYWRAPPER_EXTRA_CFLAGS="-std=c++17 -Wall -Wextra -Weffc++"
 PYWRAPPER_EXTRA_LDFLAGS=""
 AC_SUBST([PYWRAPPER_EXTRA_CFLAGS])
 AC_SUBST([PYWRAPPER_EXTRA_LDFLAGS])
