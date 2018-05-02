@@ -12,6 +12,7 @@
 #include <typeinfo>
 #include <unordered_map>
 #include <string>
+#include <sstream>
 #include <functional>
 #include <memory>
 
@@ -43,23 +44,24 @@ public:
     std::unique_ptr<EncoderContextType> context_;
 
     template<std::size_t... Idx>
-    EncoderContextContainer(std::vector<std::any> initialization_params,
+    EncoderContextContainer(std::vector<std::pair<std::string,std::any>> initialization_params,
                             std::index_sequence<Idx...>) :
         context_()
     {
         auto types = EncoderContextContainer::initialization_params();
 
         for(size_t i = 0; i < num_constructor_args; i++) {
-            if(types[i].second.get() != initialization_params[i].type()) {
-                std::cout << __FILE__ << ": the types of parameter " << i << " was '" << types[i].second.get().name() << "' but excepted '" << initialization_params[i].type().name() << "'\n";  
-                throw std::runtime_error(std::string("type mismatch during construction of '") + EncoderContextType::name + "'");
+            if(types[i].second.get() != initialization_params[i].second.type()) {
+                std::stringstream ss;
+                ss << "The type of '" << types[i].first << "' (#" << i << ") was '" << types[i].second.get().name() << "' but excepted '" << initialization_params[i].second.type().name() << "'.";  
+                throw std::runtime_error(std::string("Type mismatch during construction of '") + EncoderContextType::name + "'. " + ss.str());
             }
         }
         
-        context_ = std::make_unique<EncoderContextType>(std::any_cast< std::tuple_element_t<Idx, std::tuple<constructor_args_types...>>>(initialization_params[Idx])...);
+        context_ = std::make_unique<EncoderContextType>(std::any_cast< std::tuple_element_t<Idx, std::tuple<constructor_args_types...>>>(initialization_params[Idx].second)...);
     }
 
-    EncoderContextContainer(std::vector<std::any> initialization_params) :
+    EncoderContextContainer(std::vector<std::pair<std::string, std::any>> initialization_params) :
         EncoderContextContainer(initialization_params, std::make_index_sequence<num_constructor_args>{})
     { }
     
@@ -119,7 +121,10 @@ const std::string Test::name = "test";
 int main(int, char**){
 
     //std::tuple<std::any, std::any> init_list = { 42, 3.14 };
-    std::vector<std::any> init_list = { 42, 3.14 };
+    std::vector<std::pair<std::string, std::any>> init_list = {
+        std::make_pair<std::string, std::any>("intval", 42),
+        std::make_pair<std::string, std::any>("doubleval", 3.14f)
+    };
 
     // std::cout << std::any_cast<>(std::get<0>(init_list)) << "\n";
     // std::cout << std::any_cast<int>(std::get<1>(init_list)) << "\n";
@@ -128,8 +133,6 @@ int main(int, char**){
 
     // std::cout << container.context_.get()->x_ << "\n";
     // std::cout << container.context_.get()->y_ << "\n";
-
-
 
     // std::cout << argc << " " << argv[0] << "\n";
 
