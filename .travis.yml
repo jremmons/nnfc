@@ -6,8 +6,8 @@ addons:
     sources:
     - ubuntu-toolchain-r-test
     packages:
-    - gcc-5
-    - g++-5
+    - gcc-7
+    - g++-7
     - nasm
     - libhdf5-dev
     - hdf5-helpers
@@ -24,8 +24,8 @@ install:
 
   # upgrade gcc
   - sudo apt-get update -q
-  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 99
-  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 99
+  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 99
+  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 99
   - g++ -v
 
   # install eigen3
