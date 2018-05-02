@@ -1,5 +1,6 @@
 #include "nnfc.hh"
 
+#include <any>
 #include <cstdint>
 #include <vector>
 #include <iostream>
