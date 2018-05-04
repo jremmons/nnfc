@@ -14,14 +14,14 @@
 
 PyObject* NNFCtensor_memcpy_d2h(PyObject *, PyObject *args, PyObject *kwargs){
 
-    torch::PythonArgParser parser({ "func(Tensor dest, Tensor src)" });
-    torch::ParsedArgs<2> parsed_args;
+    // torch::PythonArgParser parser({ "func(Tensor dest, Tensor src)" });
+    // torch::ParsedArgs<2> parsed_args;
 
-    auto r = parser.parse(args, kwargs, parsed_args);
+    // auto r = parser.parse(args, kwargs, parsed_args);
 
-    at::Tensor src = r.tensor(0);
-    at::Tensor dest = r.tensor(1);
-    std::cerr << "rank: " << src.ndimension() << std::endl;
+    // at::Tensor src = r.tensor(0);
+    // at::Tensor dest = r.tensor(1);
+    // std::cerr << "rank: " << src.ndimension() << std::endl;
     
     Py_RETURN_NONE;
     
