@@ -4,30 +4,33 @@ import re
 import torch
 import numpy
 
-from setuptools import setup, find_packages, Extension 
+from setuptools import setup, find_packages, Extension
 from torch.utils.cpp_extension import BuildExtension, include_paths, library_paths
 
 def get_def(header_filepath, definition_name):
     with open(header_filepath, 'r') as f:
-        headerfile = f.read().strip()        
+        headerfile = f.read().strip()
         version_found = re.search('\s*\#define\s*{def_name}\s*\"((\d+\.)*\d+?)"[ \t]*$'.format(def_name=definition_name),
                                   headerfile, re.MULTILINE).group(1)
         return version_found
-        
+
 VERSION = get_def('../config.h', 'VERSION')
 EXTENSION_NAME = 'nnfc._ext.nnfc_codec'
 CUDA_AVAILABLE = torch.cuda.is_available()
 
 pytorch_include = []
 for lib in include_paths(cuda=CUDA_AVAILABLE):
-    pytorch_include += ['-isystem', lib]
+    # HACK newer versions of cstdlib use #include_next<stdlib.h> which will break
+    # if we add /usr/include here.
+    if lib != "/usr/include":
+        pytorch_include += ['-isystem', lib]
 
 pytorch_libdirs = library_paths(cuda=CUDA_AVAILABLE)
-pytorch_libs = ['cudart'] if CUDA_AVAILABLE else [] 
+pytorch_libs = ['cudart'] if CUDA_AVAILABLE else []
 pytorch_defines = [('_NNFC_CUDA_AVAILABLE', 1)] if CUDA_AVAILABLE else []
 
 module = Extension(EXTENSION_NAME,
-                   sources=['nnfc/src/nnfc_codec.cc', 'nnfc/src/nnfc_cuda.cc', 
+                   sources=['nnfc/src/nnfc_codec.cc', 'nnfc/src/nnfc_cuda.cc',
                             'nnfc/src/nnfc_encoder.cc', 'nnfc/src/nnfc_decoder.cc'],
                    define_macros=[('_NNFC_VERSION', '"'+VERSION+'"')] + pytorch_defines,
                    include_dirs=[numpy.get_include()],
