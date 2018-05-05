@@ -69,39 +69,30 @@ class DarknetConv(nn.Module):
 
     
 class YoloBlock(nn.Module):
-    def __init__(self, block_name, nFilter1, nFilter2, activaction_func=nn.LeakyReLU(0.1)):
+    def __init__(self, conv_name, nFilter1, nFilter2, size, stride, padding, activaction_func=nn.LeakyReLU(0.1)):
         super(YoloBlock, self).__init__()
 
-        self.block_name = block_name
+        self.conv_name = conv_name
         self.activaction_func = activaction_func
         
-        self.conv0 = nn.Conv2d(nFilter1, nFilter2, kernel_size=1, stride=1, padding=0, bias=False)
+        self.conv0 = nn.Conv2d(nFilter1, nFilter2, kernel_size=size, stride=stride, padding=padding, bias=False)
         self.bn0 = nn.BatchNorm2d(nFilter2)
-        self.conv1 = nn.Conv2d(nFilter2, nFilter1, kernel_size=3, stride=1, padding=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(nFilter1)
 
     def register_weights(self, register_p, register_b):
 
-        register_p('{}_conv{}_weight'.format(self.block_name, 0), self.conv0.weight)
+        register_p('{}_conv{}_weight'.format(self.conv_name, 0), self.conv0.weight)
 
-        register_b('{}_bn{}_running_mean'.format(self.block_name, 0), self.bn0.running_mean)
-        register_b('{}_bn{}_running_var'.format(self.block_name, 0), self.bn0.running_var)
-        register_b('{}_bn{}_weight'.format(self.block_name, 0), self.bn0.weight)
-        register_b('{}_bn{}_bias'.format(self.block_name, 0), self.bn0.bias)
-
-        register_p('{}_conv{}_weight'.format(self.block_name, 1), self.conv1.weight)
-
-        register_b('{}_bn{}_running_mean'.format(self.block_name, 1), self.bn1.running_mean)
-        register_b('{}_bn{}_running_var'.format(self.block_name, 1), self.bn1.running_var)
-        register_b('{}_bn{}_weight'.format(self.block_name, 1), self.bn1.weight)
-        register_b('{}_bn{}_bias'.format(self.block_name, 1), self.bn1.bias)        
+        register_b('{}_bn{}_running_mean'.format(self.conv_name, 0), self.bn0.running_mean)
+        register_b('{}_bn{}_running_var'.format(self.conv_name, 0), self.bn0.running_var)
+        register_b('{}_bn{}_weight'.format(self.conv_name, 0), self.bn0.weight)
+        register_b('{}_bn{}_bias'.format(self.conv_name, 0), self.bn0.bias)
         
     def forward(self, x):
 
         out = self.activaction_func(self.bn0(self.conv0(x)))
-        out = self.activaction_func(self.bn1(self.conv1(out)))
 
         return out
+
     
 class YoloConv(nn.Module):
     def __init__(self, conv_name, nFilter1, nFilter2, activaction_func=lambda x: x):
@@ -132,24 +123,24 @@ class YoloV3(nn.Module):
         super(YoloV3, self).__init__()
         
         # darknet53 layers (the first 52 conv layers are present)
-        self.darknet53_standalone0 = [ DarknetConv('darknet53_standalone0', 3, 32, stride=1) ]
-        self.darknet53_standalone1 = [ DarknetConv('darknet53_standalone1', 32, 64) ]
+        self.darknet53_standalone0 = [ DarknetConv('darknet53_standalone0_instance0', 3, 32, stride=1) ]
+        self.darknet53_standalone1 = [ DarknetConv('darknet53_standalone1_instance0', 32, 64) ]
 
         self.darknet53_block0 = [ DarknetBlock('darknet53_block0_instance{}'.format(i), 64, 32) for i in range(YoloV3.darknet53_block_structure[0]) ]
 
-        self.darknet53_standalone2 = [ DarknetConv('darknet53_standalone2', 64, 128) ]
+        self.darknet53_standalone2 = [ DarknetConv('darknet53_standalone2_instance0', 64, 128) ]
 
         self.darknet53_block1 = [ DarknetBlock('darknet53_block1_instance{}'.format(i), 128, 64) for i in range(YoloV3.darknet53_block_structure[1]) ]
 
-        self.darknet53_standalone3 = [ DarknetConv('darknet53_standalone3', 128, 256) ]
+        self.darknet53_standalone3 = [ DarknetConv('darknet53_standalone3_instance0', 128, 256) ]
 
         self.darknet53_block2 = [ DarknetBlock('darknet53_block2_instance{}'.format(i), 256, 128) for i in range(YoloV3.darknet53_block_structure[2]) ]
 
-        self.darknet53_standalone4 = [ DarknetConv('darknet53_standalone4', 256, 512) ]
+        self.darknet53_standalone4 = [ DarknetConv('darknet53_standalone4_instance0', 256, 512) ]
 
         self.darknet53_block3 = [ DarknetBlock('darknet53_block3_instance{}'.format(i), 512, 256) for i in range(YoloV3.darknet53_block_structure[3]) ]
 
-        self.darknet53_standalone5 = [ DarknetConv('darknet53_standalone5', 512, 1024) ]
+        self.darknet53_standalone5 = [ DarknetConv('darknet53_standalone5_instance0', 512, 1024) ]
 
         self.darknet53_block4 = [ DarknetBlock('darknet53_block4_instance{}'.format(i), 1024, 512) for i in range(YoloV3.darknet53_block_structure[4]) ]
 
@@ -168,8 +159,14 @@ class YoloV3(nn.Module):
                        self.darknet53_block4
 
         # yolo detection layers 
-        self.yolo_block0 = [ YoloBlock('yolo_block0_instance{}'.format(i), 1024, 512) for i in range(YoloV3.yolo_block_structure[0]) ]
-        self.yolo_standalone0 = [ YoloConv('yolo_standalone0', 1024, 255) ]
+        self.yolo_block0 = [ YoloBlock('yolo_standalone0_instance0', 1024, 512, 1, 1, 0),
+                             YoloBlock('yolo_standalone1_instance0', 512, 1024, 3, 1, 1),
+                             YoloBlock('yolo_standalone2_instance0', 1024, 512, 1, 1, 0),
+                             YoloBlock('yolo_standalone3_instance0', 512, 1024, 3, 1, 1),
+                             YoloBlock('yolo_standalone4_instance0', 1024, 512, 1, 1, 0),
+                             YoloBlock('yolo_standalone5_instance0', 512, 1024, 3, 1, 1)]
+        
+        self.yolo_standalone0 = [ YoloConv('yolo_standalone6_instance0', 1024, 255) ]
         
         # self.yolo_block1 = [ YoloBlock('yolo_block1_instance{}'.format(i), 512, 256) for i in range(YoloV3.yolo_block_structure[1]) ]
         # self.yolo_standalone1 = [ YoloConv('yolo_standalone1', 512, 255) ]
@@ -177,10 +174,15 @@ class YoloV3(nn.Module):
         # self.yolo_block2 = [ YoloBlock('yolo_block2_instance{}'.format(i), 256, 128) for i in range(YoloV3.yolo_block_structure[2]) ]
         # self.yolo_standalone2 = [ YoloConv('yolo_standalone2', 256, 255) ]
         
-        # register all layers
-        # todo...
-        
-        
+        # register darknet layers
+        for layer in self.route36 + self.route61 + self.route74:
+            layer.register_weights(self.register_parameter, self.register_buffer)
+
+        # register the yolo layers
+        for layer in self.yolo_block0 + self.yolo_standalone0:
+            layer.register_weights(self.register_parameter, self.register_buffer)
+
+            
     @staticmethod
     def apply_layers(layers, x):
 
@@ -262,7 +264,15 @@ if __name__ == '__main__':
 
     x = Variable(torch.randn(1, 3, 416, 416))
     y = yolov3(x)
+    print(y.shape)
+    
+    for i in range(y.shape[1]):
+        coords = y[0,i,:4]
+        objectness = y[0,i,4]
+        classes = y[0,i,5:]
 
-    print(y[0,0,:])
+        if objectness > 0.5:
+            pass
+            #print(y[0,i,:])
 
     
