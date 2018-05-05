@@ -215,24 +215,22 @@ class YoloV3(nn.Module):
         self.darknet53_standalone1 = [ DarknetConv('darknet53_standalone1_instance0', 32, 64) ]
 
         self.darknet53_block0 = [ DarknetBlock('darknet53_block0_instance{}'.format(i), 64, 32) for i in range(YoloV3.darknet53_block_structure[0]) ]
-
         self.darknet53_standalone2 = [ DarknetConv('darknet53_standalone2_instance0', 64, 128) ]
 
         self.darknet53_block1 = [ DarknetBlock('darknet53_block1_instance{}'.format(i), 128, 64) for i in range(YoloV3.darknet53_block_structure[1]) ]
-
         self.darknet53_standalone3 = [ DarknetConv('darknet53_standalone3_instance0', 128, 256) ]
 
         self.darknet53_block2 = [ DarknetBlock('darknet53_block2_instance{}'.format(i), 256, 128) for i in range(YoloV3.darknet53_block_structure[2]) ]
-
         self.darknet53_standalone4 = [ DarknetConv('darknet53_standalone4_instance0', 256, 512) ]
 
         self.darknet53_block3 = [ DarknetBlock('darknet53_block3_instance{}'.format(i), 512, 256) for i in range(YoloV3.darknet53_block_structure[3]) ]
-
         self.darknet53_standalone5 = [ DarknetConv('darknet53_standalone5_instance0', 512, 1024) ]
 
         self.darknet53_block4 = [ DarknetBlock('darknet53_block4_instance{}'.format(i), 1024, 512) for i in range(YoloV3.darknet53_block_structure[4]) ]
 
-        self.route36 = self.darknet53_standalone0 + \
+        # YOLO extracts features from intermediate points in Darknet53
+        # The blocks below are layer where the features are taken from
+        self.layer36 = self.darknet53_standalone0 + \
                        self.darknet53_standalone1 + \
                        self.darknet53_block0 + \
                        self.darknet53_standalone2 + \
@@ -240,10 +238,10 @@ class YoloV3(nn.Module):
                        self.darknet53_standalone3 + \
                        self.darknet53_block2
         
-        self.route61 = self.darknet53_standalone4 + \
+        self.layer61 = self.darknet53_standalone4 + \
                        self.darknet53_block3
 
-        self.route74 = self.darknet53_standalone5 + \
+        self.layer74 = self.darknet53_standalone5 + \
                        self.darknet53_block4
 
         # yolo detection layers 
@@ -263,7 +261,7 @@ class YoloV3(nn.Module):
         # self.yolo_standalone2 = [ YoloConv('yolo_standalone2', 256, 255) ]
         
         # register darknet layers
-        for layer in self.route36 + self.route61 + self.route74:
+        for layer in self.layer36 + self.layer61 + self.layer74:
             layer.register_weights(self.register_parameter, self.register_buffer)
 
         # register the yolo layers
@@ -329,16 +327,16 @@ class YoloV3(nn.Module):
     def forward(self, x):
 
         # get the intermediates from the darknet featurizer
-        route36 = YoloV3.apply_layers(self.route36, x)
-        route61 = YoloV3.apply_layers(self.route61, route36)
-        route74 = YoloV3.apply_layers(self.route74, route61)
+        layer36 = YoloV3.apply_layers(self.layer36, x)
+        layer61 = YoloV3.apply_layers(self.layer61, layer36)
+        layer74 = YoloV3.apply_layers(self.layer74, layer61)
 
         # process the intermediates for detections
-        predictions0 = YoloV3.apply_layers(self.yolo_block0 + self.yolo_standalone0, route74)
+        predictions0 = YoloV3.apply_layers(self.yolo_block0 + self.yolo_standalone0, layer74)
 
         # for now only process detections from this first layer
-        # detect1 = YoloV3.apply_layers(self.yolo_block0 + self.yolo_standalone0, route74)
-        # detect2 = YoloV3.apply_layers(self.yolo_block0 + self.yolo_standalone0, route74)
+        # detect1 = YoloV3.apply_layers(self.yolo_block0 + self.yolo_standalone0, layer74)
+        # detect2 = YoloV3.apply_layers(self.yolo_block0 + self.yolo_standalone0, layer74)
         predictions0 = YoloV3.process_prediction(predictions0)
         
         return predictions0
@@ -387,7 +385,7 @@ if __name__ == '__main__':
         objectness = y[0,i,4]
         classes = y[0,i,5:]
 
-        # add nms
+        detections = []
         if objectness > 0.6:
             confidences = y[0,i,5:].detach().numpy()
             confidences /= sum(confidences)
