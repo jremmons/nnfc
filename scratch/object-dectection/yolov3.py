@@ -1,3 +1,6 @@
+import h5py
+import timeit
+
 import numpy as np
 
 import torch
@@ -5,6 +8,91 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from torch.autograd import Variable
+from PIL import Image, ImageDraw
+
+coco_names = [
+    'person',
+    'bicycle',
+    'car',
+    'motorbike',
+    'aeroplane',
+    'bus',
+    'train',
+    'truck',
+    'boat',
+    'traffic light',
+    'fire hydrant',
+    'stop sign',
+    'parking meter',
+    'bench',
+    'bird',
+    'cat',
+    'dog',
+    'horse',
+    'sheep',
+    'cow',
+    'elephant',
+    'bear',
+    'zebra',
+    'giraffe',
+    'backpack',
+    'umbrella',
+    'handbag',
+    'tie',
+    'suitcase',
+    'frisbee',
+    'skis',
+    'snowboard',
+    'sports ball',
+    'kite',
+    'baseball bat',
+    'baseball glove',
+    'skateboard',
+    'surfboard',
+    'tennis racket',
+    'bottle',
+    'wine glass',
+    'cup',
+    'fork',
+    'knife',
+    'spoon',
+    'bowl',
+    'banana',
+    'apple',
+    'sandwich',
+    'orange',
+    'broccoli',
+    'carrot',
+    'hot dog',
+    'pizza',
+    'donut',
+    'cake',
+    'chair',
+    'sofa',
+    'pottedplant',
+    'bed',
+    'diningtable',
+    'toilet',
+    'tvmonitor',
+    'laptop',
+    'mouse',
+    'remote',
+    'keyboard',
+    'cell phone',
+    'microwave',
+    'oven',
+    'toaster',
+    'sink',
+    'refrigerator',
+    'book',
+    'clock',
+    'vase',
+    'scissors',
+    'teddy bear',
+    'hair drier',
+    'toothbrush',
+]
+
 
 class DarknetBlock(nn.Module):
     def __init__(self, block_name, nFilter1, nFilter2, activaction_func=nn.LeakyReLU(0.1)):
@@ -106,7 +194,7 @@ class YoloConv(nn.Module):
     def register_weights(self, register_p, register_b):
 
         register_p('{}_conv0_weight'.format(self.conv_name), self.conv.weight)
-        register_p('{}_conv0_bias'.format(self.conv_name), self.conv.weight)
+        register_p('{}_conv0_bias'.format(self.conv_name), self.conv.bias)
 
     def forward(self, x):
 
@@ -196,7 +284,8 @@ class YoloV3(nn.Module):
     def process_prediction(prediction):
 
         batch_size = prediction.size(0)
-        anchors = [(116, 90), (156, 198), (373, 326)]
+        anchors = [(116,90), (156,198), (373,326)]
+
         inp_dim = 416
         num_classes = 80
 
@@ -256,23 +345,61 @@ class YoloV3(nn.Module):
 
     
 if __name__ == '__main__':
+
+    # construct the model
     yolov3 = YoloV3()
-
-    model_params = yolov3.state_dict()
-    for param_name in model_params.keys():
-        print(param_name, model_params[param_name].shape)
-
-    x = Variable(torch.randn(1, 3, 416, 416))
-    y = yolov3(x)
-    print(y.shape)
+    yolov3.eval()
     
+    # load the weights
+    with h5py.File('yolov3.h5', 'r') as f: 
+
+        model_params = yolov3.state_dict()
+        for param_name in model_params.keys():
+
+            #print(param_name, model_params[param_name].shape)
+            weights = torch.from_numpy(np.asarray(f[param_name]).astype(np.float32))
+            #print(weights.shape, model_params[param_name].shape)
+
+            model_params[param_name].data.copy_(weights)
+
+    # load the input image
+    img = Image.open('dog.jpg').convert('RGB')
+    img = img.resize((416,416))
+    img_ = np.asarray(img)
+    img_ = img_.transpose((2,0,1)) # H X W X C -> C X H X W 
+    
+    img_ = np.expand_dims(img_, 0)
+    img_ = torch.from_numpy(img_).float().div(255.0)
+    
+    #x = Variable(torch.randn(1, 3, 416, 416))
+    x = Variable(img_)
+    print('input', x.shape)
+    
+    # perform the forward pass
+    t1 = timeit.default_timer()
+    y = yolov3(x)
+    t2 = timeit.default_timer()
+    print('inference time:', t2-t1)
+          
+    # print out detections if any
     for i in range(y.shape[1]):
         coords = y[0,i,:4]
         objectness = y[0,i,4]
         classes = y[0,i,5:]
 
-        if objectness > 0.5:
-            pass
-            #print(y[0,i,:])
+        # add nms
+        if objectness > 0.6:
+            confidences = y[0,i,5:].detach().numpy()
+            confidences /= sum(confidences)
+            idx = np.argmax(confidences)
 
-    
+            print('"'+coco_names[idx]+'"', '('+str(confidences[idx])+')', y[0,i,:4].detach().numpy())
+
+            x1 = y[0,i,0] - y[0,i,2]/2
+            x2 = y[0,i,0] + y[0,i,2]/2
+            y1 = y[0,i,1] - y[0,i,3]/2
+            y2 = y[0,i,1] + y[0,i,3]/2
+            draw = ImageDraw.Draw(img)
+            draw.rectangle(((x1,y1), (x2,y2)))
+
+    img.save('out.jpg')
