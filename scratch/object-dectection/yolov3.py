@@ -354,12 +354,10 @@ if __name__ == '__main__':
         model_params = yolov3.state_dict()
         for param_name in model_params.keys():
 
-            #print(param_name, model_params[param_name].shape)
             weights = torch.from_numpy(np.asarray(f[param_name]).astype(np.float32))
-            #print(weights.shape, model_params[param_name].shape)
-
             model_params[param_name].data.copy_(weights)
 
+            
     # load the input image
     img = Image.open('dog.jpg').convert('RGB')
     img = img.resize((416,416))
@@ -369,17 +367,18 @@ if __name__ == '__main__':
     img_ = np.expand_dims(img_, 0)
     img_ = torch.from_numpy(img_).float().div(255.0)
     
-    #x = Variable(torch.randn(1, 3, 416, 416))
     x = Variable(img_)
     print('input', x.shape)
+
     
     # perform the forward pass
     t1 = timeit.default_timer()
     y = yolov3(x)
     t2 = timeit.default_timer()
     print('inference time:', t2-t1)
-          
-    # print out detections if any
+
+    
+    # print out detections, if any
     for i in range(y.shape[1]):
         coords = y[0,i,:4]
         objectness = y[0,i,4]
