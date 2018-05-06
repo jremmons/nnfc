@@ -417,8 +417,8 @@ if __name__ == '__main__':
 
             
     # load the input image
-    #img = Image.open('dog.jpg').convert('RGB')
-    img = Image.open('img3.jpg').convert('RGB')
+    img = Image.open('dog.jpg').convert('RGB')
+    #img = Image.open('img3.jpg').convert('RGB')
     img = img.resize((416,416))
     img_ = np.asarray(img)
     img_ = img_.transpose((2,0,1)) # H X W X C -> C X H X W 
