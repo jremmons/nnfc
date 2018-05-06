@@ -316,7 +316,7 @@ class YoloV3(nn.Module):
             
             layer.register_weights(self.register_parameter, self.register_buffer)
 
-            
+
     @staticmethod
     def apply_layers(layers, x):
 
@@ -405,7 +405,6 @@ if __name__ == '__main__':
 
     # construct the model
     yolov3 = YoloV3()
-    yolov3.eval()
     
     # load the weights
     with h5py.File('yolov3.h5', 'r') as f: 
@@ -429,7 +428,6 @@ if __name__ == '__main__':
     
     x = Variable(img_)
     print('input', x.shape)
-
     
     # perform the forward pass
     t1 = timeit.default_timer()
