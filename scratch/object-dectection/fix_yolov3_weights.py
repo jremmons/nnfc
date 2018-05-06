@@ -102,9 +102,37 @@ darknet_correspondence += scorrespond(54, 'yolo', 2, replace='yolo')
 darknet_correspondence += scorrespond(55, 'yolo', 3, replace='yolo')
 darknet_correspondence += scorrespond(56, 'yolo', 4, replace='yolo')
 darknet_correspondence += scorrespond(57, 'yolo', 5, replace='yolo')
-print('\n'.join(list(map(lambda x: str(x), darknet_correspondence))))
+
 darknet_correspondence += [('yolo_conv58_bias', 'yolo_standalone6_instance0_conv0_bias'),
                            ('yolo_conv58_weight', 'yolo_standalone6_instance0_conv0_weight')]
+
+darknet_correspondence += scorrespond(59, 'yolo', 7, replace='yolo')
+darknet_correspondence += scorrespond(60, 'yolo', 8, replace='yolo')
+
+darknet_correspondence += scorrespond(61, 'yolo', 9, replace='yolo')
+darknet_correspondence += scorrespond(62, 'yolo', 10, replace='yolo')
+
+darknet_correspondence += scorrespond(63, 'yolo', 11, replace='yolo')
+darknet_correspondence += scorrespond(64, 'yolo', 12, replace='yolo')
+    
+darknet_correspondence += scorrespond(65, 'yolo', 13, replace='yolo')
+
+darknet_correspondence += [('yolo_conv66_bias', 'yolo_standalone14_instance0_conv0_bias'),
+                           ('yolo_conv66_weight', 'yolo_standalone14_instance0_conv0_weight')]
+
+darknet_correspondence += scorrespond(67, 'yolo', 15, replace='yolo')
+darknet_correspondence += scorrespond(68, 'yolo', 16, replace='yolo')
+darknet_correspondence += scorrespond(69, 'yolo', 17, replace='yolo')
+darknet_correspondence += scorrespond(70, 'yolo', 18, replace='yolo')
+darknet_correspondence += scorrespond(71, 'yolo', 19, replace='yolo')
+darknet_correspondence += scorrespond(72, 'yolo', 20, replace='yolo')
+
+darknet_correspondence += scorrespond(73, 'yolo', 21, replace='yolo')
+
+darknet_correspondence += [('yolo_conv74_bias', 'yolo_standalone22_instance0_conv0_bias'),
+                           ('yolo_conv74_weight', 'yolo_standalone22_instance0_conv0_weight')]
+
+print('\n'.join(list(map(lambda x: str(x), darknet_correspondence))))
 
 with h5py.File('/home/jemmons/yolov3_raw.h5', 'r') as f: 
     with h5py.File('/home/jemmons/yolov3_new.h5', 'w') as new: 
