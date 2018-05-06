@@ -201,6 +201,17 @@ class YoloConv(nn.Module):
         out = self.activaction_func(self.conv(x))
         return out
 
+class YoloUpsample(nn.Module):
+    def __init__(self):
+        super(YoloUpsample, self).__init__()
+        self.upsample = nn.Upsample(scale_factor = 2, mode = 'nearest')
+
+    def register_weights(self, register_p, register_b):
+        pass
+
+    def forward(self, x):
+        return self.upsample(x)
+
     
 class YoloV3(nn.Module):
     
@@ -245,27 +256,64 @@ class YoloV3(nn.Module):
                        self.darknet53_block4
 
         # yolo detection layers 
-        self.yolo_block0 = [ YoloBlock('yolo_standalone0_instance0', 1024, 512, 1, 1, 0),
-                             YoloBlock('yolo_standalone1_instance0', 512, 1024, 3, 1, 1),
-                             YoloBlock('yolo_standalone2_instance0', 1024, 512, 1, 1, 0),
-                             YoloBlock('yolo_standalone3_instance0', 512, 1024, 3, 1, 1),
-                             YoloBlock('yolo_standalone4_instance0', 1024, 512, 1, 1, 0),
-                             YoloBlock('yolo_standalone5_instance0', 512, 1024, 3, 1, 1)]
-        
-        self.yolo_standalone0 = [ YoloConv('yolo_standalone6_instance0', 1024, 255) ]
-        
-        # self.yolo_block1 = [ YoloBlock('yolo_block1_instance{}'.format(i), 512, 256) for i in range(YoloV3.yolo_block_structure[1]) ]
-        # self.yolo_standalone1 = [ YoloConv('yolo_standalone1', 512, 255) ]
+        # detection 1
+        self.layer79 = [
+            YoloBlock('yolo_standalone0_instance0', 1024, 512, 1, 1, 0),
+            YoloBlock('yolo_standalone1_instance0', 512, 1024, 3, 1, 1),
+            YoloBlock('yolo_standalone2_instance0', 1024, 512, 1, 1, 0),
+            YoloBlock('yolo_standalone3_instance0', 512, 1024, 3, 1, 1),
+            YoloBlock('yolo_standalone4_instance0', 1024, 512, 1, 1, 0)
+        ]
 
-        # self.yolo_block2 = [ YoloBlock('yolo_block2_instance{}'.format(i), 256, 128) for i in range(YoloV3.yolo_block_structure[2]) ]
-        # self.yolo_standalone2 = [ YoloConv('yolo_standalone2', 256, 255) ]
+        self.layer80 = [ YoloBlock('yolo_standalone5_instance0', 512, 1024, 3, 1, 1) ]
+        self.layer81 = [ YoloConv('yolo_standalone6_instance0', 1024, 255) ] 
+
+        
+        # detection 2
+        self.layer85 = [
+            YoloBlock('yolo_standalone7_instance0', 512, 256, 1, 1, 0),
+            YoloUpsample()
+        ]
+
+        self.layer91 = [
+            YoloBlock('yolo_standalone8_instance0', 768, 256, 1, 1, 0),
+            YoloBlock('yolo_standalone9_instance0', 256, 512, 3, 1, 1),
+            YoloBlock('yolo_standalone10_instance0', 512, 256, 1, 1, 0),
+            YoloBlock('yolo_standalone11_instance0', 256, 512, 3, 1, 1),
+            YoloBlock('yolo_standalone12_instance0', 512, 256, 1, 1, 0)
+        ]
+
+        self.layer92 = [ YoloBlock('yolo_standalone13_instance0', 256, 512, 3, 1, 1) ]
+        self.layer93 = [ YoloConv('yolo_standalone14_instance0', 512, 255) ]
+
+
+        # detection 3
+        self.layer97 = [
+            YoloBlock('yolo_standalone15_instance0', 256, 128, 1, 1, 0),
+            YoloUpsample()
+        ]
+        
+        self.layer104 = [
+            YoloBlock('yolo_standalone16_instance0', 384, 128, 1, 1, 0),
+            YoloBlock('yolo_standalone17_instance0', 128, 256, 3, 1, 1),
+            YoloBlock('yolo_standalone18_instance0', 256, 128, 1, 1, 0),
+            YoloBlock('yolo_standalone19_instance0', 128, 256, 3, 1, 1),
+            YoloBlock('yolo_standalone20_instance0', 256, 128, 1, 1, 0),
+            YoloBlock('yolo_standalone21_instance0', 128, 256, 3, 1, 1)
+        ]
+
+        self.layer105 = [ YoloConv('yolo_standalone22_instance0', 256, 255) ]
         
         # register darknet layers
         for layer in self.layer36 + self.layer61 + self.layer74:
             layer.register_weights(self.register_parameter, self.register_buffer)
 
         # register the yolo layers
-        for layer in self.yolo_block0 + self.yolo_standalone0:
+        for layer in self.layer79 + self.layer80 + self.layer81 + \
+                     self.layer85 + self.layer91 + self.layer92 + \
+                     self.layer93 + self.layer97 + self.layer104 + \
+                     self.layer105:
+            
             layer.register_weights(self.register_parameter, self.register_buffer)
 
             
@@ -279,10 +327,9 @@ class YoloV3(nn.Module):
             
 
     @staticmethod
-    def process_prediction(prediction):
+    def process_prediction(prediction, anchors):
 
         batch_size = prediction.size(0)
-        anchors = [(116,90), (156,198), (373,326)]
 
         inp_dim = 416
         num_classes = 80
@@ -332,14 +379,26 @@ class YoloV3(nn.Module):
         layer74 = YoloV3.apply_layers(self.layer74, layer61)
 
         # process the intermediates for detections
-        predictions0 = YoloV3.apply_layers(self.yolo_block0 + self.yolo_standalone0, layer74)
+        layer79 = YoloV3.apply_layers(self.layer79, layer74)
+        predict0 = YoloV3.apply_layers(self.layer80 + self.layer81, layer79)
 
-        # for now only process detections from this first layer
-        # detect1 = YoloV3.apply_layers(self.yolo_block0 + self.yolo_standalone0, layer74)
-        # detect2 = YoloV3.apply_layers(self.yolo_block0 + self.yolo_standalone0, layer74)
-        predictions0 = YoloV3.process_prediction(predictions0)
+        layer85 = YoloV3.apply_layers(self.layer85, layer79)        
+        layer86 = torch.cat((layer85, layer61), 1)
+
+        layer91 = YoloV3.apply_layers(self.layer91, layer86)
+        predict1 = YoloV3.apply_layers(self.layer92 + self.layer93, layer91)
+
+        layer97 = YoloV3.apply_layers(self.layer97, layer91)
+        layer98 = torch.cat((layer97, layer36), 1)
+
+        predict2 = YoloV3.apply_layers(self.layer104 + self.layer105, layer98)
         
-        return predictions0
+        # process the detections
+        detections0 = YoloV3.process_prediction(predict0, [(116,90), (156,198), (373,326)])
+        detections1 = YoloV3.process_prediction(predict1, [(30,61), (62,45), (59,119)])
+        detections2 = YoloV3.process_prediction(predict2, [(10,13), (16,30), (33,23)])
+                
+        return torch.cat((detections0, detections1, detections2), 1)
 
     
 if __name__ == '__main__':
@@ -359,7 +418,8 @@ if __name__ == '__main__':
 
             
     # load the input image
-    img = Image.open('dog.jpg').convert('RGB')
+    #img = Image.open('dog.jpg').convert('RGB')
+    img = Image.open('img2.jpg').convert('RGB')
     img = img.resize((416,416))
     img_ = np.asarray(img)
     img_ = img_.transpose((2,0,1)) # H X W X C -> C X H X W 
