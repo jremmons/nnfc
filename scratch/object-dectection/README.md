@@ -22,7 +22,7 @@ python yolov3.py
   "dog" (0.9188381) [123.21452 273.98    102.76764 225.48746]
   "dog" (0.7553703) [130.27046 272.5151  109.51556 232.21632]
   "dog" (0.5748637) [120.64306  290.73853  109.865425 208.1843  ]
-  
+
 ```
 
 ## TODOs:
@@ -37,6 +37,6 @@ works (possibly rewrite form scratch).
 any point in the network. The current setup works, but does not make
 it easy to do this.
 
-4. Bechmark the GPU code. Make sure it is competitive to the original
+4. Benchmark the GPU code. Make sure it is competitive to the original
 C implementation (50ms on a Titan X GPI;
 [source](https://pjreddie.com/media/files/papers/YOLOv3.pdf))
