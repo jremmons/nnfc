@@ -40,33 +40,29 @@ class DarknetBlock(nn.Module):
         self.block_name = block_name
         self.activaction_func = activaction_func
 
-        self.conv0 = nn.Conv2d(nFilter1, nFilter2, kernel_size=1, stride=1, padding=0, bias=False)
-        self.bn0 = nn.BatchNorm2d(nFilter2)
-        self.conv1 = nn.Conv2d(nFilter2, nFilter1, kernel_size=3, stride=1, padding=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(nFilter1)
+        self.conv = [
+            nn.Conv2d(nFilter1, nFilter2, kernel_size=1, stride=1, padding=0, bias=False),
+            nn.Conv2d(nFilter2, nFilter1, kernel_size=3, stride=1, padding=1, bias=False)
+        ]
+
+        self.bn = [
+            nn.BatchNorm2d(nFilter2),
+            nn.BatchNorm2d(nFilter1)
+        ]
 
     def register_weights(self, register_p, register_b):
-
-        register_p('{}_conv{}_weight'.format(self.block_name, 0), self.conv0.weight)
-
-        register_b('{}_bn{}_running_mean'.format(self.block_name, 0), self.bn0.running_mean)
-        register_b('{}_bn{}_running_var'.format(self.block_name, 0), self.bn0.running_var)
-        register_b('{}_bn{}_weight'.format(self.block_name, 0), self.bn0.weight)
-        register_b('{}_bn{}_bias'.format(self.block_name, 0), self.bn0.bias)
-
-        register_p('{}_conv{}_weight'.format(self.block_name, 1), self.conv1.weight)
-
-        register_b('{}_bn{}_running_mean'.format(self.block_name, 1), self.bn1.running_mean)
-        register_b('{}_bn{}_running_var'.format(self.block_name, 1), self.bn1.running_var)
-        register_b('{}_bn{}_weight'.format(self.block_name, 1), self.bn1.weight)
-        register_b('{}_bn{}_bias'.format(self.block_name, 1), self.bn1.bias)
+        for i, (conv, bn) in enumerate(zip(self.conv, self.bn)):
+            register_p('{}_conv{}_weight'.format(self.block_name, i), conv.weight)
+            register_b('{}_bn{}_running_mean'.format(self.block_name, i), bn.running_mean)
+            register_b('{}_bn{}_running_var'.format(self.block_name, i), bn.running_var)
+            register_b('{}_bn{}_weight'.format(self.block_name, i), bn.weight)
+            register_b('{}_bn{}_bias'.format(self.block_name, i), bn.bias)
 
     def forward(self, x):
-
-        out = self.activaction_func(self.bn0(self.conv0(x)))
-        out = self.activaction_func(self.bn1(self.conv1(out)))
-
+        out = self.activaction_func(self.bn[0](self.conv[0](x)))
+        out = self.activaction_func(self.bn[1](self.conv[1](out)))
         out = out + x
+
         return out
 
 
