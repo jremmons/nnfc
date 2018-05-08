@@ -1,6 +1,8 @@
+import os
 import h5py
 import timeit
 import itertools
+import argparse
 
 import numpy as np
 
@@ -10,6 +12,7 @@ import torch.nn.functional as F
 
 from torch.autograd import Variable
 from PIL import Image, ImageDraw
+from timeit import Timer
 
 coco_names = [
     'person',        'bicycle',       'car',           'motorbike',
@@ -310,9 +313,7 @@ class YoloV3(nn.Module):
 
         return torch.cat((detections0, detections1, detections2), 1)
 
-
-if __name__ == '__main__':
-    # construct the model
+def load_model():
     yolov3 = YoloV3()
 
     # load the weights
@@ -323,46 +324,56 @@ if __name__ == '__main__':
             weights = torch.from_numpy(np.asarray(f[param_name]).astype(np.float32))
             model_params[param_name].data.copy_(weights)
 
+    return yolov3
 
-    # load the input image
-    img = Image.open('dog.jpg').convert('RGB')
-    #img = Image.open('img3.jpg').convert('RGB')
-    img = img.resize((416,416))
-    img_ = np.asarray(img)
-    img_ = img_.transpose((2,0,1)) # H X W X C -> C X H X W
+def main():
+    parser = argparse.ArgumentParser('Run YoloV3 on input image.')
+    parser.add_argument('image', nargs='+')
+    args = parser.parse_args()
 
-    img_ = np.expand_dims(img_, 0)
-    img_ = torch.from_numpy(img_).float().div(255.0)
+    yolov3 = load_model()
 
-    x = Variable(img_)
-    print('input', x.shape)
+    for img_path in args.image:
+        img_original = Image.open(img_path).convert('RGB')
+        img_original = img_original.resize((416, 416))
+        img = np.asarray(img_original)
+        img = img.transpose((2, 0, 1)) # H X W X C -> C X H X W
+        img = np.expand_dims(img, 0)
+        img = torch.from_numpy(img).float().div(255.0)
 
-    # perform the forward pass
-    t1 = timeit.default_timer()
-    y = yolov3(x)
-    t2 = timeit.default_timer()
-    print('inference time:', t2-t1)
+        x = Variable(img)
+
+        print('>> %s:' % img_path)
+
+        t1 = timeit.default_timer()
+        y = yolov3(x)
+        print('inference time:', timeit.default_timer() - t1)
+
+        # print out detections, if any
+        for i in range(y.shape[1]):
+            coords = y[0, i, :4]
+            objectness = y[0, i, 4]
+            classes = y[0, i, 5:]
+
+            detections = []
+            if objectness > 0.6:
+                confidences = y[0, i, 5:].detach().numpy()
+                confidences /= sum(confidences)
+                idx = np.argmax(confidences)
+
+                print('"' + coco_names[idx] + '"',
+                      '(' + str(confidences[idx]) + ')',
+                      y[0, i, :4].detach().numpy())
+
+                x1 = y[0, i, 0] - y[0, i ,2] / 2
+                x2 = y[0, i, 0] + y[0, i ,2] / 2
+                y1 = y[0, i, 1] - y[0, i ,3] / 2
+                y2 = y[0, i, 1] + y[0, i ,3] / 2
+                draw = ImageDraw.Draw(img_original)
+                draw.rectangle(((x1, y1), (x2, y2)))
+
+        img_original.save(os.path.splitext(img_path)[0] + '.out.jpg')
 
 
-    # print out detections, if any
-    for i in range(y.shape[1]):
-        coords = y[0,i,:4]
-        objectness = y[0,i,4]
-        classes = y[0,i,5:]
-
-        detections = []
-        if objectness > 0.6:
-            confidences = y[0,i,5:].detach().numpy()
-            confidences /= sum(confidences)
-            idx = np.argmax(confidences)
-
-            print('"'+coco_names[idx]+'"', '('+str(confidences[idx])+')', y[0,i,:4].detach().numpy())
-
-            x1 = y[0,i,0] - y[0,i,2]/2
-            x2 = y[0,i,0] + y[0,i,2]/2
-            y1 = y[0,i,1] - y[0,i,3]/2
-            y2 = y[0,i,1] + y[0,i,3]/2
-            draw = ImageDraw.Draw(img)
-            draw.rectangle(((x1,y1), (x2,y2)))
-
-    img.save('out.jpg')
+if __name__ == '__main__':
+    main()
