@@ -33,6 +33,13 @@ coco_names = [
     'scissors',      'teddy bear',    'hair drier',    'toothbrush',
 ]
 
+def dn_register_weights_helper(register_p, register_b, block_name, i, conv, bn):
+    register_p('{}_conv{}_weight'.format(block_name, i), conv.weight)
+    register_b('{}_bn{}_running_mean'.format(block_name, i), bn.running_mean)
+    register_b('{}_bn{}_running_var'.format(block_name, i), bn.running_var)
+    register_b('{}_bn{}_weight'.format(block_name, i), bn.weight)
+    register_b('{}_bn{}_bias'.format(block_name, i), bn.bias)
+
 class DarknetBlock(nn.Module):
     def __init__(self, block_name, nFilter1, nFilter2, activaction_func=nn.LeakyReLU(0.1)):
         super(DarknetBlock, self).__init__()
@@ -52,11 +59,7 @@ class DarknetBlock(nn.Module):
 
     def register_weights(self, register_p, register_b):
         for i, (conv, bn) in enumerate(zip(self.conv, self.bn)):
-            register_p('{}_conv{}_weight'.format(self.block_name, i), conv.weight)
-            register_b('{}_bn{}_running_mean'.format(self.block_name, i), bn.running_mean)
-            register_b('{}_bn{}_running_var'.format(self.block_name, i), bn.running_var)
-            register_b('{}_bn{}_weight'.format(self.block_name, i), bn.weight)
-            register_b('{}_bn{}_bias'.format(self.block_name, i), bn.bias)
+            dn_register_weights_helper(register_p, register_b, self.block_name, i, conv, bn)
 
     def forward(self, x):
         out = self.activaction_func(self.bn[0](self.conv[0](x)))
@@ -77,13 +80,7 @@ class DarknetConv(nn.Module):
         self.bn = nn.BatchNorm2d(nFilter2)
 
     def register_weights(self, register_p, register_b):
-
-        register_p('{}_conv0_weight'.format(self.conv_name), self.conv.weight)
-
-        register_b('{}_bn0_running_mean'.format(self.conv_name), self.bn.running_mean)
-        register_b('{}_bn0_running_var'.format(self.conv_name), self.bn.running_var)
-        register_b('{}_bn0_weight'.format(self.conv_name), self.bn.weight)
-        register_b('{}_bn0_bias'.format(self.conv_name), self.bn.bias)
+        dn_register_weights_helper(register_p, register_b, self.conv_name, 0, self.conv, self.bn)
 
     def forward(self, x):
 
@@ -98,22 +95,14 @@ class YoloBlock(nn.Module):
         self.conv_name = conv_name
         self.activaction_func = activaction_func
 
-        self.conv0 = nn.Conv2d(nFilter1, nFilter2, kernel_size=size, stride=stride, padding=padding, bias=False)
-        self.bn0 = nn.BatchNorm2d(nFilter2)
+        self.conv = nn.Conv2d(nFilter1, nFilter2, kernel_size=size, stride=stride, padding=padding, bias=False)
+        self.bn = nn.BatchNorm2d(nFilter2)
 
     def register_weights(self, register_p, register_b):
-
-        register_p('{}_conv{}_weight'.format(self.conv_name, 0), self.conv0.weight)
-
-        register_b('{}_bn{}_running_mean'.format(self.conv_name, 0), self.bn0.running_mean)
-        register_b('{}_bn{}_running_var'.format(self.conv_name, 0), self.bn0.running_var)
-        register_b('{}_bn{}_weight'.format(self.conv_name, 0), self.bn0.weight)
-        register_b('{}_bn{}_bias'.format(self.conv_name, 0), self.bn0.bias)
+        dn_register_weights_helper(register_p, register_b, self.conv_name, 0, self.conv, self.bn)
 
     def forward(self, x):
-
-        out = self.activaction_func(self.bn0(self.conv0(x)))
-
+        out = self.activaction_func(self.bn(self.conv(x)))
         return out
 
 
