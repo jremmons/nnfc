@@ -9,7 +9,7 @@ from nnfc.modules.nnfc import CompressionLayer
 class MyNetwork(nn.Module):
     def __init__(self):
         super(MyNetwork, self).__init__()
-        self.nnfc_compression_layer = CompressionLayer(codec_name='noop')
+        self.nnfc_compression_layer = CompressionLayer()
 
     def forward(self, inp):
         inp = self.nnfc_compression_layer(inp)
