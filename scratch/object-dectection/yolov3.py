@@ -137,6 +137,10 @@ class YoloUpsample(nn.Module):
         return self.upsample(x)
 
 class YoloV3(nn.Module):
+    anchors0 = torch.Tensor([(116,90), (156,198), (373,326)]).to(device)
+    anchors1 = torch.Tensor([(30,61), (62,45), (59,119)]).to(device)
+    anchors2 = torch.Tensor([(10,13), (16,30), (33,23)]).to(device)
+
     def __init__(self):
         super(YoloV3, self).__init__()
 
@@ -302,13 +306,9 @@ class YoloV3(nn.Module):
         predict2 = YoloV3.apply_layers(self.layers[11] + self.layers[12], layer12)
 
         # process the detections
-        anchors0 = torch.Tensor([(116,90), (156,198), (373,326)]).to(device)
-        anchors1 = torch.Tensor([(30,61), (62,45), (59,119)]).to(device)
-        anchors2 = torch.Tensor([(10,13), (16,30), (33,23)]).to(device)
-
-        detections0 = YoloV3.process_prediction(predict0, anchors0)
-        detections1 = YoloV3.process_prediction(predict1, anchors1)
-        detections2 = YoloV3.process_prediction(predict2, anchors2)
+        detections0 = YoloV3.process_prediction(predict0, YoloV3.anchors0)
+        detections1 = YoloV3.process_prediction(predict1, YoloV3.anchors1)
+        detections2 = YoloV3.process_prediction(predict2, YoloV3.anchors2)
 
         return torch.cat((detections0, detections1, detections2), 1)
 
