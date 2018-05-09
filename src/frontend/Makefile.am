@@ -8,10 +8,10 @@ AM_CXXFLAGS = $(PICKY_CXXFLAGS) $(CXX14_FLAGS) \
               -L$(srcdir)/../nn/ -lnn \
               -L$(srcdir)/../nnfc/ -L$(srcdir)/../nnfc/.libs
 
-bin_PROGRAMS = nn simplenet9
+bin_PROGRAMS = simplenet9
 
-nn_SOURCES = main.cc 
-nn_LDADD = $(srcdir)/../nnfc/libnnfc.la
+#nn_SOURCES = main.cc 
+#nn_LDADD = $(srcdir)/../nnfc/libnnfc.la
 
 simplenet9_SOURCES = simplenet9.cc 
 simplenet9_LDADD = $(srcdir)/../nnfc/libnnfc.la -lturbojpeg
