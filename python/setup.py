@@ -5,7 +5,7 @@ import torch
 import numpy
 
 from setuptools import setup, find_packages, Extension
-from torch.utils.cpp_extension import BuildExtension, include_paths, library_paths
+from torch.utils.cpp_extension import include_paths, library_paths
 
 def get_def(header_filepath, definition_name):
     with open(header_filepath, 'r') as f:
@@ -25,6 +25,9 @@ for lib in include_paths(cuda=CUDA_AVAILABLE):
     if lib != "/usr/include":
         pytorch_include += ['-isystem', lib]
 
+
+print(pytorch_include)
+        
 pytorch_libdirs = library_paths(cuda=CUDA_AVAILABLE)
 pytorch_libs = ['cudart'] if CUDA_AVAILABLE else []
 pytorch_defines = [('_NNFC_CUDA_AVAILABLE', 1)] if CUDA_AVAILABLE else []
@@ -54,7 +57,4 @@ setup(
     setup_requires=[],
     packages=find_packages(exclude=['build', 'extra_headers']),
     ext_modules=[module],
-    cmdclass={
-        'build_ext': BuildExtension
-    }
 )
