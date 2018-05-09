@@ -14,6 +14,8 @@ from torch.autograd import Variable
 from PIL import Image, ImageDraw
 from timeit import Timer
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 coco_names = [
     'person',        'bicycle',       'car',           'motorbike',
     'aeroplane',     'bus',           'train',         'truck',
@@ -52,13 +54,13 @@ class DarknetBlock(nn.Module):
         self.activaction_func = activaction_func
 
         self.conv = [
-            nn.Conv2d(nFilter1, nFilter2, kernel_size=1, stride=1, padding=0, bias=False),
-            nn.Conv2d(nFilter2, nFilter1, kernel_size=3, stride=1, padding=1, bias=False)
+            nn.Conv2d(nFilter1, nFilter2, kernel_size=1, stride=1, padding=0, bias=False).to(device),
+            nn.Conv2d(nFilter2, nFilter1, kernel_size=3, stride=1, padding=1, bias=False).to(device)
         ]
 
         self.bn = [
-            nn.BatchNorm2d(nFilter2),
-            nn.BatchNorm2d(nFilter1)
+            nn.BatchNorm2d(nFilter2).to(device),
+            nn.BatchNorm2d(nFilter1).to(device)
         ]
 
     def register_weights(self, register_p, register_b):
@@ -79,14 +81,13 @@ class DarknetConv(nn.Module):
         self.conv_name = 'darknet53_standalone%d_instance0' % conv_num
         self.activaction_func = activaction_func
 
-        self.conv = nn.Conv2d(nFilter1, nFilter2, kernel_size=3, stride=stride, padding=1, bias=False)
-        self.bn = nn.BatchNorm2d(nFilter2)
+        self.conv = nn.Conv2d(nFilter1, nFilter2, kernel_size=3, stride=stride, padding=1, bias=False).to(device)
+        self.bn = nn.BatchNorm2d(nFilter2).to(device)
 
     def register_weights(self, register_p, register_b):
         dn_register_weights_helper(register_p, register_b, self.conv_name, 0, self.conv, self.bn)
 
     def forward(self, x):
-
         out = self.activaction_func(self.bn(self.conv(x)))
         return out
 
@@ -97,8 +98,8 @@ class YoloBlock(nn.Module):
         self.conv_name = "yolo_standalone%d_instance0" % conv_num
         self.activaction_func = activaction_func
 
-        self.conv = nn.Conv2d(nFilter1, nFilter2, kernel_size=size, stride=stride, padding=padding, bias=False)
-        self.bn = nn.BatchNorm2d(nFilter2)
+        self.conv = nn.Conv2d(nFilter1, nFilter2, kernel_size=size, stride=stride, padding=padding, bias=False).to(device)
+        self.bn = nn.BatchNorm2d(nFilter2).to(device)
 
     def register_weights(self, register_p, register_b):
         dn_register_weights_helper(register_p, register_b, self.conv_name, 0, self.conv, self.bn)
@@ -114,7 +115,7 @@ class YoloConv(nn.Module):
         self.conv_name = "yolo_standalone%d_instance0" % conv_num
         self.activaction_func = activaction_func
 
-        self.conv = nn.Conv2d(nFilter1, nFilter2, kernel_size=1, stride=1, padding=0, bias=True)
+        self.conv = nn.Conv2d(nFilter1, nFilter2, kernel_size=1, stride=1, padding=0, bias=True).to(device)
 
     def register_weights(self, register_p, register_b):
         register_p('{}_conv0_weight'.format(self.conv_name), self.conv.weight)
@@ -127,7 +128,7 @@ class YoloConv(nn.Module):
 class YoloUpsample(nn.Module):
     def __init__(self):
         super(YoloUpsample, self).__init__()
-        self.upsample = nn.Upsample(scale_factor=2, mode='nearest')
+        self.upsample = nn.Upsample(scale_factor=2, mode='nearest').to(device)
 
     def register_weights(self, register_p, register_b):
         pass
@@ -267,9 +268,9 @@ class YoloV3(nn.Module):
 
         x_y_offset = torch.cat((x_offset, y_offset), 1).repeat(1,num_anchors).view(-1,2).unsqueeze(0)
 
-        prediction[:,:,:2] += x_y_offset
+        prediction[:,:,:2] += torch.FloatTensor(x_y_offset).to(device)
 
-        anchors = torch.FloatTensor(anchors)
+        anchors = torch.FloatTensor(anchors).to(device)
         anchors = anchors.repeat(grid_size*grid_size, 1).unsqueeze(0)
         prediction[:,:,2:4] = torch.exp(prediction[:,:,2:4])*anchors
 
@@ -301,9 +302,13 @@ class YoloV3(nn.Module):
         predict2 = YoloV3.apply_layers(self.layers[11] + self.layers[12], layer12)
 
         # process the detections
-        detections0 = YoloV3.process_prediction(predict0, [(116,90), (156,198), (373,326)])
-        detections1 = YoloV3.process_prediction(predict1, [(30,61), (62,45), (59,119)])
-        detections2 = YoloV3.process_prediction(predict2, [(10,13), (16,30), (33,23)])
+        anchors0 = torch.Tensor([(116,90), (156,198), (373,326)]).to(device)
+        anchors1 = torch.Tensor([(30,61), (62,45), (59,119)]).to(device)
+        anchors2 = torch.Tensor([(10,13), (16,30), (33,23)]).to(device)
+
+        detections0 = YoloV3.process_prediction(predict0, anchors0)
+        detections1 = YoloV3.process_prediction(predict1, anchors1)
+        detections2 = YoloV3.process_prediction(predict2, anchors2)
 
         return torch.cat((detections0, detections1, detections2), 1)
 
@@ -314,7 +319,6 @@ def load_model():
     with h5py.File('yolov3.h5', 'r') as f:
         model_params = yolov3.state_dict()
         for param_name in model_params.keys():
-
             weights = torch.from_numpy(np.asarray(f[param_name]).astype(np.float32))
             model_params[param_name].data.copy_(weights)
 
@@ -328,13 +332,13 @@ def dump_detections(y, img):
 
         detections = []
         if objectness > 0.6:
-            confidences = y[0, i, 5:].detach().numpy()
+            confidences = y[0, i, 5:].detach().cpu().numpy()
             confidences /= sum(confidences)
             idx = np.argmax(confidences)
 
             print('"' + coco_names[idx] + '"',
                   '(' + str(confidences[idx]) + ')',
-                  y[0, i, :4].detach().numpy())
+                  y[0, i, :4].detach().cpu().numpy())
 
             x1 = y[0, i, 0] - y[0, i ,2] / 2
             x2 = y[0, i, 0] + y[0, i ,2] / 2
@@ -349,7 +353,12 @@ def main():
     parser.add_argument('image', nargs='+')
     args = parser.parse_args()
 
+    print("* Running on:", device)
+
+    t1 = timeit.default_timer()
     yolov3 = load_model()
+    yolov3.to(device)
+    print('Loading time:', timeit.default_timer() - t1)
 
     for img_path in args.image:
         img_original = Image.open(img_path).convert('RGB')
@@ -358,13 +367,13 @@ def main():
         img = img.transpose((2, 0, 1))
         img = np.expand_dims(img, 0)
         img = torch.from_numpy(img).float().div(255.0)
-        x = Variable(img)
+        x = Variable(img).to(device)
 
         print('>> %s:' % img_path)
 
         t1 = timeit.default_timer()
         y = yolov3(x)
-        print('inference time:', timeit.default_timer() - t1)
+        print('Inference time:', timeit.default_timer() - t1)
 
         dump_detections(y, img_original)
         img_original.save(os.path.splitext(img_path)[0] + '.out.jpg')
