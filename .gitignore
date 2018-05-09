@@ -6,19 +6,8 @@ src/frontend/nn
 src/nnfc/nnfc_CXXAPI.lo
 
 tests/pythonpath.txt
-tests/conv2d.bin
-tests/relu.bin
-tests/batchnorm.bin
-tests/batchnorm_hl.bin
-tests/fc.bin
-tests/avgpool.bin
-tests/simplecnn.bin
-tests/resnet18.bin
-tests/simplecnn_hl.bin
-tests/conv2d_hl.bin
-tests/relu_hl.bin
-tests/composed_hl.bin
-
+tests/*.bin
+tests/.libs
 
 src/nn/.libs/
 src/nnfc/.libs/
