@@ -74,10 +74,10 @@ class DarknetBlock(nn.Module):
 
 
 class DarknetConv(nn.Module):
-    def __init__(self, conv_name, nFilter1, nFilter2, stride=2, activaction_func=nn.LeakyReLU(0.1)):
+    def __init__(self, conv_num, nFilter1, nFilter2, stride=2, activaction_func=nn.LeakyReLU(0.1)):
         super(DarknetConv, self).__init__()
 
-        self.conv_name = conv_name
+        self.conv_name = 'darknet53_standalone%d_instance0' % conv_num
         self.activaction_func = activaction_func
 
         self.conv = nn.Conv2d(nFilter1, nFilter2, kernel_size=3, stride=stride, padding=1, bias=False)
@@ -93,10 +93,10 @@ class DarknetConv(nn.Module):
 
 
 class YoloBlock(nn.Module):
-    def __init__(self, conv_name, nFilter1, nFilter2, size, stride, padding, activaction_func=nn.LeakyReLU(0.1)):
+    def __init__(self, conv_num, nFilter1, nFilter2, size, stride, padding, activaction_func=nn.LeakyReLU(0.1)):
         super(YoloBlock, self).__init__()
 
-        self.conv_name = conv_name
+        self.conv_name = "yolo_standalone%d_instance0" % conv_num
         self.activaction_func = activaction_func
 
         self.conv = nn.Conv2d(nFilter1, nFilter2, kernel_size=size, stride=stride, padding=padding, bias=False)
@@ -111,10 +111,10 @@ class YoloBlock(nn.Module):
 
 
 class YoloConv(nn.Module):
-    def __init__(self, conv_name, nFilter1, nFilter2, activaction_func=lambda x: x):
+    def __init__(self, conv_num, nFilter1, nFilter2, activaction_func=lambda x: x):
         super(YoloConv, self).__init__()
 
-        self.conv_name = conv_name
+        self.conv_name = "yolo_standalone%d_instance0" % conv_num
         self.activaction_func = activaction_func
 
         self.conv = nn.Conv2d(nFilter1, nFilter2, kernel_size=1, stride=1, padding=0, bias=True)
@@ -144,12 +144,12 @@ class YoloV3(nn.Module):
 
         # darknet53 layers (the first 52 conv layers are present)
         self.dn53_standalone = [
-            [DarknetConv('darknet53_standalone0_instance0', 3, 32, stride=1)],
-            [DarknetConv('darknet53_standalone1_instance0', 32, 64)],
-            [DarknetConv('darknet53_standalone2_instance0', 64, 128)],
-            [DarknetConv('darknet53_standalone3_instance0', 128, 256)],
-            [DarknetConv('darknet53_standalone4_instance0', 256, 512)],
-            [DarknetConv('darknet53_standalone5_instance0', 512, 1024)]
+            [DarknetConv(0, 3, 32, stride=1)],
+            [DarknetConv(1, 32, 64)],
+            [DarknetConv(2, 64, 128)],
+            [DarknetConv(3, 128, 256)],
+            [DarknetConv(4, 256, 512)],
+            [DarknetConv(5, 512, 1024)]
         ]
 
         self.dn53_block = []
@@ -180,50 +180,50 @@ class YoloV3(nn.Module):
         # yolo detection layers
         # detection 1
         self.layer79 = [
-            YoloBlock('yolo_standalone0_instance0', 1024, 512, 1, 1, 0),
-            YoloBlock('yolo_standalone1_instance0', 512, 1024, 3, 1, 1),
-            YoloBlock('yolo_standalone2_instance0', 1024, 512, 1, 1, 0),
-            YoloBlock('yolo_standalone3_instance0', 512, 1024, 3, 1, 1),
-            YoloBlock('yolo_standalone4_instance0', 1024, 512, 1, 1, 0)
+            YoloBlock(0, 1024, 512, 1, 1, 0),
+            YoloBlock(1, 512, 1024, 3, 1, 1),
+            YoloBlock(2, 1024, 512, 1, 1, 0),
+            YoloBlock(3, 512, 1024, 3, 1, 1),
+            YoloBlock(4, 1024, 512, 1, 1, 0)
         ]
 
-        self.layer80 = [YoloBlock('yolo_standalone5_instance0', 512, 1024, 3, 1, 1)]
-        self.layer81 = [YoloConv('yolo_standalone6_instance0', 1024, 255)]
+        self.layer80 = [YoloBlock(5, 512, 1024, 3, 1, 1)]
+        self.layer81 = [YoloConv(6, 1024, 255)]
 
 
         # detection 2
         self.layer85 = [
-            YoloBlock('yolo_standalone7_instance0', 512, 256, 1, 1, 0),
+            YoloBlock(7, 512, 256, 1, 1, 0),
             YoloUpsample()
         ]
 
         self.layer91 = [
-            YoloBlock('yolo_standalone8_instance0', 768, 256, 1, 1, 0),
-            YoloBlock('yolo_standalone9_instance0', 256, 512, 3, 1, 1),
-            YoloBlock('yolo_standalone10_instance0', 512, 256, 1, 1, 0),
-            YoloBlock('yolo_standalone11_instance0', 256, 512, 3, 1, 1),
-            YoloBlock('yolo_standalone12_instance0', 512, 256, 1, 1, 0)
+            YoloBlock(8, 768, 256, 1, 1, 0),
+            YoloBlock(9, 256, 512, 3, 1, 1),
+            YoloBlock(10, 512, 256, 1, 1, 0),
+            YoloBlock(11, 256, 512, 3, 1, 1),
+            YoloBlock(12, 512, 256, 1, 1, 0)
         ]
 
-        self.layer92 = [YoloBlock('yolo_standalone13_instance0', 256, 512, 3, 1, 1)]
-        self.layer93 = [YoloConv('yolo_standalone14_instance0', 512, 255)]
+        self.layer92 = [YoloBlock(13, 256, 512, 3, 1, 1)]
+        self.layer93 = [YoloConv(14, 512, 255)]
 
         # detection 3
         self.layer97 = [
-            YoloBlock('yolo_standalone15_instance0', 256, 128, 1, 1, 0),
+            YoloBlock(15, 256, 128, 1, 1, 0),
             YoloUpsample()
         ]
 
         self.layer104 = [
-            YoloBlock('yolo_standalone16_instance0', 384, 128, 1, 1, 0),
-            YoloBlock('yolo_standalone17_instance0', 128, 256, 3, 1, 1),
-            YoloBlock('yolo_standalone18_instance0', 256, 128, 1, 1, 0),
-            YoloBlock('yolo_standalone19_instance0', 128, 256, 3, 1, 1),
-            YoloBlock('yolo_standalone20_instance0', 256, 128, 1, 1, 0),
-            YoloBlock('yolo_standalone21_instance0', 128, 256, 3, 1, 1)
+            YoloBlock(16, 384, 128, 1, 1, 0),
+            YoloBlock(17, 128, 256, 3, 1, 1),
+            YoloBlock(18, 256, 128, 1, 1, 0),
+            YoloBlock(19, 128, 256, 3, 1, 1),
+            YoloBlock(20, 256, 128, 1, 1, 0),
+            YoloBlock(21, 128, 256, 3, 1, 1)
         ]
 
-        self.layer105 = [YoloConv('yolo_standalone22_instance0', 256, 255)]
+        self.layer105 = [YoloConv(22, 256, 255)]
 
         #register the layers
         for layer in itertools.chain(self.layer36, self.layer61,
