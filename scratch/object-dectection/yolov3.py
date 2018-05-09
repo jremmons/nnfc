@@ -72,7 +72,6 @@ class DarknetBlock(nn.Module):
 
         return out
 
-
 class DarknetConv(nn.Module):
     def __init__(self, conv_num, nFilter1, nFilter2, stride=2, activaction_func=nn.LeakyReLU(0.1)):
         super(DarknetConv, self).__init__()
@@ -91,7 +90,6 @@ class DarknetConv(nn.Module):
         out = self.activaction_func(self.bn(self.conv(x)))
         return out
 
-
 class YoloBlock(nn.Module):
     def __init__(self, conv_num, nFilter1, nFilter2, size, stride, padding, activaction_func=nn.LeakyReLU(0.1)):
         super(YoloBlock, self).__init__()
@@ -108,7 +106,6 @@ class YoloBlock(nn.Module):
     def forward(self, x):
         out = self.activaction_func(self.bn(self.conv(x)))
         return out
-
 
 class YoloConv(nn.Module):
     def __init__(self, conv_num, nFilter1, nFilter2, activaction_func=lambda x: x):
@@ -190,7 +187,6 @@ class YoloV3(nn.Module):
         self.layer80 = [YoloBlock(5, 512, 1024, 3, 1, 1)]
         self.layer81 = [YoloConv(6, 1024, 255)]
 
-
         # detection 2
         self.layer85 = [
             YoloBlock(7, 512, 256, 1, 1, 0),
@@ -232,14 +228,12 @@ class YoloV3(nn.Module):
             self.layer97, self.layer104, self.layer105):
             layer.register_weights(self.register_parameter, self.register_buffer)
 
-
     @staticmethod
     def apply_layers(layers, x):
         for layer in layers:
             x = layer(x)
 
         return x
-
 
     @staticmethod
     def process_prediction(prediction, anchors):
