@@ -155,8 +155,6 @@ struct DecoderContextFactory
 // Add any new codecs to these arrays to export them. 
 //
 //////////////////////////////////////////////////////////////////////
-static const std::string test_name = "__test";
-
 static std::vector<EncoderContextFactory> nnfc_available_encoders = {
     {
         .exported_name = "simple_encoder",
@@ -166,11 +164,11 @@ static std::vector<EncoderContextFactory> nnfc_available_encoders = {
 };
 
 static std::vector<DecoderContextFactory> nnfc_available_decoders = {
-    // {
-    //     .exported_name = test_name.c_str(),
-    //     .new_context_func = new_decoder<TestDec, int, double>,
-    //     .constructor_types_func = no_constructor_args
-    // }
+    {
+        .exported_name = "simple_decoder",
+        .new_context_func = new_decoder<nnfc::SimpleDecoder>,
+        .constructor_types_func = constructor_types<nnfc::SimpleDecoder>
+    }
 };
 
 
@@ -187,7 +185,7 @@ static EncoderContextFactory get_encoder_factory(std::string encoder_name)
         }
     }
 
-    throw std::runtime_error(encoder_name + " is not available.");
+    throw std::runtime_error(encoder_name + " encoder is not available.");
 }
 
 static DecoderContextFactory get_decoder_factory(std::string decoder_name)
@@ -198,7 +196,7 @@ static DecoderContextFactory get_decoder_factory(std::string decoder_name)
         }
     }
 
-    throw std::runtime_error(decoder_name + " is not available.");
+    throw std::runtime_error(decoder_name + " decoder is not available.");
 }
 
 
@@ -212,10 +210,7 @@ std::vector<std::string> nnfc::cxxapi::get_available_encoders()
     std::vector<std::string> available_encoders;
     for(size_t i = 0; i < nnfc_available_encoders.size(); i++) {
         std::string context_name = nnfc_available_encoders[i].exported_name;
-        
-        if(context_name != test_name) {
-            available_encoders.push_back(nnfc_available_encoders[i].exported_name);
-        }
+        available_encoders.push_back(context_name);
     }
 
     return available_encoders;
@@ -226,10 +221,7 @@ std::vector<std::string> nnfc::cxxapi::get_available_decoders()
     std::vector<std::string> available_decoders;
     for(size_t i = 0; i < nnfc_available_decoders.size(); i++) {
         std::string context_name = nnfc_available_decoders[i].exported_name;
-        
-        if(context_name != test_name) {
-            available_decoders.push_back(nnfc_available_decoders[i].exported_name);
-        }
+        available_decoders.push_back(context_name);
     }
 
     return available_decoders;

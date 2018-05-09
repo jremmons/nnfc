@@ -30,11 +30,11 @@ class CompressionLayer(Module):
             return grad_output, None, None
 
         
-    def __init__(self, codec_name='noop'):
+    def __init__(self, encoder_name='simple_encoder', decoder_name='simple_decoder'):
         super(CompressionLayer, self).__init__()
 
-        self.encoder = nnfc_codec.EncoderContext(codec_name)
-        self.decode = nnfc_codec.DecoderContext(codec_name)
+        self.encoder = nnfc_codec.EncoderContext(encoder_name)
+        self.decode = nnfc_codec.DecoderContext(decoder_name)
 
         self.outputs = torch.FloatTensor()        
 

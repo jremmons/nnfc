@@ -8,7 +8,7 @@
 #include <iostream>
 #include <string>
 
-#include "nnfc.hh"
+#include "nnfc_CXXAPI.hh"
 #include "common.hh"
 #include "tensor.hh"
 
@@ -88,18 +88,18 @@ PyObject* NNFCEncoderContext_new(PyTypeObject *type, PyObject *, PyObject *) {
 
 void NNFCEncoderContext_dealloc(NNFCEncoderContext* self) {
 
-    delete self->encoder;
+    self->encoder.release();
     Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 int NNFCEncoderContext_init(NNFCEncoderContext *self, PyObject *args, PyObject *) {
 
-    char *codec_name = NULL;
-    if (!PyArg_ParseTuple(args, "s", &codec_name)){
+    char *encoder_name = NULL;
+    if (!PyArg_ParseTuple(args, "s", &encoder_name)){
         PyErr_Print();
     }
 
-    self->encoder = new nnfc::SimpleEncoder();
+    self->encoder = std::move(nnfc::cxxapi::new_encoder(encoder_name));
     return 0;
 }
 
@@ -121,7 +121,7 @@ PyObject* NNFCEncoderContext_encode(NNFCEncoderContext *self, PyObject *args){
         std::vector<std::vector<uint8_t>> buffers;
         
         for(size_t i = 0; i < input_tensors.size(); i++) {
-            std::vector<uint8_t> buffer = self->encoder->encode(input_tensors[i]);
+            std::vector<uint8_t> buffer = self->encoder->forward(input_tensors[i]);
             buffers.push_back(buffer);
         }
 

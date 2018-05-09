@@ -4,12 +4,12 @@ extern "C" {
 #include <Python.h>
 }
 
-#include "nnfc.hh"
+#include "nnfc_CXXAPI.hh"
 
 typedef struct {
 
     PyObject_HEAD
-    nnfc::SimpleEncoder *encoder;
+    std::unique_ptr<nnfc::cxxapi::EncoderContextInterface> encoder;
     
 } NNFCEncoderContext;
 
