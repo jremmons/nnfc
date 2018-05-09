@@ -1,6 +1,7 @@
 #ifndef _NNFC_CXXAPI_H
 #define _NNFC_CXXAPI_H
 
+#include <any>
 #include <vector>
 
 #include "nnfc.hh"
@@ -8,31 +9,36 @@
 
 namespace nnfc { namespace cxxapi {
         
-        // TODO(jremmons) eventually we will want to create a standardized way
-        // for external code projects (including our own python API) to
-        // interface with our code. This header file is my first attempt at
-        // outlining a possible API for external projects.         
+        typedef std::vector<std::pair<std::string, std::any>> constructor_list;
 
-        // typedef std::vector<std::pair<std::string, std::any>> constructor_list;
-        // typedef std::vector<std::pair<std::string, TypeInfoRef>> constructor_type_list;
+        typedef std::reference_wrapper<const std::type_info> TypeInfoRef;
+        typedef std::vector<std::pair<std::string, TypeInfoRef>> constructor_type_list;
+
         
         class EncoderContextInterface {
         public:
             virtual ~EncoderContextInterface() { }
-            // virtual std::vector<uint8_t> forward(nn::Tensor<float, 3> input) = 0;
-            // virtual nn::Tensor<float, 3> backward(nn::Tensor<float, 3> gradient_of_output) = 0;
-
-            // virtual std::string name() = 0;
-            // virtual std::string docs() = 0;
-            
-            // static std::vector<std::pair<std::string, std::type_info>> ();
+            virtual std::vector<uint8_t> forward(const nn::Tensor<float, 3> input) = 0;
+            virtual nn::Tensor<float, 3> backward(const nn::Tensor<float, 3> gradient_of_output) = 0;
         };
 
-        // std::vector<std::string> get_available_layers();
+        class DecoderContextInterface {
+        public:
+            virtual ~DecoderContextInterface() { }
+            virtual nn::Tensor<float, 3> forward(const std::vector<uint8_t> input) = 0;
+            virtual nn::Tensor<float, 3> backward(const nn::Tensor<float, 3> gradient_of_output) = 0;
+        };
 
-        // constructor_type_list get_layer_constructor_types_by_name(std::string codec_name);
+        
+        // factory functions
+        std::vector<std::string> get_available_encoders();
+        std::vector<std::string> get_available_decoders();
+        
+        constructor_type_list get_encoder_constructor_types(std::string encoder_name);
+        constructor_type_list get_decoder_constructor_types(std::string decoder_name);
 
-        // std::unique_ptr<EncoderContextInterface> get_layer_by_name(std::string codec_name, constructor_list constructor_parameters);
+        std::unique_ptr<EncoderContextInterface> new_encoder(std::string encoder_name, constructor_list constructor_parameters={});
+        std::unique_ptr<DecoderContextInterface> new_decoder(std::string decoder_name, constructor_list constructor_parameters={});
     }
 }
 #endif // _NNFC_CXXAPI_H
