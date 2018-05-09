@@ -11,81 +11,6 @@
 #include "nnfc.hh"
 #include "nnfc_CXXAPI.hh"
 
-using TypeInfoRef = std::reference_wrapper<const std::type_info>;
-
-struct Hasher {
-    std::size_t operator()(TypeInfoRef code) const
-    {
-        return code.get().hash_code();
-    }
-};
-
-struct EqualTo {
-    bool operator()(TypeInfoRef lhs, TypeInfoRef rhs) const
-    {
-        return lhs.get() == rhs.get();
-    }
-};
-
-class TestEnc {
-public:
-    TestEnc(int x, double y) 
-    {
-        std::cout << x << " " << y << std::endl;
-    }
-    
-    static nnfc::cxxapi::constructor_type_list initialization_params()
-    {
-        nnfc::cxxapi::constructor_type_list init_params;
-
-        init_params.push_back(std::pair<std::string, TypeInfoRef>("magic_num", typeid(int)));
-        init_params.push_back(std::pair<std::string, TypeInfoRef>("magic_float", typeid(double)));
-
-        return init_params;
-    }    
-
-    std::vector<uint8_t> forward(const nn::Tensor<float, 3>)
-    {
-        return std::vector<uint8_t>();
-    }
-
-    nn::Tensor<float, 3> backward(const nn::Tensor<float, 3> input)
-    {
-        return input;
-    }
-    
-};
-
-class TestDec {
-public:
-    TestDec(int x, double y) 
-    {
-        std::cout << x << " " << y << std::endl;
-    }
-    
-    static nnfc::cxxapi::constructor_type_list initialization_params()
-    {
-        nnfc::cxxapi::constructor_type_list init_params;
-
-        init_params.push_back(std::pair<std::string, TypeInfoRef>("magic_num", typeid(int)));
-        init_params.push_back(std::pair<std::string, TypeInfoRef>("magic_float", typeid(double)));
-
-        return init_params;
-    }    
-
-    nn::Tensor<float, 3> forward(const std::vector<uint8_t>)
-    {
-        return nn::Tensor<float, 3>(0,0,0);
-    }
-
-    nn::Tensor<float, 3> backward(const nn::Tensor<float, 3> input)
-    {
-        return input;
-    }
-    
-};
-
-
 //////////////////////////////////////////////////////////////////////
 //
 // helper classes
@@ -111,11 +36,17 @@ public:
         context_()
     {
         auto types = ContextType::initialization_params();
-
+        
         for(size_t i = 0; i < num_constructor_args; i++) {
             if(types[i].second.get() != initialization_params[i].second.type()) {
                 std::stringstream ss;
-                ss << "The type of '" << types[i].first << "' (#" << i << ") was '" << types[i].second.get().name() << "' but excepted '" << initialization_params[i].second.type().name() << "'."; 
+                ss << "The type of '" <<
+                    types[i].first <<
+                    "' (#" << i << ") was '" <<
+                    types[i].second.get().name() <<
+                    "' but excepted '" <<
+                    initialization_params[i].second.type().name() << "'."; 
+
                 throw std::runtime_error(std::string("Type mismatch during construction. ") + ss.str());
             }
         }
@@ -142,23 +73,39 @@ public:
 
 
 template<class EncoderContextType, typename... constructor_args_types>
-class EncoderContextContainer : public ContextContainer<nnfc::cxxapi::EncoderContextInterface, EncoderContextType, nn::Tensor<float, 3>, std::vector<uint8_t>, constructor_args_types...>
+class EncoderContextContainer : public ContextContainer<nnfc::cxxapi::EncoderContextInterface,
+                                                        EncoderContextType,
+                                                        nn::Tensor<float, 3>,
+                                                        std::vector<uint8_t>,
+                                                        constructor_args_types...>
 {
 public:
 
     EncoderContextContainer(nnfc::cxxapi::constructor_list initialization_params) :
-        ContextContainer<nnfc::cxxapi::EncoderContextInterface, EncoderContextType, nn::Tensor<float, 3>, std::vector<uint8_t>, constructor_args_types...>(initialization_params)
+        ContextContainer<nnfc::cxxapi::EncoderContextInterface,
+                         EncoderContextType,
+                         nn::Tensor<float, 3>,
+                         std::vector<uint8_t>,
+                         constructor_args_types...>(initialization_params)
     { }
 
 };
 
 
 template<class DecoderContextType, typename... constructor_args_types>
-class DecoderContextContainer : public ContextContainer<nnfc::cxxapi::DecoderContextInterface, DecoderContextType, std::vector<uint8_t>, nn::Tensor<float, 3>, constructor_args_types...> {
+class DecoderContextContainer : public ContextContainer<nnfc::cxxapi::DecoderContextInterface,
+                                                        DecoderContextType,
+                                                        std::vector<uint8_t>,
+                                                        nn::Tensor<float, 3>,
+                                                        constructor_args_types...> {
 public:
 
     DecoderContextContainer(nnfc::cxxapi::constructor_list initialization_params) :
-        ContextContainer<nnfc::cxxapi::DecoderContextInterface, DecoderContextType, std::vector<uint8_t>, nn::Tensor<float, 3>, constructor_args_types...>(initialization_params)
+        ContextContainer<nnfc::cxxapi::DecoderContextInterface,
+                         DecoderContextType,
+                         std::vector<uint8_t>,
+                         nn::Tensor<float, 3>,
+                         constructor_args_types...>(initialization_params)
     { }
 
 };
@@ -187,7 +134,6 @@ static nnfc::cxxapi::constructor_type_list constructor_types()
     return ContextType::initialization_params();
 }
 
-
 struct EncoderContextFactory
 {
     const std::string exported_name;
@@ -202,6 +148,7 @@ struct DecoderContextFactory
     std::function<nnfc::cxxapi::constructor_type_list()> constructor_types_func;
 };
 
+
 //////////////////////////////////////////////////////////////////////
 //
 // The std::vectors below define the available exported codecs.
@@ -212,19 +159,47 @@ static const std::string test_name = "__test";
 
 static std::vector<EncoderContextFactory> nnfc_available_encoders = {
     {
-        .exported_name = test_name.c_str(),
-        .new_context_func = new_encoder<TestEnc, int, double>,
-        .constructor_types_func = constructor_types<TestEnc>
+        .exported_name = "simple_encoder",
+        .new_context_func = new_encoder<nnfc::SimpleEncoder>,
+        .constructor_types_func = constructor_types<nnfc::SimpleEncoder>
     }
 };
 
 static std::vector<DecoderContextFactory> nnfc_available_decoders = {
-    {
-        .exported_name = test_name.c_str(),
-        .new_context_func = new_decoder<TestDec, int, double>,
-        .constructor_types_func = constructor_types<TestDec>
-    }
+    // {
+    //     .exported_name = test_name.c_str(),
+    //     .new_context_func = new_decoder<TestDec, int, double>,
+    //     .constructor_types_func = no_constructor_args
+    // }
 };
+
+
+//////////////////////////////////////////////////////////////////////
+//
+// Helper functions.
+//
+//////////////////////////////////////////////////////////////////////
+static EncoderContextFactory get_encoder_factory(std::string encoder_name)
+{
+    for(size_t i = 0; i < nnfc_available_encoders.size(); i++) {
+        if(nnfc_available_encoders[i].exported_name == encoder_name) {
+            return nnfc_available_encoders[i];
+        }
+    }
+
+    throw std::runtime_error(encoder_name + " is not available.");
+}
+
+static DecoderContextFactory get_decoder_factory(std::string decoder_name)
+{
+    for(size_t i = 0; i < nnfc_available_decoders.size(); i++) {
+        if(nnfc_available_decoders[i].exported_name == decoder_name) {
+            return nnfc_available_decoders[i];
+        }
+    }
+
+    throw std::runtime_error(decoder_name + " is not available.");
+}
 
 
 //////////////////////////////////////////////////////////////////////
@@ -259,30 +234,6 @@ std::vector<std::string> nnfc::cxxapi::get_available_decoders()
 
     return available_decoders;
 }
-
-
-static EncoderContextFactory get_encoder_factory(std::string encoder_name)
-{
-    for(size_t i = 0; i < nnfc_available_encoders.size(); i++) {
-        if(nnfc_available_encoders[i].exported_name == encoder_name) {
-            return nnfc_available_encoders[i];
-        }
-    }
-
-    throw std::runtime_error(encoder_name + " is not available.");
-}
-
-static DecoderContextFactory get_decoder_factory(std::string decoder_name)
-{
-    for(size_t i = 0; i < nnfc_available_decoders.size(); i++) {
-        if(nnfc_available_decoders[i].exported_name == decoder_name) {
-            return nnfc_available_decoders[i];
-        }
-    }
-
-    throw std::runtime_error(decoder_name + " is not available.");
-}
-
 
 nnfc::cxxapi::constructor_type_list nnfc::cxxapi::get_encoder_constructor_types(std::string encoder_name)
 {
