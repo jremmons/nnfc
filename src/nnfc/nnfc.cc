@@ -14,7 +14,7 @@ nnfc::SimpleEncoder::SimpleEncoder()
 nnfc::SimpleEncoder::~SimpleEncoder()
 { }
 
-std::vector<uint8_t> nnfc::SimpleEncoder::encode(nn::Tensor<float, 3> input)
+std::vector<uint8_t> nnfc::SimpleEncoder::forward(nn::Tensor<float, 3> input)
 {
     uint64_t dim0 = input.dimension(0);
     uint64_t dim1 = input.dimension(1);
@@ -53,6 +53,10 @@ std::vector<uint8_t> nnfc::SimpleEncoder::encode(nn::Tensor<float, 3> input)
     return encoding;    
 }
 
+nn::Tensor<float, 3> nnfc::SimpleEncoder::backward(nn::Tensor<float, 3> input)
+{
+    return input;
+}
 
 nnfc::SimpleDecoder::SimpleDecoder()
 { }
@@ -60,7 +64,7 @@ nnfc::SimpleDecoder::SimpleDecoder()
 nnfc::SimpleDecoder::~SimpleDecoder()
 { }
 
-nn::Tensor<float, 3> nnfc::SimpleDecoder::decode(std::vector<uint8_t> input)
+nn::Tensor<float, 3> nnfc::SimpleDecoder::forward(std::vector<uint8_t> input)
 {
 
     uint64_t dim0;
@@ -101,4 +105,9 @@ nn::Tensor<float, 3> nnfc::SimpleDecoder::decode(std::vector<uint8_t> input)
     }
 
     return output;
+}
+
+nn::Tensor<float, 3> nnfc::SimpleDecoder::backward(nn::Tensor<float, 3> input)
+{
+    return input;
 }
