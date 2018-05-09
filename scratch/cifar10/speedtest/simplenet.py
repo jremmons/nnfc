@@ -40,7 +40,7 @@ class SimpleNet9(nn.Module):
         out = F.relu(self.bn6(self.conv6(out)))
         out = F.relu(self.bn7(self.conv7(out)))
         
-        out = F.avg_pool2d(out, 4)
+        out = F.avg_pool2d(out, out.size(2))
         out = out.view(out.size(0), -1)
         out = self.linear(out)
         return out
