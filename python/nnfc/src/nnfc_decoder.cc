@@ -87,18 +87,18 @@ PyObject* NNFCDecoderContext_new(PyTypeObject *type, PyObject *, PyObject *) {
 
 void NNFCDecoderContext_dealloc(NNFCDecoderContext* self) {
 
-    delete self->decoder;
+    self->decoder.release();
     Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 int NNFCDecoderContext_init(NNFCDecoderContext *self, PyObject *args, PyObject *) {
 
-    char *codec_name = NULL;
-    if (!PyArg_ParseTuple(args, "s", &codec_name)){
+    char *decoder_name = NULL;
+    if (!PyArg_ParseTuple(args, "s", &decoder_name)){
         return 0;
     }
 
-    self->decoder = new nnfc::SimpleDecoder();
+    self->decoder = std::move(nnfc::cxxapi::new_decoder(decoder_name));
     return 0;
 
 }
@@ -123,7 +123,7 @@ PyObject* NNFCDecoderContext_decode(NNFCDecoderContext *self, PyObject *args){
         
         for(size_t i = 0; i < input_buffers.size(); i++) {
 
-            nn::Tensor<float, 3> tensor = self->decoder->decode(input_buffers[i]);
+            nn::Tensor<float, 3> tensor = self->decoder->forward(input_buffers[i]);
 
             tensors.push_back(tensor);
         }
