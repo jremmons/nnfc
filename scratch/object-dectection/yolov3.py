@@ -6,7 +6,7 @@ import argparse
 
 import numpy as np
 
-import torch
+import torch; torch.set_num_threads(1)
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -325,6 +325,7 @@ def load_model():
     return yolov3
 
 def dump_detections(y, img):
+
     for i in range(y.shape[1]):
         coords = y[0, i, :4]
         objectness = y[0, i, 4]
@@ -371,6 +372,9 @@ def main():
 
         print('>> %s:' % img_path)
 
+        y = yolov3(x)
+        y = yolov3(x)
+        y = yolov3(x)
         t1 = timeit.default_timer()
         y = yolov3(x)
         print('Inference time:', timeit.default_timer() - t1)
