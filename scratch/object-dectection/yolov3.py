@@ -160,23 +160,25 @@ class YoloV3(nn.Module):
 
         # YOLO extracts features from intermediate points in Darknet53
         # The blocks below are layer where the features are taken from
-        self.layer36 = (self.dn53_standalone[0] +
-                        self.dn53_standalone[1] +
-                        self.dn53_block[0] +
-                        self.dn53_standalone[2] +
-                        self.dn53_block[1] +
-                        self.dn53_standalone[3] +
-                        self.dn53_block[2])
+        self.layers = [None] * 13
 
-        self.layer61 = (self.dn53_standalone[4] +
-                        self.dn53_block[3])
+        self.layers[0] = (self.dn53_standalone[0] +
+                          self.dn53_standalone[1] +
+                          self.dn53_block[0] +
+                          self.dn53_standalone[2] +
+                          self.dn53_block[1] +
+                          self.dn53_standalone[3] +
+                          self.dn53_block[2])
 
-        self.layer74 = (self.dn53_standalone[5] +
-                        self.dn53_block[4])
+        self.layers[1] = (self.dn53_standalone[4] +
+                          self.dn53_block[3])
+
+        self.layers[2] = (self.dn53_standalone[5] +
+                          self.dn53_block[4])
 
         # yolo detection layers
         # detection 1
-        self.layer79 = [
+        self.layers[3] = [
             YoloBlock(0, 1024, 512, 1, 1, 0),
             YoloBlock(1, 512, 1024, 3, 1, 1),
             YoloBlock(2, 1024, 512, 1, 1, 0),
@@ -184,16 +186,16 @@ class YoloV3(nn.Module):
             YoloBlock(4, 1024, 512, 1, 1, 0)
         ]
 
-        self.layer80 = [YoloBlock(5, 512, 1024, 3, 1, 1)]
-        self.layer81 = [YoloConv(6, 1024, 255)]
+        self.layers[4] = [YoloBlock(5, 512, 1024, 3, 1, 1)]
+        self.layers[5] = [YoloConv(6, 1024, 255)]
 
         # detection 2
-        self.layer85 = [
+        self.layers[6] = [
             YoloBlock(7, 512, 256, 1, 1, 0),
             YoloUpsample()
         ]
 
-        self.layer91 = [
+        self.layers[7] = [
             YoloBlock(8, 768, 256, 1, 1, 0),
             YoloBlock(9, 256, 512, 3, 1, 1),
             YoloBlock(10, 512, 256, 1, 1, 0),
@@ -201,16 +203,16 @@ class YoloV3(nn.Module):
             YoloBlock(12, 512, 256, 1, 1, 0)
         ]
 
-        self.layer92 = [YoloBlock(13, 256, 512, 3, 1, 1)]
-        self.layer93 = [YoloConv(14, 512, 255)]
+        self.layers[8] = [YoloBlock(13, 256, 512, 3, 1, 1)]
+        self.layers[9] = [YoloConv(14, 512, 255)]
 
         # detection 3
-        self.layer97 = [
+        self.layers[10] = [
             YoloBlock(15, 256, 128, 1, 1, 0),
             YoloUpsample()
         ]
 
-        self.layer104 = [
+        self.layers[11] = [
             YoloBlock(16, 384, 128, 1, 1, 0),
             YoloBlock(17, 128, 256, 3, 1, 1),
             YoloBlock(18, 256, 128, 1, 1, 0),
@@ -219,14 +221,12 @@ class YoloV3(nn.Module):
             YoloBlock(21, 128, 256, 3, 1, 1)
         ]
 
-        self.layer105 = [YoloConv(22, 256, 255)]
+        self.layers[12] = [YoloConv(22, 256, 255)]
 
         #register the layers
-        for layer in itertools.chain(self.layer36, self.layer61,
-            self.layer74, self.layer79, self.layer80, self.layer81,
-            self.layer85, self.layer91, self.layer92, self.layer93,
-            self.layer97, self.layer104, self.layer105):
-            layer.register_weights(self.register_parameter, self.register_buffer)
+        for layers in self.layers:
+            for layer in layers:
+                layer.register_weights(self.register_parameter, self.register_buffer)
 
     @staticmethod
     def apply_layers(layers, x):
@@ -281,24 +281,24 @@ class YoloV3(nn.Module):
 
     def forward(self, x):
         # get the intermediates from the darknet featurizer
-        layer36 = YoloV3.apply_layers(self.layer36, x)
-        layer61 = YoloV3.apply_layers(self.layer61, layer36)
-        layer74 = YoloV3.apply_layers(self.layer74, layer61)
+        layer0 = YoloV3.apply_layers(self.layers[0], x)
+        layer1 = YoloV3.apply_layers(self.layers[1], layer0)
+        layer2 = YoloV3.apply_layers(self.layers[2], layer1)
 
         # process the intermediates for detections
-        layer79 = YoloV3.apply_layers(self.layer79, layer74)
-        predict0 = YoloV3.apply_layers(self.layer80 + self.layer81, layer79)
+        layer3 = YoloV3.apply_layers(self.layers[3], layer2)
+        predict0 = YoloV3.apply_layers(self.layers[4] + self.layers[5], layer3)
 
-        layer85 = YoloV3.apply_layers(self.layer85, layer79)
-        layer86 = torch.cat((layer85, layer61), 1)
+        layer6 = YoloV3.apply_layers(self.layers[6], layer3)
+        layer86 = torch.cat((layer6, layer1), 1)
 
-        layer91 = YoloV3.apply_layers(self.layer91, layer86)
-        predict1 = YoloV3.apply_layers(self.layer92 + self.layer93, layer91)
+        layer7 = YoloV3.apply_layers(self.layers[7], layer86)
+        predict1 = YoloV3.apply_layers(self.layers[8] + self.layers[9], layer7)
 
-        layer97 = YoloV3.apply_layers(self.layer97, layer91)
-        layer98 = torch.cat((layer97, layer36), 1)
+        layer10 = YoloV3.apply_layers(self.layers[10], layer7)
+        layer12 = torch.cat((layer10, layer0), 1)
 
-        predict2 = YoloV3.apply_layers(self.layer104 + self.layer105, layer98)
+        predict2 = YoloV3.apply_layers(self.layers[11] + self.layers[12], layer12)
 
         # process the detections
         detections0 = YoloV3.process_prediction(predict0, [(116,90), (156,198), (373,326)])
