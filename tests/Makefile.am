@@ -1,10 +1,12 @@
 AM_CPPFLAGS = $(CXX14_FLAGS) $(JPEG_INCLUDE) \
               $(EIGEN3_CFLAGS) $(EIGEN3_UNSUPPORTED_CFLAGS) \
               $(HDF5_CFLAGS) $(HDF5_CPPFLAGS) \
-              -I$(srcdir)/../src/nn -I$(srcdir)/../src/nnfc
+              -I$(srcdir)/../src/nn \
+              -I$(srcdir)/../src/nnfc
 
 AM_CXXFLAGS = $(PICKY_CXXFLAGS) $(HDF5_LDFLAGS) $(HDF5_LIBS) \
-              -L$(srcdir)/../src/nn -lnn
+              -L$(srcdir)/../src/nn -lnn \
+              -L$(srcdir)/../src/nnfc/.libs -lnnfc
 
 check_PROGRAMS = avgpool.bin \
                  batchnorm.bin batchnorm_hl.bin \
@@ -12,7 +14,8 @@ check_PROGRAMS = avgpool.bin \
                  fc.bin \
                  relu.bin relu_hl.bin \
                  composed_hl.bin \
-                 simplecnn.bin simplecnn_hl.bin
+                 simplecnn.bin simplecnn_hl.bin \
+                 cxxapi_simple.bin
 
 avgpool_bin_SOURCES = avgpool_test.cc
 avgpool_bin_LDADD =
@@ -47,6 +50,9 @@ simplecnn_bin_LDADD =
 simplecnn_hl_bin_SOURCES = simplecnn_hl_test.cc
 simplecnn_hl_bin_LDADD =
 
+cxxapi_simple_bin_SOURCES = cxxapi_simple.cc
+cxxapi_simple_bin_LADD = 
+
 dist_check_SCRIPTS = pythonpath_python.test \
 	                 import_python.test \
                      noop_python.test \
@@ -62,8 +68,8 @@ dist_check_SCRIPTS = pythonpath_python.test \
                      relu_hl_cpp.test \
                      composed_hl_cpp.test \
                      simplecnn_hl_cpp.test
-                     #simplecnn_cpp.test 
 
 AM_TESTS_ENVIRONMENT = ./test-environment.sh
 
-TESTS = $(dist_check_SCRIPTS)
+TESTS = $(dist_check_SCRIPTS) \
+        ./cxxapi_simple.bin
