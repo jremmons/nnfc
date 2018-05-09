@@ -2,7 +2,7 @@ AM_CPPFLAGS = $(CXX14_FLAGS) $(JPEG_CFLAGS) \
               $(EIGEN3_CFLAGS) $(EIGEN3_UNSUPPORTED_CFLAGS) \
               -I$(srcdir)/../nn/
 
-AM_CXXFLAGS = $(PICKY_CXXFLAGS) -fpic -L$(srcdir)/../nn -lnn
+AM_CXXFLAGS = $(PICKY_CXXFLAGS) -fpic -L$(srcdir)/../nn -Wl,-Bstatic -lnn
 
 lib_LTLIBRARIES = libnnfc.la 
 
