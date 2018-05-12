@@ -23,8 +23,10 @@ import torchvision.transforms as transforms
 
 import numpy as np
 
+import lenet
 import simplenet
 import resnet
+import mobilenet
 import mobilenetv2
 import densenet
 import dpn
@@ -36,11 +38,14 @@ use_cuda = torch.cuda.is_available()
 # TODO(jremmons) add a better programmatic interface for defining network architecture
 
 networks = {
+    'lenet' : lenet.LeNet(),
     'simplenet9' : simplenet.SimpleNet9(),
     'resnet18' : resnet.ResNet18(),
     'resnet101' : resnet.ResNet101(),
+    'mobilenetslimplus' : mobilenet.MobileNetSlimPlus(),
+    'mobilenetslim' : mobilenet.MobileNetSlim(),
+    'mobilenet' : mobilenet.MobileNet(),
     'mobilenetv2' : mobilenetv2.MobileNetV2(),
-    'densenet121' : densenet.DenseNet121(),
     'densenet121' : densenet.DenseNet121(),
     'dpn92' : dpn.DPN92(),
     'preact_resnet18' : preact_resnet.PreActResNet18(),

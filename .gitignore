@@ -12,6 +12,7 @@ tests/.libs
 src/nn/.libs/
 src/nnfc/.libs/
 src/frontend/.libs/
+src/nnfc/*.lo
 
 src/nnfc/libnnfc.la
 src/nnfc/nnfc.lo
