@@ -40,4 +40,5 @@ namespace nnfc { namespace cxxapi {
         std::unique_ptr<DecoderContextInterface> new_decoder(std::string decoder_name, constructor_list constructor_parameters={});
     }
 }
+
 #endif // _NNFC_CXXAPI_H
