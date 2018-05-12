@@ -18,6 +18,8 @@ VERSION = get_def('../config.h', 'VERSION')
 EXTENSION_NAME = 'nnfc._ext.nnfc_codec'
 CUDA_AVAILABLE = torch.cuda.is_available()
 
+cuda_sources = ['nnfc/src/nnfc_cuda.cc',] if CUDA_AVAILABLE else []
+
 pytorch_include = []
 for lib in include_paths(cuda=CUDA_AVAILABLE):
     # HACK newer versions of cstdlib use #include_next<stdlib.h> which will break
@@ -33,8 +35,8 @@ pytorch_libs = ['cudart'] if CUDA_AVAILABLE else []
 pytorch_defines = [('_NNFC_CUDA_AVAILABLE', 1)] if CUDA_AVAILABLE else []
 
 module = Extension(EXTENSION_NAME,
-                   sources=['nnfc/src/nnfc_codec.cc', 'nnfc/src/nnfc_cuda.cc',
-                            'nnfc/src/nnfc_encoder.cc', 'nnfc/src/nnfc_decoder.cc'],
+                   sources=['nnfc/src/nnfc_codec.cc', 
+                            'nnfc/src/nnfc_encoder.cc', 'nnfc/src/nnfc_decoder.cc'] + cuda_sources,
                    define_macros=[('_NNFC_VERSION', '"'+VERSION+'"')] + pytorch_defines,
                    include_dirs=[numpy.get_include()],
                    library_dirs=['../src/nnfc/.libs'] + pytorch_libdirs,
