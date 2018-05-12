@@ -51,5 +51,5 @@ PyObject* NNFCtensor_memcpy_d2h(PyObject *, PyObject *args, PyObject *kwargs){
 }
 
 PyObject* NNFCtensor_memcpy_h2d(PyObject *, PyObject *args, PyObject *kwargs){
-
+    Py_RETURN_NONE;
 }

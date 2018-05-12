@@ -400,7 +400,8 @@ def main():
 
     for img_path in args.image:
         img_original = Image.open(img_path).convert('RGB')
-        img_original = img_original.resize((416, 416))
+        #img_original = img_original.resize((416, 416))
+        img_original = img_original.resize((1920, 1920))
         img = np.asarray(img_original)
         img = img.transpose((2, 0, 1))
         img = np.expand_dims(img, 0)

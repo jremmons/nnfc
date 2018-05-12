@@ -30,7 +30,7 @@ class CompressionLayer(Module):
             return grad_output, None, None
 
         
-    def __init__(self, encoder_name='simple_encoder', decoder_name='simple_decoder'):
+    def __init__(self, encoder_name='noop_encoder', decoder_name='noop_decoder'):
         super(CompressionLayer, self).__init__()
 
         self.encoder = nnfc_codec.EncoderContext(encoder_name)
