@@ -4,7 +4,7 @@
 AC_PREREQ([2.68])
 AC_INIT([nnfc], [0.1], [jemmons@cs.stanford.edu])
 AM_INIT_AUTOMAKE([foreign])
-AC_CONFIG_SRCDIR([src/nnfc/nnfc.hh])
+AC_CONFIG_SRCDIR([src/nnfc/nnfc_CXXAPI.hh])
 AC_CONFIG_HEADERS([config.h])
 
 # include extra macros
