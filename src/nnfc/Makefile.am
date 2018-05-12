@@ -6,5 +6,7 @@ AM_CXXFLAGS = $(PICKY_CXXFLAGS) -fpic -L$(srcdir)/../nn -Wl,-Bstatic -lnn
 
 lib_LTLIBRARIES = libnnfc.la 
 
-libnnfc_la_SOURCES = nnfc.hh nnfc.cc nnfc_CXXAPI.hh nnfc_CXXAPI.cc 
+libnnfc_la_SOURCES = noop_codec.hh noop_codec.cc \
+                     nnfc_CXXAPI.hh nnfc_CXXAPI.cc 
+
 libnnfc_la_LDFLAGS = -version-info 0:0:0 

@@ -8,7 +8,7 @@
 #include <memory>
 #include <iostream>
 
-#include "nnfc.hh"
+#include "noop_codec.hh"
 #include "nnfc_CXXAPI.hh"
 
 //////////////////////////////////////////////////////////////////////
@@ -157,17 +157,17 @@ struct DecoderContextFactory
 //////////////////////////////////////////////////////////////////////
 static std::vector<EncoderContextFactory> nnfc_available_encoders = {
     {
-        .exported_name = "simple_encoder",
-        .new_context_func = new_encoder<nnfc::SimpleEncoder>,
-        .constructor_types_func = constructor_types<nnfc::SimpleEncoder>
+        .exported_name = "noop_encoder",
+        .new_context_func = new_encoder<nnfc::NoopEncoder>,
+        .constructor_types_func = constructor_types<nnfc::NoopEncoder>
     }
 };
 
 static std::vector<DecoderContextFactory> nnfc_available_decoders = {
     {
-        .exported_name = "simple_decoder",
-        .new_context_func = new_decoder<nnfc::SimpleDecoder>,
-        .constructor_types_func = constructor_types<nnfc::SimpleDecoder>
+        .exported_name = "noop_decoder",
+        .new_context_func = new_decoder<nnfc::NoopDecoder>,
+        .constructor_types_func = constructor_types<nnfc::NoopDecoder>
     }
 };
 
