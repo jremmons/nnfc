@@ -1,5 +1,5 @@
-#ifndef _NNFC_NOOP_H
-#define _NNFC_NOOP_H
+#ifndef _NNFC_JPEG_H
+#define _NNFC_JPEG_H
 
 #include <cstdint>
 #include <vector>
@@ -9,27 +9,27 @@
 
 namespace nnfc {
 
-    class NoopEncoder
+    class JPEGEncoder
     {
     private:
         
     public:
-        NoopEncoder();
-        ~NoopEncoder();
+        JPEGEncoder(int quantizer);
+        ~JPEGEncoder();
 
         std::vector<uint8_t> forward(nn::Tensor<float, 3> input);
         nn::Tensor<float, 3> backward(nn::Tensor<float, 3> input);
 
-        static nnfc::cxxapi::constructor_type_list initialization_params() { return {}; }
+        static nnfc::cxxapi::constructor_type_list initialization_params() { return { {"quantizer", typeid(int)} }; }
     };
     
-    class NoopDecoder
+    class JPEGDecoder
     {
     private:
         
     public:
-        NoopDecoder();
-        ~NoopDecoder();
+        JPEGDecoder();
+        ~JPEGDecoder();
 
         nn::Tensor<float, 3> forward(std::vector<uint8_t> input);
         nn::Tensor<float, 3> backward(nn::Tensor<float, 3> input);
@@ -39,4 +39,4 @@ namespace nnfc {
 
 }
 
-#endif // _NNFC_NOOP_H
+#endif // _NNFC_JPEG_H

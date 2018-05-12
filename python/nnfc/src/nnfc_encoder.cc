@@ -16,15 +16,8 @@
 
 static std::vector<nn::Tensor<float, 3>> blob2tensors(PyArrayObject *input_array) {
 
-    if(!PyArray_ISCARRAY(input_array)){
-        PyErr_SetString(PyExc_TypeError, "the input array must be a c-style array and conriguous in memory.");
-        PyErr_Print();
-    }
-
-    if(PyArray_TYPE(input_array) != NPY_FLOAT32) {
-        PyErr_SetString(PyExc_TypeError, "the input array must have dtype float32.");
-        PyErr_Print();
-    }
+    WrapperAssert(PyArray_ISCARRAY(input_array), PyExc_TypeError, "the input array must be a c-style array and conriguous in memory.");    
+    WrapperAssert(PyArray_TYPE(input_array) == NPY_FLOAT32, PyExc_TypeError, "the input array must have dtype==float32.");
 
     const int ndims = PyArray_NDIM(input_array);
     WrapperAssert(ndims == 4, PyExc_TypeError, std::string("the input to the encoder must be a 4D numpy.ndarray. (The input dimensionality was: ") + std::to_string(ndims) + std::string(")"));
@@ -92,14 +85,35 @@ void NNFCEncoderContext_dealloc(NNFCEncoderContext* self) {
     Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
-int NNFCEncoderContext_init(NNFCEncoderContext *self, PyObject *args, PyObject *) {
+int NNFCEncoderContext_init(NNFCEncoderContext *self, PyObject *args, PyObject*) {
 
-    char *encoder_name = NULL;
-    if (!PyArg_ParseTuple(args, "s", &encoder_name)){
-        PyErr_Print();
+    char *encoder_name = nullptr;
+    PyObject* dictionary_args = nullptr;
+    if (!PyArg_ParseTuple(args, "sO", &encoder_name, &dictionary_args)) {
+        return 0;
     }
 
-    self->encoder = std::move(nnfc::cxxapi::new_encoder(encoder_name));
+    try {
+        const auto encoder_arg_types = nnfc::cxxapi::get_encoder_constructor_types(encoder_name);
+        
+        WrapperAssert(PyDict_Check(dictionary_args),
+                      PyExc_TypeError,
+                      "second argument must be a dictionary with the corrsponding constructor parameters.");
+
+        const auto encoder_args = parse_dict(dictionary_args, encoder_arg_types);
+        
+        self->encoder = std::move(nnfc::cxxapi::new_encoder(encoder_name, encoder_args));
+    }
+    catch(nnfc_python_exception e) {
+        PyErr_SetString(e.type(), e.what());
+        return 0;
+    }
+    catch(std::exception e) {
+        std::string error_message = e.what();
+        PyErr_SetString(PyExc_Exception, error_message.c_str());
+        return 0;
+    }
+    
     return 0;
 }
 
@@ -136,7 +150,6 @@ PyObject* NNFCEncoderContext_encode(NNFCEncoderContext *self, PyObject *args){
     catch(std::exception e) {
         std::string error_message = e.what();
         PyErr_SetString(PyExc_Exception, error_message.c_str());
-        PyErr_Print();
         return 0;
    }
     
