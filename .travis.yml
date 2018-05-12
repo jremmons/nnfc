@@ -71,14 +71,17 @@ install:
   #  export PYTORCH_BUILD_NUMBER=0
   #  export CFLAGS="-mtune=generic"
   #  export CXXFLAGS="-mtune=generic"
-  - wget https://www.dropbox.com/s/b9zy3vso4kl25yz/torch-0.5.0-cp35-cp35m-linux_x86_64.whl
-  - wget https://www.dropbox.com/s/qb0gp6w1amcrm3x/torch-0.5.0-cp35-cp35m-linux_x86_64.whl.sha256
-  - sha256sum --check torch-0.5.0-cp35-cp35m-linux_x86_64.whl.sha256
-  - sudo pip3 install torch-0.5.0-cp35-cp35m-linux_x86_64.whl
+  # - wget https://www.dropbox.com/s/b9zy3vso4kl25yz/torch-0.5.0-cp35-cp35m-linux_x86_64.whl
+  # - wget https://www.dropbox.com/s/qb0gp6w1amcrm3x/torch-0.5.0-cp35-cp35m-linux_x86_64.whl.sha256
+  # - sha256sum --check torch-0.5.0-cp35-cp35m-linux_x86_64.whl.sha256
+  # - sudo pip3 install torch-0.5.0-cp35-cp35m-linux_x86_64.whl
 
+  - sudo pip3 install torch
   - python3 -c "import torch; print('torch', torch.__version__)"
+
   - sudo pip3 install torchvision
   - python3 -c "import torchvision; print('torchvision', torchvision.__version__)"
+
   - sudo pip3 install h5py
   - python3 -c "import h5py; print('h5py', h5py.__version__)"
   
