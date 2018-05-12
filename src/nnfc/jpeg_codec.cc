@@ -1,5 +1,3 @@
-
-#include <any>
 #include <cstdint>
 #include <vector>
 #include <iostream>
@@ -8,7 +6,8 @@
 #include "jpeg_codec.hh"
 
 
-nnfc::JPEGEncoder::JPEGEncoder(int)
+nnfc::JPEGEncoder::JPEGEncoder(int quantizer) :
+    quantizer_(quantizer)
 { }
 
 nnfc::JPEGEncoder::~JPEGEncoder()

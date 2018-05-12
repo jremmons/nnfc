@@ -58,6 +58,7 @@ dist_check_SCRIPTS = pythonpath_python.test \
                      noop_python.test \
                      nnfc_python.test \
                      jpeg_python.test \
+                     nnfc_codecs_python.test \
                      gpu2cpu_python.test \
                      avgpool_cpp.test \
                      batchnorm_cpp.test \

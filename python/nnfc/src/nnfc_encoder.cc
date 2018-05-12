@@ -117,7 +117,7 @@ int NNFCEncoderContext_init(NNFCEncoderContext *self, PyObject *args, PyObject*)
     return 0;
 }
 
-PyObject* NNFCEncoderContext_encode(NNFCEncoderContext *self, PyObject *args){
+PyObject* NNFCEncoderContext_forward(NNFCEncoderContext *self, PyObject *args){
 
     PyArrayObject *input_array;
 
@@ -155,8 +155,14 @@ PyObject* NNFCEncoderContext_encode(NNFCEncoderContext *self, PyObject *args){
     
 }
 
-PyObject* NNFCEncoderContext_backprop(NNFCEncoderContext *, PyObject *){
+PyObject* NNFCEncoderContext_backward(NNFCEncoderContext *, PyObject *args){
 
-    Py_RETURN_NONE;
+    PyObject* grad_output = nullptr;
+        
+    if (!PyArg_ParseTuple(args, "O", &grad_output)){
+        PyErr_Print();
+    }
+
+    return grad_output;
 }
 
