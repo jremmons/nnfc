@@ -9,6 +9,8 @@
 #include <iostream>
 
 #include "noop_codec.hh"
+#include "jpeg_codec.hh"
+
 #include "nnfc_CXXAPI.hh"
 
 //////////////////////////////////////////////////////////////////////
@@ -18,11 +20,12 @@
 //////////////////////////////////////////////////////////////////////
 template<class ContextInterface, class ContextType, class input_T, class output_T, typename... constructor_args_types>
 class ContextContainer : public ContextInterface {
+//
 // ContextContainer: a helper class for exporting contexts (or NN
 // layers) so they all have a common interface. This class shouldn't
 // be used outside of this file. To see the API, look in the header
 // file for the definition of a {Encoder, Decoder}ContextInterface.
-
+//
 private:
     static constexpr size_t num_constructor_args = std::tuple_size<std::tuple<constructor_args_types...>>{};
 
@@ -36,6 +39,10 @@ public:
         context_()
     {
         auto types = ContextType::initialization_params();
+
+        if(initialization_params.size() != num_constructor_args) {
+            throw std::runtime_error("Incorrect number of constructor arguments");
+        }
         
         for(size_t i = 0; i < num_constructor_args; i++) {
             if(types[i].second.get() != initialization_params[i].second.type()) {
@@ -161,6 +168,12 @@ static std::vector<EncoderContextFactory> nnfc_available_encoders = {
         .new_context_func = new_encoder<nnfc::NoopEncoder>,
         .constructor_types_func = constructor_types<nnfc::NoopEncoder>
     }
+    ,{
+        .exported_name = "jpeg_encoder",
+        .new_context_func = new_encoder<nnfc::JPEGEncoder, int>,
+        .constructor_types_func = constructor_types<nnfc::JPEGEncoder>
+    }
+    
 };
 
 static std::vector<DecoderContextFactory> nnfc_available_decoders = {
@@ -168,6 +181,11 @@ static std::vector<DecoderContextFactory> nnfc_available_decoders = {
         .exported_name = "noop_decoder",
         .new_context_func = new_decoder<nnfc::NoopDecoder>,
         .constructor_types_func = constructor_types<nnfc::NoopDecoder>
+    }
+    ,{
+        .exported_name = "jpeg_decoder",
+        .new_context_func = new_decoder<nnfc::JPEGDecoder>,
+        .constructor_types_func = constructor_types<nnfc::JPEGDecoder>
     }
 };
 

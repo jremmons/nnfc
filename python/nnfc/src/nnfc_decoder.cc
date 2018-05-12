@@ -93,14 +93,34 @@ void NNFCDecoderContext_dealloc(NNFCDecoderContext* self) {
 
 int NNFCDecoderContext_init(NNFCDecoderContext *self, PyObject *args, PyObject *) {
 
-    char *decoder_name = NULL;
-    if (!PyArg_ParseTuple(args, "s", &decoder_name)){
+    char *decoder_name = nullptr;
+    PyObject* dictionary_args = nullptr;
+    if (!PyArg_ParseTuple(args, "sO", &decoder_name, &dictionary_args)) {
         return 0;
     }
 
-    self->decoder = std::move(nnfc::cxxapi::new_decoder(decoder_name));
-    return 0;
+    try {
+        const auto decoder_arg_types = nnfc::cxxapi::get_decoder_constructor_types(decoder_name);
+        
+        WrapperAssert(PyDict_Check(dictionary_args),
+                      PyExc_TypeError,
+                      "second argument must be a dictionary with the corrsponding constructor parameters.");
 
+        const auto decoder_args = parse_dict(dictionary_args, decoder_arg_types);
+        
+        self->decoder = std::move(nnfc::cxxapi::new_decoder(decoder_name, decoder_args));
+    }
+    catch(nnfc_python_exception e) {
+        PyErr_SetString(e.type(), e.what());
+        return 0;
+    }
+    catch(std::exception e) {
+        std::string error_message = e.what();
+        PyErr_SetString(PyExc_Exception, error_message.c_str());
+        return 0;
+    }
+
+    return 0;
 }
 
 PyObject* NNFCDecoderContext_decode(NNFCDecoderContext *self, PyObject *args){
@@ -140,7 +160,6 @@ PyObject* NNFCDecoderContext_decode(NNFCDecoderContext *self, PyObject *args){
         PyErr_SetString(PyExc_RuntimeError, e.what());
         return 0;
     }
-
 }
 
 PyObject* NNFCDecoderContext_backprop(NNFCDecoderContext *, PyObject *){
