@@ -1,12 +1,27 @@
 #!/usr/bin/env python3
 
 import torch
-import nnfc._ext.nnfc_codec as nc
+import nnfc
+import timeit
 
 if torch.cuda.is_available():
-    x = 42 * torch.ones(5)
-    y = torch.randn(x.size())
+    src = 10 * torch.randn(1024)
+    dest = torch.randn(src.size()).cuda()
 
-    print(x)
+    t1 = timeit.default_timer()
+    nnfc.tensor_memcpy_h2d(dest, src)
+    t2 = timeit.default_timer()
+    print(t2 - t1)
 
-    nc.tensor_memcpy_d2h(x, y)
+    assert bool((src == dest.cpu()).all()), 'host to device copy failed'
+
+    dest = dest + torch.randn(dest.size()).cuda()
+
+    t1 = timeit.default_timer()
+    nnfc.tensor_memcpy_d2h(src, dest)
+    t2 = timeit.default_timer()
+    print(t2 - t1)
+    
+    assert bool((src == dest.cpu()).all()), 'host to device copy failed'
+    
+print('success!')
