@@ -12,6 +12,7 @@ namespace nnfc {
     class JPEGEncoder
     {
     private:
+        int quantizer_;
         
     public:
         JPEGEncoder(int quantizer);

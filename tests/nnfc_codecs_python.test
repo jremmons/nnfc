@@ -1,0 +1,6 @@
+#!/usr/bin/env python3
+
+import nnfc
+
+print(nnfc.available_encoders())
+print(nnfc.available_decoders())

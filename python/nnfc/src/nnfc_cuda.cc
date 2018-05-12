@@ -12,7 +12,8 @@
 
 //extern THCState *state;
 
-PyObject* NNFCtensor_memcpy_d2h(PyObject *, PyObject *args, PyObject *kwargs){
+PyObject* NNFCtensor_memcpy_d2h(PyObject *, PyObject *, PyObject *){
+    Py_RETURN_NONE;
 
     // torch::PythonArgParser parser({ "func(Tensor dest, Tensor src)" });
     // torch::ParsedArgs<2> parsed_args;
@@ -22,9 +23,7 @@ PyObject* NNFCtensor_memcpy_d2h(PyObject *, PyObject *args, PyObject *kwargs){
     // at::Tensor src = r.tensor(0);
     // at::Tensor dest = r.tensor(1);
     // std::cerr << "rank: " << src.ndimension() << std::endl;
-    
-    Py_RETURN_NONE;
-    
+        
     // sanity checking
     // THArgCheck(THCudaTensor_isContiguous(state, src), 2, "src tensor must be contiguous");
     // THArgCheck(THCudaTensor_nDimension(state, src) == 4, 2, "src tensor must be 4D");
@@ -50,6 +49,6 @@ PyObject* NNFCtensor_memcpy_d2h(PyObject *, PyObject *args, PyObject *kwargs){
     // THCudaCheck(cudaMemcpy(dest_blob.data, src_data, sizeof(float)*dest_blob.size(), cudaMemcpyDeviceToHost));
 }
 
-PyObject* NNFCtensor_memcpy_h2d(PyObject *, PyObject *args, PyObject *kwargs){
+PyObject* NNFCtensor_memcpy_h2d(PyObject *, PyObject *, PyObject *){
     Py_RETURN_NONE;
 }

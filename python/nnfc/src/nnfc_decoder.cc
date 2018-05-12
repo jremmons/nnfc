@@ -123,7 +123,7 @@ int NNFCDecoderContext_init(NNFCDecoderContext *self, PyObject *args, PyObject *
     return 0;
 }
 
-PyObject* NNFCDecoderContext_decode(NNFCDecoderContext *self, PyObject *args){
+PyObject* NNFCDecoderContext_forward(NNFCDecoderContext *self, PyObject *args){
 
     PyObject *input_pylist;
 
@@ -162,8 +162,14 @@ PyObject* NNFCDecoderContext_decode(NNFCDecoderContext *self, PyObject *args){
     }
 }
 
-PyObject* NNFCDecoderContext_backprop(NNFCDecoderContext *, PyObject *){
+PyObject* NNFCDecoderContext_backward(NNFCDecoderContext *, PyObject *args){
 
-    Py_RETURN_NONE;
+    PyObject* grad_output = nullptr;
+        
+    if (!PyArg_ParseTuple(args, "O", &grad_output)){
+        PyErr_Print();
+    }
+
+    return grad_output;
 }
 
