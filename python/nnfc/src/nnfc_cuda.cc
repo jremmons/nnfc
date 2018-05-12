@@ -2,6 +2,8 @@
 
 #include <torch/torch.h>
 #include <torch/csrc/utils/python_arg_parser.h>
+#include <cuda_runtime_api.h>
+#include <cuda.h>
 
 #include <vector>
 #include <string>
@@ -10,45 +12,84 @@
 #include "common.hh"
 #include "nnfc_cuda.hh"
 
-//extern THCState *state;
+PyObject* NNFCtensor_memcpy_h2d(PyObject *, PyObject *args, PyObject *kwargs){
+    // dest should be on the GPU
+    // src should be on the CPU
 
-PyObject* NNFCtensor_memcpy_d2h(PyObject *, PyObject *, PyObject *){
-    Py_RETURN_NONE;
+    torch::PythonArgParser parser({ "func(Tensor dest, Tensor src)" });
+    torch::ParsedArgs<2> parsed_args;
+    
+    auto r = parser.parse(args, kwargs, parsed_args);
 
-    // torch::PythonArgParser parser({ "func(Tensor dest, Tensor src)" });
-    // torch::ParsedArgs<2> parsed_args;
+    at::Tensor dest = r.tensor(0);
+    at::Tensor src = r.tensor(1);
 
-    // auto r = parser.parse(args, kwargs, parsed_args);
-
-    // at::Tensor src = r.tensor(0);
-    // at::Tensor dest = r.tensor(1);
-    // std::cerr << "rank: " << src.ndimension() << std::endl;
-        
     // sanity checking
-    // THArgCheck(THCudaTensor_isContiguous(state, src), 2, "src tensor must be contiguous");
-    // THArgCheck(THCudaTensor_nDimension(state, src) == 4, 2, "src tensor must be 4D");
+    WrapperAssert(dest.is_same_size(src), PyExc_ValueError,
+                  "`dest` and `src` must be the same size.");
+    
+    WrapperAssert(dest.is_cuda(), PyExc_ValueError,
+                  "`dest` must be a CUDA tensor.");
+    WrapperAssert(!src.is_cuda(), PyExc_ValueError,
+                  "`src` must be a CPU tensor.");
+    
+    WrapperAssert(dest.is_contiguous(), PyExc_ValueError,
+                  "`dest` must be a contiguous tensor.");
+    WrapperAssert(src.is_contiguous(), PyExc_ValueError,
+                  "`src` must be a contiguous tensor.");
+    
+    WrapperAssert(dest.type().scalarType() == at::ScalarType::Float, PyExc_ValueError,
+                  "`dest` must be a float32 tensor.");
+    WrapperAssert(src.type().scalarType() == at::ScalarType::Float, PyExc_ValueError,
+                  "`src` must be a float32 tensor.");
 
-    // // munge the blobs
-    // size_t n_size = THCudaTensor_size(state, src, 0);
-    // size_t c_size = THCudaTensor_size(state, src, 1);
-    // size_t h_size = THCudaTensor_size(state, src, 2);
-    // size_t w_size = THCudaTensor_size(state, src, 3);
-    // size_t src_size = n_size * c_size * h_size * w_size;
-    // float* src_data = THCudaTensor_data(state, src);
+    // perform the memcpy
+    const size_t numel = src.numel();
+    void* dest_data = dest.data_ptr();
+    void* src_data = src.data_ptr();
 
-    // float *dest_data = THFloatTensor_data(dest);
-    // TorchFloatBlob4D dest_blob{dest, dest_data, 0, 0, 0, 0};
-    // dest_blob.resize(n_size, c_size, h_size, w_size);
-
-    // // more sanity checking
-    // THArgCheck(THFloatTensor_isContiguous(dest), 2, "destination tensor must be contiguous");
-    // THArgCheck(THFloatTensor_nDimension(dest) == 4, 2, "destination tensor must be 4D");
-    // THArgCheck(sizeof(float)*src_size == sizeof(float)*dest_blob.size(), 2, "sizes do not match");
-
-    // // copy memory
-    // THCudaCheck(cudaMemcpy(dest_blob.data, src_data, sizeof(float)*dest_blob.size(), cudaMemcpyDeviceToHost));
+    cudaMemcpy(dest_data, src_data, numel*sizeof(float), cudaMemcpyHostToDevice);
+    
+    Py_RETURN_NONE;
 }
 
-PyObject* NNFCtensor_memcpy_h2d(PyObject *, PyObject *, PyObject *){
+PyObject* NNFCtensor_memcpy_d2h(PyObject *, PyObject *args, PyObject *kwargs){
+    // dest should be on the CPU
+    // src should be on the GPU
+
+    torch::PythonArgParser parser({ "func(Tensor dest, Tensor src)" });
+    torch::ParsedArgs<2> parsed_args;
+    
+    auto r = parser.parse(args, kwargs, parsed_args);
+
+    at::Tensor dest = r.tensor(0);
+    at::Tensor src = r.tensor(1);
+
+    // sanity checking
+    WrapperAssert(dest.is_same_size(src), PyExc_ValueError,
+                  "`dest` and `src` must be the same size.");
+    
+    WrapperAssert(!dest.is_cuda(), PyExc_ValueError,
+                  "`dest` must be a CPU tensor.");
+    WrapperAssert(src.is_cuda(), PyExc_ValueError,
+                  "`src` must be a CUDA tensor.");
+    
+    WrapperAssert(dest.is_contiguous(), PyExc_ValueError,
+                  "`dest` must be a contiguous tensor.");
+    WrapperAssert(src.is_contiguous(), PyExc_ValueError,
+                  "`src` must be a contiguous tensor.");
+    
+    WrapperAssert(dest.type().scalarType() == at::ScalarType::Float, PyExc_ValueError,
+                  "`dest` must be a float32 tensor.");
+    WrapperAssert(src.type().scalarType() == at::ScalarType::Float, PyExc_ValueError,
+                  "`src` must be a float32 tensor.");
+
+    // perform the memcpy
+    const size_t numel = src.numel();
+    void* dest_data = dest.data_ptr();
+    void* src_data = src.data_ptr();
+
+    cudaMemcpy(dest_data, src_data, numel*sizeof(float), cudaMemcpyDeviceToHost);
+    
     Py_RETURN_NONE;
 }

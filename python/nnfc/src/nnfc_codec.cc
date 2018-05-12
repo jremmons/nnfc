@@ -1,9 +1,7 @@
-extern "C" {
 #include <Python.h>
 #define PY_ARRAY_UNIQUE_SYMBOL nnfc_codec_ARRAY_API
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
-}
     
 #include "common.hh"
 #include "nnfc_encoder.hh"

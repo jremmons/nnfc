@@ -1,8 +1,6 @@
 #ifndef _NNFC_ENCODER
 #define _NNFC_ENCODER
-extern "C" {
 #include <Python.h>
-}
 
 #include "nnfc_CXXAPI.hh"
 
