@@ -5,16 +5,13 @@ addons:
   apt:
     sources:
     - ubuntu-toolchain-r-test
-    packages:
-    - gcc-7
-    - g++-7
-    - nasm
-    - libhdf5-dev
-    - hdf5-helpers
 
 install:
   - uname -a
   - lsb_release -a
+
+  # install the base requirements 
+  - sudo apt-get install -q -y gcc-7 g++-7 nasm libhdf5-dev hdf5-helpers 
 
   # install newer libjpegturbo-dev (with .so and .pc)
   - sudo add-apt-repository -y ppa:keithw/libjpeg-turbo-backports
