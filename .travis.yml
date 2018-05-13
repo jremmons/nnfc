@@ -11,6 +11,7 @@ install:
   - lsb_release -a
 
   # install the base requirements 
+  - sudo apt-get update -q 
   - sudo apt-get install -q -y gcc-7 g++-7 nasm libhdf5-dev hdf5-helpers 
 
   # install newer libjpegturbo-dev (with .so and .pc)
