@@ -42,20 +42,20 @@ install:
 
   # install and upgrade pip
   - sudo apt-get install -q -y python3-pip 
-  - sudo pip3 install --upgrade pip
+  - sudo pip3 install --quiet --upgrade pip
   - sudo rm -f /usr/local/bin/pip
   - sudo ln -s /usr/local/bin/pip3 /usr/local/bin/pip
   - pip --version
   - pip3 --version
 
   # upgrade python build tools
-  - sudo pip3 install --upgrade setuptools
+  - sudo pip3 install --quiet --upgrade setuptools
   - python -c "import setuptools; print('setuptools', setuptools.__version__)"
-  - sudo pip3 install --upgrade wheel
+  - sudo pip3 install --quiet --upgrade wheel
   - python -c "import wheel; print('wheel', wheel.__version__)"
 
   # install python dependencies
-  - sudo pip3 install numpy
+  - sudo pip3 install --quiet --upgrade numpy
   - python3 -c "import numpy; print('numpy', numpy.__version__)"
 
   # this torch wheel file was compiled and is hosted by John Emmons (jemmons@cs.stanford.edu).
@@ -74,13 +74,13 @@ install:
   # - sha256sum --check torch-0.5.0-cp35-cp35m-linux_x86_64.whl.sha256
   # - sudo pip3 install torch-0.5.0-cp35-cp35m-linux_x86_64.whl
 
-  - sudo pip3 install torch
+  - sudo pip3 install --quiet --upgrade torch
   - python3 -c "import torch; print('torch', torch.__version__)"
 
-  - sudo pip3 install torchvision
+  - sudo pip3 install --quiet --upgrade torchvision
   - python3 -c "import torchvision; print('torchvision', torchvision.__version__)"
 
-  - sudo pip3 install h5py
+  - sudo pip3 install --quiet --upgrade h5py
   - python3 -c "import h5py; print('h5py', h5py.__version__)"
   
 script:
