@@ -19,7 +19,7 @@ install:
   # install newer libjpegturbo-dev (with .so and .pc)
   - sudo add-apt-repository -y ppa:keithw/libjpeg-turbo-backports
   - sudo apt-get update -q
-  - sudo apt-get install -y libturbojpeg0-dev
+  - sudo apt-get install -q -y libturbojpeg0-dev
 
   # upgrade gcc
   - sudo apt-get update -q
@@ -30,12 +30,12 @@ install:
   # install eigen3
   - sudo add-apt-repository -y ppa:jremmons/libeigen3-backports
   - sudo apt-get update -q
-  - sudo apt-get install libeigen3-dev
+  - sudo apt-get install -q -y libeigen3-dev
 
   # upgrade python version
   - sudo add-apt-repository ppa:fkrull/deadsnakes -y 
   - sudo apt-get update -q
-  - sudo apt-get install --allow-unauthenticated python3.5-dev
+  - sudo apt-get install -q -y --allow-unauthenticated python3.5-dev
   - sudo rm -f /usr/bin/python3 /usr/bin/python
   - sudo ln -s /usr/bin/python3.5 /usr/bin/python
   - sudo ln -s /usr/bin/python3.5 /usr/bin/python3
@@ -43,7 +43,7 @@ install:
   - python3 --version
 
   # install and upgrade pip
-  - sudo apt-get install python3-pip 
+  - sudo apt-get install -q -y python3-pip 
   - sudo pip3 install --upgrade pip
   - sudo rm -f /usr/local/bin/pip
   - sudo ln -s /usr/local/bin/pip3 /usr/local/bin/pip
