@@ -15,6 +15,7 @@ import glob
 from PIL import Image
 
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
@@ -198,7 +199,7 @@ def main(checkpoint_dir, resume, config):
     net = None
 
     if not resume:
-        net = networks[config['network_name']]
+        net = nn.DataParallel(networks[config['network_name']])
         if use_cuda:
             net.cuda()
 
