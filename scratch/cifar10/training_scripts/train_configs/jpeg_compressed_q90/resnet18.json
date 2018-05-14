@@ -1,0 +1,8 @@
+{
+    "data_hdf5" : "/home/jemmons/projects/nnfc/scratch/cifar10/data/cifar10.turbojpeg_arithmetic_q90.h5",
+    "network_name" : "resnet18",
+    "learning_rate" : { "0": 0.1, "150" : 0.01, "250" : 0.001 },
+    "batch_size" : 500,
+    "num_epochs" : 350,
+    "parameter_initialization" : "random"
+}
