@@ -20,7 +20,7 @@ import resnet
 import mobilenet
 import simplenet
 
-N = 3
+N = 10
 
 def main(args):
 
@@ -29,25 +29,30 @@ def main(args):
     #resnet_blocks = [3,4,6,3]
     #resnet_blocks = [2,2,2,2]
 
-    #input_x = np.random.randn(1,3,32,32).astype(np.float32)
-    input_x = np.random.randn(1,3,416,416).astype(np.float32)
+    input_x = np.random.randn(1,3,32,32).astype(np.float32)
+    #input_x = np.random.randn(1,3,416,416).astype(np.float32)
     input_x = torch.autograd.Variable(torch.from_numpy(input_x)).cpu()
 
-    #net = simplenet.SimpleNet9()
-    #net = resnet.ResNet18()
-    #net = resnet.ResNet50()
-    #net = resnet.ResNet101()
-    #net = resnet.ResNet152()
-    net = mobilenet.MobileNet()
-    
-    time = []
-    for _ in range(N):
-        t1 = timeit.default_timer()
-        output = net(input_x)
-        t2 = timeit.default_timer()
-        time.append(t2-t1)
-    time = np.asarray(time)
-    sys.stdout.write(str(np.median(time)) + ',' + str(np.average(time)) + ',' + str(np.std(time))+'\n')
+    tests = [
+        ('simplenet9', simplenet.SimpleNet9()),
+        ('resnet18', resnet.ResNet18()),
+        ('mobilenet', mobilenet.MobileNet()),
+    ]
+
+
+    for test in tests:
+
+        net_name = test[0]
+        net = test[1]
+        
+        time = []
+        for _ in range(N):
+            t1 = timeit.default_timer()
+            output = net(input_x)
+            t2 = timeit.default_timer()
+            time.append(t2-t1)
+        time = np.asarray(time)
+        sys.stdout.write(net_name + ',' + str(np.median(time)) + ',' + str(np.average(time)) + ',' + str(np.std(time))+'\n')
 
     return 
     
