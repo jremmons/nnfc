@@ -1,6 +1,8 @@
 #ifndef _NNFC_JPEG_H
 #define _NNFC_JPEG_H
 
+#include <turbojpeg.h>
+
 #include <cstdint>
 #include <vector>
 
@@ -12,7 +14,10 @@ namespace nnfc {
     class JPEGEncoder
     {
     private:
-        int quantizer_;
+        const int quantizer_;
+        const int color_componenets_;
+
+        std::unique_ptr<void, void(*)(void*)> jpeg_compressor;
         
     public:
         JPEGEncoder(int quantizer);

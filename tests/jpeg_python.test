@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import numpy as np
 
 import torch
 import torch.nn as nn
@@ -21,16 +22,28 @@ class MyNetwork(nn.Module):
 model = MyNetwork()
 model.train()
 
-inp = Variable(torch.randn(13, 7, 5, 11))
+x0, y0, sigma = 50, 50, 25
+
+x, y = np.arange(100), np.arange(100)
+
+gx = np.exp(-(x-x0)**2/(2*sigma**2))
+gy = np.exp(-(y-y0)**2/(2*sigma**2))
+g = np.outer(gx, gy)
+g /= np.sum(g)
+g = np.expand_dims(np.expand_dims(g, axis=0), axis=0)
+
+inp = Variable(torch.from_numpy(g.astype(np.float32)))
 
 print('cpu only test')
 out = model(inp)
 print('input on gpu?', inp.is_cuda)
 print('output on gpu?', out.is_cuda)
-cpu_success = bool((inp == out).all().item() and inp.is_cuda == out.is_cuda)
+cpu_success = bool(((inp - out) < 10**-5).all().item() and inp.is_cuda == out.is_cuda)
 print('nnfc success:', cpu_success)
 
-print()
+print(inp)
+print(out)
+print(inp - out)
 
 gpu_success = True
 if torch.cuda.is_available():
