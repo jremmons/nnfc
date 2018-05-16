@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import numpy as np
+from PIL import Image
 
 import torch
 import torch.nn as nn
@@ -11,7 +12,7 @@ class MyNetwork(nn.Module):
     def __init__(self):
         super(MyNetwork, self).__init__()
         self.nnfc_compression_layer = CompressionLayer(encoder_name='jpeg_encoder',
-                                                       encoder_params_dict={'quantizer' : 98},
+                                                       encoder_params_dict={'quantizer' : 99},
                                                        decoder_name='jpeg_decoder',
                                                        decoder_params_dict={})
 
@@ -22,15 +23,18 @@ class MyNetwork(nn.Module):
 model = MyNetwork()
 model.train()
 
-x0, y0, sigma = 50, 50, 25
-
-x, y = np.arange(100), np.arange(100)
+x0, y0, sigma = 8, 8, 2
+x, y = np.arange(32), np.arange(32)
 
 gx = np.exp(-(x-x0)**2/(2*sigma**2))
 gy = np.exp(-(y-y0)**2/(2*sigma**2))
 g = np.outer(gx, gy)
 g /= np.sum(g)
-g = np.expand_dims(np.expand_dims(g, axis=0), axis=0)
+g = 500 * np.stack([g.copy() for _ in range(256)], axis=0)
+
+#g = np.clip(0.5 * np.random.randn(256, 32, 32), 0, None)
+g = np.expand_dims(g, axis=0)
+print(g.shape)
 
 inp = Variable(torch.from_numpy(g.astype(np.float32)))
 
@@ -38,12 +42,19 @@ print('cpu only test')
 out = model(inp)
 print('input on gpu?', inp.is_cuda)
 print('output on gpu?', out.is_cuda)
-cpu_success = bool(((inp - out) < 10**-5).all().item() and inp.is_cuda == out.is_cuda)
+cpu_success = bool(((inp - out) < 10**-4).all().item() and inp.is_cuda == out.is_cuda)
 print('nnfc success:', cpu_success)
 
-print(inp)
-print(out)
-print(inp - out)
+# o = out[0,0,:,:].numpy()
+# m = np.max(o)
+# o /= m
+# o *= 255
+# Image.fromarray(o.astype(np.uint8)).save('/home/jemmons/out.jpg')
+
+# print(inp)
+# print(out)
+print(np.max(inp.numpy()))
+print(np.max((inp - out).numpy()))
 
 gpu_success = True
 if torch.cuda.is_available():

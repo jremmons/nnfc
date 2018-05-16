@@ -1,8 +1,6 @@
 #!/bin/bash
 
-# we are statically linking libnnfc for now so we don't need to set
-# the dynamic linker path. If that changes, uncommment the line below.
-#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../src/nnfc/.libs
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(realpath ../src/nnfc/.libs)
 
 lib_count=$(ls ../python/build/ | grep 'lib' | wc -l)
 if [[ $lib_count != '1' ]]; then
