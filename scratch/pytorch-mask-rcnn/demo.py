@@ -71,7 +71,13 @@ file_names = next(os.walk(IMAGE_DIR))[2]
 image = skimage.io.imread(os.path.join(IMAGE_DIR, random.choice(file_names)))
 
 # Run detection
+import timeit
 results = model.detect([image])
+
+t1 = timeit.default_timer()
+results = model.detect([image])
+t2 = timeit.default_timer()
+print('model runtime', t2-t1)
 
 # Visualize results
 r = results[0]
