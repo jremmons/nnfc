@@ -12,6 +12,7 @@ import math
 import os
 import random
 import re
+import timeit
 
 import numpy as np
 import torch
@@ -352,9 +353,15 @@ def proposal_layer(inputs, proposal_count, nms_threshold, anchors, config=None):
 
     # Box deltas [batch, num_rois, 4]
     deltas = inputs[1]
+    t1 = timeit.default_timer()
+
     std_dev = Variable(torch.from_numpy(np.reshape(config.RPN_BBOX_STD_DEV, [1, 4])).float(), requires_grad=False)
     if config.GPU_COUNT:
         std_dev = std_dev.cuda()
+
+    t2 = timeit.default_timer()
+    print('cpu2gpu memcpy:', t2-t1)
+    
     deltas = deltas * std_dev
 
     # Improve performance by trimming to top anchors by score
