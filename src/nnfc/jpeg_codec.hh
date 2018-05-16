@@ -15,8 +15,6 @@ namespace nnfc {
     {
     private:
         const int quantizer_;
-        const int color_componenets_;
-
         std::unique_ptr<void, void(*)(void*)> jpeg_compressor;
         
     public:
@@ -32,6 +30,7 @@ namespace nnfc {
     class JPEGDecoder
     {
     private:
+        std::unique_ptr<void, void(*)(void*)> jpeg_decompressor;
         
     public:
         JPEGDecoder();
