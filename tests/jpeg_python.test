@@ -12,7 +12,7 @@ class MyNetwork(nn.Module):
     def __init__(self):
         super(MyNetwork, self).__init__()
         self.nnfc_compression_layer = CompressionLayer(encoder_name='jpeg_encoder',
-                                                       encoder_params_dict={'quantizer' : 99},
+                                                       encoder_params_dict={'quantizer' : 40},
                                                        decoder_name='jpeg_decoder',
                                                        decoder_params_dict={})
 
@@ -20,6 +20,7 @@ class MyNetwork(nn.Module):
         inp = self.nnfc_compression_layer(inp)
         return inp
 
+    
 model = MyNetwork()
 model.train()
 
@@ -45,6 +46,8 @@ print('output on gpu?', out.is_cuda)
 cpu_success = bool(((inp - out) < 10**-4).all().item() and inp.is_cuda == out.is_cuda)
 print('nnfc success:', cpu_success)
 
+
+print(model.nnfc_compression_layer.get_compressed_sizes())
 # o = out[0,0,:,:].numpy()
 # m = np.max(o)
 # o /= m

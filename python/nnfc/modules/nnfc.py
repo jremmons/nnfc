@@ -10,12 +10,15 @@ class CompressionLayer(Module):
     class CompressionLayerFunc(Function):
         
         @staticmethod
-        def forward(ctx, inputs, encoder, decoder):
+        def forward(ctx, inputs, encoder, decoder, statistics):
 
             on_gpu = inputs.is_cuda
             
             inputs = inputs.cpu().numpy()
             compressed = encoder.forward(inputs)
+
+            statistics['sizeof_intermediates'] = list(map(lambda x: x.shape, compressed)) 
+            
             decompressed = decoder.forward(compressed)
             outputs = torch.from_numpy(decompressed)
 
@@ -33,7 +36,7 @@ class CompressionLayer(Module):
             grad_output = ctx.decoder.backward(grad_output)
             grad_output = ctx.encoder.backward(grad_output)
             
-            return grad_output, None, None
+            return grad_output, None, None, None
 
         
     def __init__(self, encoder_name='noop_encoder', decoder_name='noop_decoder',
@@ -41,12 +44,18 @@ class CompressionLayer(Module):
         super(CompressionLayer, self).__init__()
 
         self.encoder = nnfc_codec.EncoderContext(encoder_name, encoder_params_dict)
-        self.decode = nnfc_codec.DecoderContext(decoder_name, decoder_params_dict)
-        self.outputs = torch.FloatTensor()        
+        self.decoder = nnfc_codec.DecoderContext(decoder_name, decoder_params_dict)
 
+        self.running_stats = {}
+
+        
+    def get_compressed_sizes(self):
+
+        return self.running_stats['sizeof_intermediates']
+        
         
     def forward(self, inputs):
 
-        outputs = CompressionLayer.CompressionLayerFunc.apply(inputs, self.encoder, self.decode)
+        outputs = CompressionLayer.CompressionLayerFunc.apply(inputs, self.encoder, self.decoder, self.running_stats)
         return outputs
 
