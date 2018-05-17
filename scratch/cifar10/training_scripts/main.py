@@ -27,6 +27,7 @@ import numpy as np
 import lenet
 import simplenet
 import resnet
+import resnet_with_compression
 import mobilenet
 import mobilenetv2
 import densenet
@@ -34,13 +35,17 @@ import dpn
 import preact_resnet
 
 logging.basicConfig(level=logging.DEBUG)
-use_cuda = torch.cuda.is_available()
-
+try:
+    use_cuda = torch.cuda.is_available()
+except:
+    use_cuda = False
+    
 # TODO(jremmons) add a better programmatic interface for defining network architecture
 
 networks = {
     'lenet' : lenet.LeNet(),
     'simplenet9' : simplenet.SimpleNet9(),
+    'resnet18JPEG' : resnet_with_compression.ResNet18(),
     'resnet18' : resnet.ResNet18(),
     'resnet101' : resnet.ResNet101(),
     'mobilenetslimplus' : mobilenet.MobileNetSlimPlus(),
@@ -124,6 +129,9 @@ def train(model, epoch, loss_fn, optimizer, trainloader):
 def test(model, loss_fn, testloader):
 
     model.eval()
+
+    # TODO remove
+    sizes = []
     
     test_loss = 0
     correct = 0
@@ -143,6 +151,8 @@ def test(model, loss_fn, testloader):
         t2 = timeit.default_timer()
         #print('fwd:', t2-t1)
 
+        sizes += model.get_compressed_sizes()
+        
         test_loss += loss_fn(output, batch_labels).data.item()
         pred = output.data.max(1, keepdim=True)[1]
         correct += pred.eq(batch_labels.data.view_as(pred)).long().cpu().sum().item()
@@ -154,13 +164,18 @@ def test(model, loss_fn, testloader):
     t2 = timeit.default_timer()
     logging.info('Test Epoch took {} seconds'.format(t2-t1))
 
+    print('num trials:', len(sizes))
+    print('mean', np.mean(np.asarray(sizes)))
+    print('median', np.median(np.asarray(sizes)))
+    print('std', np.std(np.asarray(sizes)))
+    
     return {
         'validation_top1' : correct / count,
         'validation_loss' : test_loss
         }
 
     
-def main(checkpoint_dir, resume, config):
+def main(checkpoint_dir, test_run, resume, config):
 
     logging.info('loading data into memory')
     with h5py.File(config['data_hdf5'], 'r') as f:
@@ -198,12 +213,12 @@ def main(checkpoint_dir, resume, config):
     initial_epoch = 0
     net = None
 
-    if not resume:
+    if not resume and not test_run:
         net = nn.DataParallel(networks[config['network_name']])
         if use_cuda:
             net.cuda()
 
-    elif resume:
+    elif resume or test_run:
         checkpoints = glob.glob(os.path.join(checkpoint_dir, 'checkpoint-epoch*.h5'))
         checkpoints = list(reversed(sorted(checkpoints)))
 
@@ -230,12 +245,14 @@ def main(checkpoint_dir, resume, config):
 
         # restore the parameters to the value was stored in hdf5 file
         checkpoint_filename = os.path.abspath(os.path.join(checkpoint_dir, latest_checkpoint))
-        logging.info('restoring parameters')
-        net = torch.load(latest_pytorch_checkpoint)
+        logging.info('restoring parameters: ' +  checkpoint_filename)
+        #net = torch.load(latest_pytorch_checkpoint)
+        net = networks[config['network_name']].cuda()
         with h5py.File(checkpoint_filename, 'r') as f:
 
+            model_params = net.state_dict()
             for key in net.state_dict().keys():
-                net.state_dict()[key] = np.asarray(f[key])
+                model_params[key].data.copy_(torch.from_numpy(np.asarray(f[key])))
 
 
     current_lr = get_learning_rate(initial_epoch, config['learning_rate'])
@@ -251,12 +268,15 @@ def main(checkpoint_dir, resume, config):
                 logging.info('learning rate changed to: {}'.format(new_lr))
                 optimizer = optim.SGD(net.parameters(), lr=new_lr, momentum=0.9, weight_decay=5e-4)
                 current_lr = new_lr
+
+            logging.info('begin testing epoch: {}'.format(epoch))
+            test_log = test(net, loss_fn, testloader)
+            if test_run:
+                logging.warning('Exiting because `--test_run` was used.')
+                break
             
             logging.info('begin training epoch: {}'.format(epoch))
             train_log = train(net, epoch, loss_fn, optimizer, trainloader)
-            
-            logging.info('begin testing epoch: {}'.format(epoch))
-            test_log = test(net, loss_fn, testloader)
             
             if epoch % 5 == 0 or epoch in [1,2,3,4,5]:
                 checkpoint_filename = os.path.abspath(os.path.join(checkpoint_dir,
@@ -314,8 +334,8 @@ if __name__ == '__main__':
     
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('checkpoint_dir', type=str)
+    parser.add_argument('--test_run',  action='store_true')
     parser.add_argument('--resume',  action='store_true')
-
     parser.add_argument('--json_config', type=str)
 
     args = parser.parse_args()
@@ -328,7 +348,7 @@ if __name__ == '__main__':
 
     experiment_configuration = {}
         
-    if args.resume:
+    if args.resume or args.test_run:
         metadata_filename = os.path.join(args.checkpoint_dir, 'metadata.json')
         logging.info('loading parameters from checkpoint: {}.'.format(metadata_filename))
 
@@ -395,4 +415,4 @@ if __name__ == '__main__':
     logging.info('using the following configuration...')
     logging.info(json.dumps(experiment_configuration, indent=4, sort_keys=True))
 
-    main(args.checkpoint_dir, args.resume, experiment_configuration)
+    main(args.checkpoint_dir, args.test_run, args.resume, experiment_configuration)
