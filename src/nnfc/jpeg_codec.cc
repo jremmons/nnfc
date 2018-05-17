@@ -20,13 +20,13 @@ nnfc::JPEGEncoder::~JPEGEncoder()
 
 std::vector<uint8_t> nnfc::JPEGEncoder::forward(nn::Tensor<float, 3> input)
 {
-    auto total_t1 = std::chrono::high_resolution_clock::now();
+    // auto total_t1 = std::chrono::high_resolution_clock::now();
 
     uint64_t dim0 = input.dimension(0);
     uint64_t dim1 = input.dimension(1);
     uint64_t dim2 = input.dimension(2);
 
-    auto min_max_t1 = std::chrono::high_resolution_clock::now();
+    // auto min_max_t1 = std::chrono::high_resolution_clock::now();
     float min = input(0,0,0);
     float max = input(0,0,0);
     for(size_t channel = 0; channel < dim0; channel++) {
@@ -45,7 +45,7 @@ std::vector<uint8_t> nnfc::JPEGEncoder::forward(nn::Tensor<float, 3> input)
             }
         }
     }
-    auto min_max_t2 = std::chrono::high_resolution_clock::now();
+    // auto min_max_t2 = std::chrono::high_resolution_clock::now();
     //std::cout << min << " " << max << "\n";    
     
     // create a square grid for the activations to go into
@@ -53,10 +53,10 @@ std::vector<uint8_t> nnfc::JPEGEncoder::forward(nn::Tensor<float, 3> input)
     const size_t jpeg_height = jpeg_chunks*dim1;
     const size_t jpeg_width = jpeg_chunks*dim2;
 
-    auto buffer_allocate_t1 = std::chrono::high_resolution_clock::now();
+    // auto buffer_allocate_t1 = std::chrono::high_resolution_clock::now();
     std::vector<uint8_t> buffer(jpeg_height * jpeg_width+1024);
     std::fill(buffer.begin(), buffer.end(), 0);    
-    auto buffer_allocate_t2 = std::chrono::high_resolution_clock::now();
+    // auto buffer_allocate_t2 = std::chrono::high_resolution_clock::now();
 
     // compute the strides for laying out the data in memory
     const size_t row_channel_stride = dim1 * dim2;
@@ -65,7 +65,7 @@ std::vector<uint8_t> nnfc::JPEGEncoder::forward(nn::Tensor<float, 3> input)
     const size_t col_stride = 1;
 
     // swizzle the data into the right memory layout
-    auto swizzle_t1 = std::chrono::high_resolution_clock::now();
+    // auto swizzle_t1 = std::chrono::high_resolution_clock::now();
     for(size_t row_channel = 0; row_channel < jpeg_chunks*jpeg_chunks; row_channel += jpeg_chunks) {
 
         for(size_t row = 0; row < dim1; row++) {
@@ -87,18 +87,19 @@ std::vector<uint8_t> nnfc::JPEGEncoder::forward(nn::Tensor<float, 3> input)
             }
         }
     }
-    auto swizzle_t2 = std::chrono::high_resolution_clock::now();
+    // auto swizzle_t2 = std::chrono::high_resolution_clock::now();
 
     // jpeg compress the data
-    auto compress_t1 = std::chrono::high_resolution_clock::now();
+    // auto compress_t1 = std::chrono::high_resolution_clock::now();
     long unsigned int jpeg_size = 0;
     unsigned char* compressed_image = nullptr;
     tjCompress2(jpeg_compressor.get(), buffer.data(), jpeg_width, 0, jpeg_height, TJPF_GRAY,
                 &compressed_image, &jpeg_size, TJSAMP_GRAY, quantizer_, TJFLAG_FASTDCT);
-    auto compress_t2 = std::chrono::high_resolution_clock::now();
+    // auto compress_t2 = std::chrono::high_resolution_clock::now();
 
+    // std::cout << "jpeg_size: " << jpeg_size << "\n";
     
-    auto serialize_t1 = std::chrono::high_resolution_clock::now();
+    // auto serialize_t1 = std::chrono::high_resolution_clock::now();
     std::vector<uint8_t> encoding(jpeg_size);
     std::memcpy(encoding.data(), compressed_image, jpeg_size);
     tjFree(compressed_image);    
@@ -124,22 +125,22 @@ std::vector<uint8_t> nnfc::JPEGEncoder::forward(nn::Tensor<float, 3> input)
     for(size_t i = 0; i < sizeof(uint64_t); i++){
         encoding.push_back(dim2_bytes[i]);
     }
-    auto serialize_t2 = std::chrono::high_resolution_clock::now();
+    // auto serialize_t2 = std::chrono::high_resolution_clock::now();
 
-    auto total_t2 = std::chrono::high_resolution_clock::now();
-    const double total_time = std::chrono::duration_cast<std::chrono::duration<double>>(total_t2 - total_t1).count();
+    // auto total_t2 = std::chrono::high_resolution_clock::now();
+    // const double total_time = std::chrono::duration_cast<std::chrono::duration<double>>(total_t2 - total_t1).count();
 
-    std::cout << "min_max:\t" << std::chrono::duration_cast<std::chrono::duration<double>>(min_max_t2 - min_max_t1).count() << "\t" <<
-        std::chrono::duration_cast<std::chrono::duration<double>>(min_max_t2 - min_max_t1).count() / total_time << "\n";
-    std::cout << "buffer_alloc:\t" << std::chrono::duration_cast<std::chrono::duration<double>>(buffer_allocate_t2 - buffer_allocate_t1).count() << "\t" <<
-        std::chrono::duration_cast<std::chrono::duration<double>>(buffer_allocate_t2 - buffer_allocate_t1).count() / total_time << "\n";
-    std::cout << "swizzle:\t" << std::chrono::duration_cast<std::chrono::duration<double>>(swizzle_t2 - swizzle_t1).count() << "\t" <<
-        std::chrono::duration_cast<std::chrono::duration<double>>(swizzle_t2 - swizzle_t1).count() / total_time << "\n";
-    std::cout << "compress:\t" << std::chrono::duration_cast<std::chrono::duration<double>>(compress_t2 - compress_t1).count() << "\t" <<
-        std::chrono::duration_cast<std::chrono::duration<double>>(compress_t2 - compress_t1).count() / total_time << "\n";
-    std::cout << "serialize:\t" << std::chrono::duration_cast<std::chrono::duration<double>>(serialize_t2 - serialize_t1).count() << "\t" <<
-        std::chrono::duration_cast<std::chrono::duration<double>>(serialize_t2 - serialize_t1).count() / total_time << "\n";
-    std::cout << ">>>total:\t" << total_time << "\n";
+    // std::cout << "min_max:\t" << std::chrono::duration_cast<std::chrono::duration<double>>(min_max_t2 - min_max_t1).count() << "\t" <<
+    //     std::chrono::duration_cast<std::chrono::duration<double>>(min_max_t2 - min_max_t1).count() / total_time << "\n";
+    // std::cout << "buffer_alloc:\t" << std::chrono::duration_cast<std::chrono::duration<double>>(buffer_allocate_t2 - buffer_allocate_t1).count() << "\t" <<
+    //     std::chrono::duration_cast<std::chrono::duration<double>>(buffer_allocate_t2 - buffer_allocate_t1).count() / total_time << "\n";
+    // std::cout << "swizzle:\t" << std::chrono::duration_cast<std::chrono::duration<double>>(swizzle_t2 - swizzle_t1).count() << "\t" <<
+    //     std::chrono::duration_cast<std::chrono::duration<double>>(swizzle_t2 - swizzle_t1).count() / total_time << "\n";
+    // std::cout << "compress:\t" << std::chrono::duration_cast<std::chrono::duration<double>>(compress_t2 - compress_t1).count() << "\t" <<
+    //     std::chrono::duration_cast<std::chrono::duration<double>>(compress_t2 - compress_t1).count() / total_time << "\n";
+    // std::cout << "serialize:\t" << std::chrono::duration_cast<std::chrono::duration<double>>(serialize_t2 - serialize_t1).count() << "\t" <<
+    //     std::chrono::duration_cast<std::chrono::duration<double>>(serialize_t2 - serialize_t1).count() / total_time << "\n";
+    // std::cout << ">>>total:\t" << total_time << "\n";
 
     return encoding;    
 }
@@ -186,7 +187,7 @@ nn::Tensor<float, 3> nnfc::JPEGDecoder::forward(std::vector<uint8_t> input)
         min_bytes[i] = input[i + min_offset];
         max_bytes[i] = input[i + max_offset];
     }    
-    std::cout << min << " " << max << "\n";
+    // std::cout << min << " " << max << "\n";
     
     const size_t jpeg_chunks = std::ceil(std::sqrt(dim0));
     // const size_t jpeg_height = jpeg_chunks*dim1;
