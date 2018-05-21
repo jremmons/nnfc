@@ -10,6 +10,8 @@
 #include "tensor.hh"
 #include "jpeg_codec.hh"
 
+using namespace std;
+
 nnfc::JPEGEncoder::JPEGEncoder(int quantizer) :
     quantizer_(quantizer),
     jpeg_compressor(tjInitCompress(), [](void* ptr){ tjDestroy(ptr); })
@@ -18,7 +20,7 @@ nnfc::JPEGEncoder::JPEGEncoder(int quantizer) :
 nnfc::JPEGEncoder::~JPEGEncoder()
 { }
 
-std::vector<uint8_t> nnfc::JPEGEncoder::forward(nn::Tensor<float, 3> input)
+vector<uint8_t> nnfc::JPEGEncoder::forward(nn::Tensor<float, 3> input)
 {
     const uint64_t dim0 = input.dimension(0);
     const uint64_t dim1 = input.dimension(1);
@@ -28,12 +30,12 @@ std::vector<uint8_t> nnfc::JPEGEncoder::forward(nn::Tensor<float, 3> input)
     const float max = input.maximum();
 
     // create a square grid for the activations to go into
-    const size_t jpeg_chunks = std::ceil(std::sqrt(dim0));
+    const size_t jpeg_chunks = ceil(sqrt(dim0));
     const size_t jpeg_height = jpeg_chunks * dim1;
     const size_t jpeg_width = jpeg_chunks * dim2;
 
-    std::vector<uint8_t> buffer(jpeg_height * jpeg_width + 1024);
-    std::fill(buffer.begin(), buffer.end(), 0);
+    vector<uint8_t> buffer(jpeg_height * jpeg_width + 1024);
+    fill(buffer.begin(), buffer.end(), 0);
 
     // compute the strides for laying out the data in memory
     const size_t row_channel_stride = dim1 * dim2;
@@ -71,8 +73,8 @@ std::vector<uint8_t> nnfc::JPEGEncoder::forward(nn::Tensor<float, 3> input)
                 &compressed_image, &jpeg_size, TJSAMP_GRAY, quantizer_, TJFLAG_FASTDCT);
 
     // serialize
-    std::vector<uint8_t> encoding(jpeg_size);
-    std::memcpy(encoding.data(), compressed_image, jpeg_size);
+    vector<uint8_t> encoding(jpeg_size);
+    memcpy(encoding.data(), compressed_image, jpeg_size);
     tjFree(compressed_image);
 
     const uint8_t *min_bytes = reinterpret_cast<const uint8_t *>(&min);
@@ -114,7 +116,7 @@ nnfc::JPEGDecoder::JPEGDecoder() :
 nnfc::JPEGDecoder::~JPEGDecoder()
 { }
 
-nn::Tensor<float, 3> nnfc::JPEGDecoder::forward(std::vector<uint8_t> input)
+nn::Tensor<float, 3> nnfc::JPEGDecoder::forward(vector<uint8_t> input)
 {
 
     uint64_t dim0;
@@ -144,9 +146,9 @@ nn::Tensor<float, 3> nnfc::JPEGDecoder::forward(std::vector<uint8_t> input)
         min_bytes[i] = input[i + min_offset];
         max_bytes[i] = input[i + max_offset];
     }
-    // std::cout << min << " " << max << "\n";
+    // cout << min << " " << max << "\n";
 
-    const size_t jpeg_chunks = std::ceil(std::sqrt(dim0));
+    const size_t jpeg_chunks = ceil(sqrt(dim0));
     // const size_t jpeg_height = jpeg_chunks*dim1;
     // const size_t jpeg_width = jpeg_chunks*dim2;
 
@@ -155,10 +157,10 @@ nn::Tensor<float, 3> nnfc::JPEGDecoder::forward(std::vector<uint8_t> input)
     int jpegSubsamp, width, height;
     tjDecompressHeader2(jpeg_decompressor.get(), input.data(), jpeg_size, &width, &height, &jpegSubsamp);
 
-    // std::cout << jpeg_height << " " << height << "\n";
-    // std::cout << jpeg_width << " " << width << "\n";
+    // cout << jpeg_height << " " << height << "\n";
+    // cout << jpeg_width << " " << width << "\n";
 
-    std::vector<uint8_t> buffer(width * height);
+    vector<uint8_t> buffer(width * height);
 
     tjDecompress2(jpeg_decompressor.get(), input.data(), jpeg_size, buffer.data(), width, 0/*pitch*/, height, TJPF_GRAY, TJFLAG_FASTDCT);
 
