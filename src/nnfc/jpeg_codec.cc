@@ -52,15 +52,10 @@ vector<uint8_t> nnfc::JPEGEncoder::forward(nn::Tensor<float, 3> input)
         for(size_t row = 0; row < dim1; row++) {
             for(size_t channel = 0; channel < jpeg_chunks; channel++) {
                 if(row_channel + channel < dim0) {
-                    for(size_t col = 0; col < dim2; col++) {
-                        const float val = input_q(row_channel + channel, row, col);
-                        const size_t offset = row_channel_stride * row_channel +
-                                              row_stride * row +
-                                              channel_stride * channel +
-                                              col;
-
-                        buffer[offset] = val;
-                    }
+                    const size_t offset = row_channel_stride * row_channel +
+                                          row_stride * row +
+                                          channel_stride * channel;
+                    memcpy(&buffer[offset], &input_q(row_channel + channel, row, 0), dim2);
                 }
             }
         }
