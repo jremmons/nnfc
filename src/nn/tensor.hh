@@ -24,7 +24,7 @@ namespace nn {
         {
             return tensor_.data();
         }
-        
+
     public:
         // Note: this constructor does not take ownership of the
         // input `data`. As a result, the `data` pointer is
@@ -65,13 +65,13 @@ namespace nn {
         { }
 
         // All other constructors call this constructor eventually. If
-        // possible, use this constructor directly though. 
+        // possible, use this constructor directly though.
         Tensor(std::shared_ptr<T> data, const Eigen::DSizes<Eigen::Index, ndims> size) :
             size_(size),
             data_(data),
             tensor_(Eigen::TensorMap<Eigen::Tensor<T, ndims, Eigen::RowMajor>>(data_.get(), size_))
-        { }               
-        
+        { }
+
         ~Tensor() { }
 
         Tensor<T, ndims> operator=(Tensor<T, ndims> rhs) = delete;
@@ -82,7 +82,7 @@ namespace nn {
             std::memcpy(new_tensor.data(), tensor_.data(), size_.TotalSize());
             return new_tensor;
         }
-        
+
         Eigen::Index dimension(const Eigen::Index dim) const
         {
             return tensor_.dimension(dim);
@@ -97,6 +97,9 @@ namespace nn {
         {
             return tensor_.rank();
         }
+
+        T maximum() const { return ((Eigen::Tensor<T, 0, Eigen::RowMajor>)tensor_.maximum())(0); }
+        T minimum() const { return ((Eigen::Tensor<T, 0, Eigen::RowMajor>)tensor_.minimum())(0); }
 
         template<typename... Indices>
         inline T& operator()(const Indices ...indices)
