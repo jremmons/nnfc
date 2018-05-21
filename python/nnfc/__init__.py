@@ -4,12 +4,12 @@
 import torch as __nnfc_torch; __nnfc_torch = None
 
 # try to import the cuda functions into the global namespace
-try:
-    from ._ext.nnfc_codec import tensor_memcpy_d2h
-    from ._ext.nnfc_codec import tensor_memcpy_h2d
-except:
-    # could not import the cuda functions
-    pass
+# try:
+#     from ._ext.nnfc_codec import tensor_memcpy_d2h
+#     from ._ext.nnfc_codec import tensor_memcpy_h2d
+# except:
+#     # could not import the cuda functions
+#     pass
 
 from ._ext.nnfc_codec import available_decoders
 from ._ext.nnfc_codec import available_encoders

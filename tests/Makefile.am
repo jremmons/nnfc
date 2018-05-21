@@ -59,7 +59,6 @@ dist_check_SCRIPTS = pythonpath_python.test \
                      nnfc_python.test \
                      jpeg_python.test \
                      nnfc_codecs_python.test \
-                     gpu2cpu_python.test \
                      avgpool_cpp.test \
                      batchnorm_cpp.test \
                      batchnorm_hl_cpp.test \
@@ -70,6 +69,8 @@ dist_check_SCRIPTS = pythonpath_python.test \
                      relu_hl_cpp.test \
                      composed_hl_cpp.test \
                      simplecnn_hl_cpp.test
+
+#gpu2cpu_python.test 
 
 AM_TESTS_ENVIRONMENT = ./test-environment.sh
 
