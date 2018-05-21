@@ -41,7 +41,6 @@ vector<uint8_t> nnfc::JPEGEncoder::forward(nn::Tensor<float, 3> input)
     const size_t row_channel_stride = dim1 * dim2;
     const size_t row_stride = jpeg_chunks * dim2;
     const size_t channel_stride = dim2;
-    const size_t col_stride = 1;
 
     Eigen::Tensor<uint8_t, 3, Eigen::RowMajor> input_q =
       ((input.tensor() - min) * (255 / (max - min))).cast<uint8_t>();
@@ -58,7 +57,7 @@ vector<uint8_t> nnfc::JPEGEncoder::forward(nn::Tensor<float, 3> input)
                         const size_t offset = row_channel_stride * row_channel +
                                               row_stride * row +
                                               channel_stride * channel +
-                                              col_stride * col;
+                                              col;
 
                         buffer[offset] = val;
                     }
