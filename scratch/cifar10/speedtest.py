@@ -17,7 +17,9 @@ import torch.nn.functional as F
 import sys
 
 import resnet
+import resnet_with_compression
 import mobilenet
+import mobilenetv2
 import simplenet
 
 N = 10
@@ -34,16 +36,21 @@ def main(args):
     input_x = torch.autograd.Variable(torch.from_numpy(input_x)).cpu()
 
     tests = [
+        ('simplenet7_thin', simplenet.SimpleNet7_thin()),
+        ('simplenet7', simplenet.SimpleNet7()),
+        ('simplenet9_mobile', simplenet.SimpleNet9_mobile()),
+        ('simplenet9_thin', simplenet.SimpleNet9_thin()),
         ('simplenet9', simplenet.SimpleNet9()),
         ('resnet18', resnet.ResNet18()),
+        ('resnet18JPEG', resnet_with_compression.ResNet18()),
+        ('mobilenet2', mobilenetv2.MobileNetV2()),
         ('mobilenet', mobilenet.MobileNet()),
     ]
 
 
     for test in tests:
-
         net_name = test[0]
-        net = test[1]
+        net = test[1].eval()
         
         time = []
         for _ in range(N):

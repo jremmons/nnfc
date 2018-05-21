@@ -45,6 +45,10 @@ except:
 networks = {
     'lenet' : lenet.LeNet(),
     'simplenet9' : simplenet.SimpleNet9(),
+    'simplenet9_thin' : simplenet.SimpleNet9_thin(),
+    'simplenet9_mobile' : simplenet.SimpleNet9_mobile(),
+    'simplenet7' : simplenet.SimpleNet7(),
+    'simplenet7_thin' : simplenet.SimpleNet7_thin(),
     'resnet18JPEG' : resnet_with_compression.ResNet18(),
     'resnet18' : resnet.ResNet18(),
     'resnet101' : resnet.ResNet101(),
@@ -151,7 +155,7 @@ def test(model, loss_fn, testloader):
         t2 = timeit.default_timer()
         #print('fwd:', t2-t1)
 
-        sizes += model.get_compressed_sizes()
+        #sizes += model.get_compressed_sizes()
         
         test_loss += loss_fn(output, batch_labels).data.item()
         pred = output.data.max(1, keepdim=True)[1]
