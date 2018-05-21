@@ -20,34 +20,13 @@ nnfc::JPEGEncoder::~JPEGEncoder()
 
 std::vector<uint8_t> nnfc::JPEGEncoder::forward(nn::Tensor<float, 3> input)
 {
-    // auto total_t1 = std::chrono::high_resolution_clock::now();
-
     uint64_t dim0 = input.dimension(0);
     uint64_t dim1 = input.dimension(1);
     uint64_t dim2 = input.dimension(2);
 
-    // auto min_max_t1 = std::chrono::high_resolution_clock::now();
-    float min = input(0,0,0);
-    float max = input(0,0,0);
-    for(size_t channel = 0; channel < dim0; channel++) {
-        for(size_t row = 0; row < dim1; row++) {
-            for(size_t col = 0; col < dim2; col++) {
-                
-                float val = input(channel, row, col);
+    float min = input.minimum();
+    float max = input.maximum();
 
-                if(val > max) {
-                    max = val;
-                }
-                if(val < min) {
-                    min = val;
-                }
-                
-            }
-        }
-    }
-    // auto min_max_t2 = std::chrono::high_resolution_clock::now();
-    //std::cout << min << " " << max << "\n";    
-    
     // create a square grid for the activations to go into
     const size_t jpeg_chunks = std::ceil(std::sqrt(dim0));
     const size_t jpeg_height = jpeg_chunks*dim1;
@@ -55,7 +34,7 @@ std::vector<uint8_t> nnfc::JPEGEncoder::forward(nn::Tensor<float, 3> input)
 
     // auto buffer_allocate_t1 = std::chrono::high_resolution_clock::now();
     std::vector<uint8_t> buffer(jpeg_height * jpeg_width+1024);
-    std::fill(buffer.begin(), buffer.end(), 0);    
+    std::fill(buffer.begin(), buffer.end(), 0);
     // auto buffer_allocate_t2 = std::chrono::high_resolution_clock::now();
 
     // compute the strides for laying out the data in memory
@@ -73,15 +52,15 @@ std::vector<uint8_t> nnfc::JPEGEncoder::forward(nn::Tensor<float, 3> input)
 
                 if(row_channel + channel < dim0) {
                     for(size_t col = 0; col < dim2; col++) {
-                        
+
                         const float val = input(row_channel + channel, row, col);
-                        const size_t offset = row_channel_stride*row_channel + 
+                        const size_t offset = row_channel_stride*row_channel +
                                               row_stride*row +
                                               channel_stride*channel +
                                               col_stride*col;
 
                         buffer[offset] = static_cast<uint8_t>((val - min) * (255 / (max - min)));
-                        
+
                     }
                 }
             }
@@ -98,12 +77,12 @@ std::vector<uint8_t> nnfc::JPEGEncoder::forward(nn::Tensor<float, 3> input)
     // auto compress_t2 = std::chrono::high_resolution_clock::now();
 
     // std::cout << "jpeg_size: " << jpeg_size << "\n";
-    
+
     // auto serialize_t1 = std::chrono::high_resolution_clock::now();
     std::vector<uint8_t> encoding(jpeg_size);
     std::memcpy(encoding.data(), compressed_image, jpeg_size);
-    tjFree(compressed_image);    
-    
+    tjFree(compressed_image);
+
     uint8_t *min_bytes = reinterpret_cast<uint8_t*>(&min);
     uint8_t *max_bytes = reinterpret_cast<uint8_t*>(&max);
     for(size_t i = 0; i < sizeof(float); i++){
@@ -112,7 +91,7 @@ std::vector<uint8_t> nnfc::JPEGEncoder::forward(nn::Tensor<float, 3> input)
     for(size_t i = 0; i < sizeof(float); i++){
         encoding.push_back(max_bytes[i]);
     }
-    
+
     uint8_t *dim0_bytes = reinterpret_cast<uint8_t*>(&dim0);
     uint8_t *dim1_bytes = reinterpret_cast<uint8_t*>(&dim1);
     uint8_t *dim2_bytes = reinterpret_cast<uint8_t*>(&dim2);
@@ -142,7 +121,7 @@ std::vector<uint8_t> nnfc::JPEGEncoder::forward(nn::Tensor<float, 3> input)
     //     std::chrono::duration_cast<std::chrono::duration<double>>(serialize_t2 - serialize_t1).count() / total_time << "\n";
     // std::cout << ">>>total:\t" << total_time << "\n";
 
-    return encoding;    
+    return encoding;
 }
 
 nn::Tensor<float, 3> nnfc::JPEGEncoder::backward(nn::Tensor<float, 3> input)
@@ -186,9 +165,9 @@ nn::Tensor<float, 3> nnfc::JPEGDecoder::forward(std::vector<uint8_t> input)
     for(size_t i = 0; i < sizeof(uint64_t); i++){
         min_bytes[i] = input[i + min_offset];
         max_bytes[i] = input[i + max_offset];
-    }    
+    }
     // std::cout << min << " " << max << "\n";
-    
+
     const size_t jpeg_chunks = std::ceil(std::sqrt(dim0));
     // const size_t jpeg_height = jpeg_chunks*dim1;
     // const size_t jpeg_width = jpeg_chunks*dim2;
@@ -200,11 +179,11 @@ nn::Tensor<float, 3> nnfc::JPEGDecoder::forward(std::vector<uint8_t> input)
 
     // std::cout << jpeg_height << " " << height << "\n";
     // std::cout << jpeg_width << " " << width << "\n";
-    
+
     std::vector<uint8_t> buffer(width * height);
-    
+
     tjDecompress2(jpeg_decompressor.get(), input.data(), jpeg_size, buffer.data(), width, 0/*pitch*/, height, TJPF_GRAY, TJFLAG_FASTDCT);
-    
+
     // compute the strides for laying out the data in memory
     const size_t row_channel_stride = dim1 * dim2;
     const size_t row_stride = jpeg_chunks * dim2;
@@ -213,7 +192,7 @@ nn::Tensor<float, 3> nnfc::JPEGDecoder::forward(std::vector<uint8_t> input)
 
     // swizzle the data into the right memory layout
     nn::Tensor<float, 3> output(dim0, dim1, dim2);
-        
+
     for(size_t row_channel = 0; row_channel < jpeg_chunks*jpeg_chunks; row_channel += jpeg_chunks) {
 
         for(size_t row = 0; row < dim1; row++) {
@@ -221,19 +200,19 @@ nn::Tensor<float, 3> nnfc::JPEGDecoder::forward(std::vector<uint8_t> input)
 
                 if(row_channel + channel < dim0) {
                     for(size_t col = 0; col < dim2; col++) {
-                        
-                        const size_t offset = row_channel_stride*row_channel + 
+
+                        const size_t offset = row_channel_stride*row_channel +
                                               row_stride*row +
                                               channel_stride*channel +
                                               col_stride*col;
-                        const double val = buffer[offset]; 
+                        const double val = buffer[offset];
                         output(row_channel + channel, row, col) = static_cast<float>((max-min) * (val/255) + min);
                     }
                 }
             }
         }
-    }  
-    
+    }
+
     return output;
 }
 
