@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(realpath ../src/nnfc/.libs)
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(readlink -f ../src/nnfc/.libs)
 
 lib_count=$(ls ../python/build/ | grep 'lib' | wc -l)
 if [[ $lib_count != '1' ]]; then
@@ -12,7 +12,7 @@ fi
 
 libdir=../python/build/$(ls ../python/build/ | grep 'lib')
 
-export PYTHONPATH=$(realpath $libdir):$PYTHONPATH
+export PYTHONPATH=$(readlink -f $libdir):$PYTHONPATH
 
 export NNFC_TEST_TMPDIR=/tmp/nnfc_test_tmpdir
 mkdir -p $NNFC_TEST_TMPDIR
