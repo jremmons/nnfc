@@ -101,6 +101,9 @@ namespace nn {
         T maximum() const { return ((Eigen::Tensor<T, 0, Eigen::RowMajor>)tensor_.maximum())(0); }
         T minimum() const { return ((Eigen::Tensor<T, 0, Eigen::RowMajor>)tensor_.minimum())(0); }
 
+        const decltype(tensor_) & tensor() const { return tensor_; }
+        decltype(tensor_) & tensor() { return tensor_; }
+
         template<typename... Indices>
         inline T& operator()(const Indices ...indices)
         {
