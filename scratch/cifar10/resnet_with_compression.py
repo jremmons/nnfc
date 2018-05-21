@@ -38,7 +38,6 @@ class BasicBlock(nn.Module):
         out = F.relu(out)
         return out
 
-
 class Bottleneck(nn.Module):
     expansion = 4
 
@@ -66,7 +65,6 @@ class Bottleneck(nn.Module):
         out = F.relu(out)
         return out
 
-
 class ResNet(nn.Module):
     def __init__(self, block, num_blocks, num_classes=10, quantizer=90):
         super(ResNet, self).__init__()
@@ -84,9 +82,7 @@ class ResNet(nn.Module):
                                                        encoder_params_dict={'quantizer' : quantizer},
                                                        decoder_name='jpeg_decoder',
                                                        decoder_params_dict={})
-        
 
-        
     def _make_layer(self, block, planes, num_blocks, stride):
         strides = [stride] + [1]*(num_blocks-1)
         layers = []
@@ -95,22 +91,14 @@ class ResNet(nn.Module):
             self.in_planes = planes * block.expansion
         return nn.Sequential(*layers)
 
-
     def get_compressed_sizes(self):
         return self.nnfc_compression_layer.get_compressed_sizes()
-    
-    
-    def forward(self, x):
-        out = x
 
-        out = F.relu(self.bn1(self.conv1(out)))
+    def forward(self, x):
+        out = F.relu(self.bn1(self.conv1(x)))
         out = self.layer1(out)
         out = self.nnfc_compression_layer(out)
-        return out
-
         out = self.layer2(out)
-
-    
         out = self.layer3(out)
         out = self.layer4(out)
         out = F.avg_pool2d(out, 4)
@@ -133,7 +121,6 @@ def ResNet101():
 
 def ResNet152():
     return ResNet(Bottleneck, [3,8,36,3])
-
 
 def test():
     net = ResNet18()
