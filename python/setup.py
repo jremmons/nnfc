@@ -44,7 +44,7 @@ module = Extension(EXTENSION_NAME,
                    libraries=[] + pytorch_libs,
                    extra_compile_args=['-I../src/nn', '-I../src/nnfc',
                                        '-isystem', './extra_headers'] + pytorch_include,
-                   extra_link_args=['-Wl,-Bstatic', '-lnnfc',
+                   extra_link_args=['-Wl,-Bdynamic', '-lnnfc',
                                     '-Wl,-Bdynamic', '-lturbojpeg',
                                     '-Wl,-Bdynamic', '-lpthread']
                    )
