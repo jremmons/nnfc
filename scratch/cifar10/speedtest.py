@@ -7,13 +7,12 @@ import logging
 import time
 import timeit
 
-import perflib
+# import perflib
 
 import numpy as np
 
 import torch; torch.set_num_threads(1)
 import torch.nn.functional as F
-# import torch.optim as optim
 import sys
 
 import resnet
@@ -43,7 +42,7 @@ def main(args):
         ('simplenet9', simplenet.SimpleNet9()),
         ('resnet18', resnet.ResNet18()),
         ('resnet18JPEG', resnet_with_compression.ResNet18()),
-        ('mobilenet2', mobilenetv2.MobileNetV2()),
+        ('mobilenetv2', mobilenetv2.MobileNetV2()),
         ('mobilenet', mobilenet.MobileNet()),
     ]
 
