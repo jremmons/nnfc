@@ -1,6 +1,8 @@
 #!/bin/bash
 
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(readlink -f ../src/nnfc/.libs)
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(readlink -f $DIR/../src/nnfc/.libs)
 
 lib_count=$(ls ../python/build/ | grep 'lib' | wc -l)
 if [[ $lib_count != '1' ]]; then
@@ -10,7 +12,7 @@ if [[ $lib_count != '1' ]]; then
     exit -1
 fi
 
-libdir=../python/build/$(ls ../python/build/ | grep 'lib')
+libdir=../python/build/$(ls $DIR/../python/build/ | grep 'lib')
 
 export PYTHONPATH=$(readlink -f $libdir):$PYTHONPATH
 
