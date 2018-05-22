@@ -33,7 +33,6 @@ try:
 except:
     use_cuda = False
 
-# TODO(jremmons) add a better programmatic interface for defining network architecture
 
 def train(model, epoch, loss_fn, optimizer, trainloader):
 
@@ -81,9 +80,6 @@ def test(model, loss_fn, testloader):
 
     model.eval()
 
-    # TODO remove
-    sizes = []
-
     test_loss = 0
     correct = 0
     count = testloader.batch_size * len(testloader)
@@ -97,12 +93,7 @@ def test(model, loss_fn, testloader):
             batch_data = batch_data.cuda()
             batch_labels = batch_labels.cuda()
 
-        t1 = timeit.default_timer()
         output = model(batch_data)
-        t2 = timeit.default_timer()
-        #print('fwd:', t2-t1)
-
-        #sizes += model.get_compressed_sizes()
 
         test_loss += loss_fn(output, batch_labels).data.item()
         pred = output.data.max(1, keepdim=True)[1]
@@ -114,11 +105,6 @@ def test(model, loss_fn, testloader):
 
     t2 = timeit.default_timer()
     logging.info('Test Epoch took {} seconds'.format(t2-t1))
-
-    print('num trials:', len(sizes))
-    print('mean', np.mean(np.asarray(sizes)))
-    print('median', np.median(np.asarray(sizes)))
-    print('std', np.std(np.asarray(sizes)))
 
     return {
         'validation_top1' : correct / count,
