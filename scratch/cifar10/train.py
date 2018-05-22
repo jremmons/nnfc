@@ -14,6 +14,9 @@ import glob
 
 from PIL import Image
 
+import cifar10_utils
+from cifar10_networks import cifar10_networks as networks
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -24,16 +27,6 @@ import torchvision.transforms as transforms
 
 import numpy as np
 
-import lenet
-import simplenet
-import resnet
-import resnet_with_compression
-import mobilenet
-import mobilenetv2
-import densenet
-import dpn
-import preact_resnet
-
 logging.basicConfig(level=logging.DEBUG)
 try:
     use_cuda = torch.cuda.is_available()
@@ -41,52 +34,6 @@ except:
     use_cuda = False
 
 # TODO(jremmons) add a better programmatic interface for defining network architecture
-
-networks = {
-    'lenet' : lenet.LeNet(),
-    'simplenet9' : simplenet.SimpleNet9(),
-    'simplenet9_thin' : simplenet.SimpleNet9_thin(),
-    'simplenet9_mobile' : simplenet.SimpleNet9_mobile(),
-    'simplenet7' : simplenet.SimpleNet7(),
-    'simplenet7_thin' : simplenet.SimpleNet7_thin(),
-    'resnet18JPEG' : resnet_with_compression.ResNet18(),
-    'resnet18' : resnet.ResNet18(),
-    'resnet101' : resnet.ResNet101(),
-    'mobilenetslimplus' : mobilenet.MobileNetSlimPlus(),
-    'mobilenetslim' : mobilenet.MobileNetSlim(),
-    'mobilenet' : mobilenet.MobileNet(),
-    'mobilenetv2' : mobilenetv2.MobileNetV2(),
-    'densenet121' : densenet.DenseNet121(),
-    'dpn92' : dpn.DPN92(),
-    'preact_resnet18' : preact_resnet.PreActResNet18(),
-    }
-
-
-class Cifar10(torch.utils.data.Dataset):
-
-    def __init__(self, data_raw, data_labels, transform=None):
-
-        r = data_raw[:,0,:,:]
-        g = data_raw[:,1,:,:]
-        b = data_raw[:,2,:,:]
-
-        self.data_raw = np.stack([r,g,b], axis=-1)
-        self.data_labels = data_labels
-        self.transform = transform
-
-    def __len__(self):
-
-        return len(self.data_raw)
-
-    def __getitem__(self, idx):
-
-        image = Image.fromarray(self.data_raw[idx,:,:,:])
-
-        if self.transform:
-            image = self.transform(image)
-
-        return image, self.data_labels[idx].astype(np.int64)
-
 
 def train(model, epoch, loss_fn, optimizer, trainloader):
 
@@ -201,17 +148,14 @@ def main(checkpoint_dir, test_run, resume, config):
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
     ])
 
-    trainset = Cifar10(train_data_raw, train_data_labels, transform=transform_train)
+    trainset = cifar10_utils.Cifar10(train_data_raw, train_data_labels, transform=transform_train)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=config['batch_size'], shuffle=True, num_workers=2)
 
-    testset = Cifar10(test_data_raw, test_data_labels, transform=transform_test)
+    testset = cifar10_utils.Cifar10(test_data_raw, test_data_labels, transform=transform_test)
     testloader = torch.utils.data.DataLoader(testset, batch_size=config['batch_size'], shuffle=False, num_workers=2)
 
     shutil.copy(config['data_hdf5'], checkpoint_dir)
 
-    #optimizer = optim.Adam(net.parameters(), lr=args.lr)
-    #optimizer = optim.Adagrad(net.parameters(), lr=args.lr, lr_decay=0.01)
-    #optimizer = optim.RMSprop(net.parameters(), lr=args.lr)
     loss_fn = torch.nn.CrossEntropyLoss()
 
     initial_epoch = 0
@@ -323,17 +267,6 @@ def get_learning_rate(epoch, learning_rate_dict):
         )))
 
 
-def check_for_required_params(d):
-
-    keys = d.keys()
-    assert 'data_hdf5' in keys
-    assert 'network_name' in keys
-    assert 'learning_rate' in keys
-    assert 'batch_size' in keys
-    assert 'num_epochs' in keys
-    assert 'parameter_initialization' in keys
-
-
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='')
@@ -359,7 +292,7 @@ if __name__ == '__main__':
         with open(metadata_filename, 'r') as f:
             config = json.loads(f.read())
 
-        check_for_required_params(config)
+        cifar10_utils.check_for_required_params(config)
         keys = list(config.keys())
         assert 'creation_time' in keys
         assert 'data_hdf5' in keys
@@ -375,7 +308,7 @@ if __name__ == '__main__':
         with open(args.json_config) as f:
             config = json.loads(f.read())
 
-        check_for_required_params(config)
+        cifar10_utils.check_for_required_params(config)
 
         assert os.path.exists(config['data_hdf5']), 'the data_hdf5" field must be set and the data file must exist.'
         assert config['network_name'] in networks, 'the "network_name" field must be set and name a known network.'
