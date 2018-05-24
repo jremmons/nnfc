@@ -9,6 +9,7 @@ import json
 import logging
 import time
 import timeit
+import perflib
 import sys
 import glob
 
@@ -25,14 +26,14 @@ import torchvision.transforms as transforms
 
 import numpy as np
 
-
 logging.basicConfig(level=logging.DEBUG)
 try:
     use_cuda = torch.cuda.is_available()
 except:
     use_cuda = False
 
-
+N = 100
+    
 def test(model, loss_fn, testloader):
 
     model.eval()
@@ -135,23 +136,89 @@ def main(checkpoint_dir, config):
         # compute the accuracy on the test set
         ##############################################################
         test_log = test(net, loss_fn, testloader)
-
+        print(json.dumps(test_log, indent=4, sort_keys=True))
+        
         ##############################################################
         # record the execution time
         ##############################################################
-        # todo add
+        input_x = np.random.randn(1,3,32,32).astype(np.float32)
+        input_x = torch.autograd.Variable(torch.from_numpy(input_x)).cpu()
 
+        net = net.cpu()
+        out = net(input_x)
+        times = []
+        for _ in range(N):
+            t1 = timeit.default_timer()
+            out = net(input_x)
+            t2 = timeit.default_timer()
+            times.append(t2 - t1)
+
+        times = np.asarray(times)
+            
+        print(json.dumps({
+            'name' : 'time', 
+            'count' : N,
+            'mean' : np.mean(times),
+            'median' : np.mean(times),
+            'std' : np.std(times),
+        }, indent=4, sort_keys=True))
+            
+        
         ##############################################################
         # record the number of cycles
         ##############################################################
-        # todo add
+        input_x = np.random.randn(1,3,32,32).astype(np.float32)
+        input_x = torch.autograd.Variable(torch.from_numpy(input_x)).cpu()
 
+        instruction_counter = perflib.PerfCounter(counter_name='LIBPERF_COUNT_HW_INSTRUCTIONS')
+        
+        net = net.cpu()
+        out = net(input_x)
+        instructions = []
+        for _ in range(N):
+            instruction_counter.start()
+            out = net(input_x)
+            instruction_counter.stop()
+            instructions.append(instruction_counter.getval())
+            instruction_counter.reset()
+            
+        instructions = np.asarray(instructions)
+            
+        print(json.dumps({
+            'name' : 'instructions', 
+            'count' : N,
+            'mean' : np.mean(instructions),
+            'median' : np.mean(instructions),
+            'std' : np.std(instructions),
+        }, indent=4, sort_keys=True))
 
         ##############################################################
         # record the number of instructions retired
         ##############################################################
-        # todo add
+        input_x = np.random.randn(1,3,32,32).astype(np.float32)
+        input_x = torch.autograd.Variable(torch.from_numpy(input_x)).cpu()
+
+        cycle_counter = perflib.PerfCounter(counter_name='LIBPERF_COUNT_HW_CPU_CYCLES')
         
+        net = net.cpu()
+        out = net(input_x)
+        cycles = []
+        for _ in range(N):
+            cycle_counter.start()
+            out = net(input_x)
+            cycle_counter.stop()
+            cycles.append(cycle_counter.getval())
+            cycle_counter.reset()
+            
+        cycles = np.asarray(cycles)
+            
+        print(json.dumps({
+            'name' : 'cycles', 
+            'count' : N,
+            'mean' : np.mean(cycles),
+            'median' : np.mean(cycles),
+            'std' : np.std(cycles),
+        }, indent=4, sort_keys=True))
         
         
 if __name__ == '__main__':
