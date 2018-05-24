@@ -181,7 +181,10 @@ def main(checkpoint_dir, test_run, resume, config):
         checkpoint_filename = os.path.abspath(os.path.join(checkpoint_dir, latest_checkpoint))
         logging.info('restoring parameters: ' +  checkpoint_filename)
         #net = torch.load(latest_pytorch_checkpoint)
-        net = networks[config['network_name']].cuda()
+
+        net = networks[config['network_name']]
+        if use_cuda:
+            net = net.cuda()
         with h5py.File(checkpoint_filename, 'r') as f:
 
             model_params = net.state_dict()
