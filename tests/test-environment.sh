@@ -4,7 +4,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(readlink -f $DIR/../src/nnfc/.libs)
 
-lib_count=$(ls ../python/build/ | grep 'lib' | wc -l)
+lib_count=$(ls $DIR/../python/build/ | grep 'lib' | wc -l)
 if [[ $lib_count != '1' ]]; then
     echo -e '\n\n'
     echo "ERROR: too many python lib dirs! (count: $lib_count) (ls: $(ls ../python/build/))"
