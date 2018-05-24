@@ -13,7 +13,7 @@ namespace nnfc { namespace cxxapi {
         typedef std::reference_wrapper<const std::type_info> TypeInfoRef;
         typedef std::vector<std::pair<std::string, TypeInfoRef>> constructor_type_list;
 
-        
+        // general encoder and decoder interfaces
         class EncoderContextInterface {
         public:
             virtual ~EncoderContextInterface() { }
