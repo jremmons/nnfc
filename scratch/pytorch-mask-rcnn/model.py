@@ -9,6 +9,7 @@ Written by Waleed Abdulla
 
 import datetime
 import math
+import time
 import os
 import random
 import re
@@ -360,8 +361,8 @@ def proposal_layer(inputs, proposal_count, nms_threshold, anchors, config=None):
         std_dev = std_dev.cuda()
 
     t2 = timeit.default_timer()
-    print('cpu2gpu memcpy:', t2-t1)
-    
+    print('cpu2gpu memcpy of RPN std dev:', t2-t1)
+
     deltas = deltas * std_dev
 
     # Improve performance by trimming to top anchors by score
@@ -387,7 +388,18 @@ def proposal_layer(inputs, proposal_count, nms_threshold, anchors, config=None):
     # for small objects, so we're skipping it.
 
     # Non-max suppression
+    t1 = timeit.default_timer()
+    py_keep = utils.py_nms_numpy(torch.cat((boxes, scores.unsqueeze(1)), 1).data, nms_threshold)
+    t2 = timeit.default_timer()
+    torch_keep = utils.py_nms_torch(torch.cat((boxes, scores.unsqueeze(1)), 1).data, nms_threshold)
+    t3 = timeit.default_timer()
     keep = nms(torch.cat((boxes, scores.unsqueeze(1)), 1).data, nms_threshold)
+    t4 = timeit.default_timer()
+    print('Region proposals NMS')
+    print('     numpy ', t2-t1)
+    print('     torch ', t3-t2)
+    print('     C ', t4-t3)
+    print('')
     keep = keep[:proposal_count]
     boxes = boxes[keep, :]
 
@@ -807,7 +819,19 @@ def refine_detections(rois, probs, deltas, window, config):
         ix_scores, order = ix_scores.sort(descending=True)
         ix_rois = ix_rois[order.data,:]
 
+        t1 = timeit.default_timer()
         class_keep = nms(torch.cat((ix_rois, ix_scores.unsqueeze(1)), dim=1).data, config.DETECTION_NMS_THRESHOLD)
+        t2 = timeit.default_timer()
+        py_class_keep = utils.py_nms_numpy(torch.cat((ix_rois, ix_scores.unsqueeze(1)), dim=1).data, config.DETECTION_NMS_THRESHOLD)
+        t3 = timeit.default_timer()
+        torch_class_keep = utils.py_nms_torch(torch.cat((ix_rois, ix_scores.unsqueeze(1)), dim=1).data, config.DETECTION_NMS_THRESHOLD)
+        t4 = timeit.default_timer()
+
+        print('Refining detections NMS')
+        print('     numpy ', t2-t1)
+        print('     torch', t3-t2)
+        print('     C ', t4-t3)
+        print('')
 
         # Map indicies
         class_keep = keep[ixs[order[class_keep].data].data]

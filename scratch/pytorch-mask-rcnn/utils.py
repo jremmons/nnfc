@@ -456,7 +456,82 @@ def generate_pyramid_anchors(scales, ratios, feature_shapes, feature_strides,
     return np.concatenate(anchors, axis=0)
 
 
+############################################################
+#  Python implementations of NMS
+############################################################
+
+def py_nms_numpy(dets, thresh):
+    x1 = dets[:, 1].cpu().numpy()
+    y1 = dets[:, 0].cpu().numpy()
+    x2 = dets[:, 3].cpu().numpy()
+    y2 = dets[:, 2].cpu().numpy()
+    scores = dets[:, 4].cpu().numpy()
+
+    areas = (x2 - x1 + 1) * (y2 - y1 + 1)
+    order = np.argsort(scores)
+    pick = []
+
+    while len(order) > 0:
+        last = len(order) - 1
+        i = order[last]
+        pick.append(i)
+
+        xx1 = np.maximum(x1[i], x1[order[:last]])
+        yy1 = np.maximum(y1[i], y1[order[:last]])
+        xx2 = np.minimum(x2[i], x2[order[:last]])
+        yy2 = np.minimum(y2[i], y2[order[:last]])
+
+        w = np.maximum(0, xx2 - xx1 + 1)
+        h = np.maximum(0, yy2 - yy1 + 1)
+
+        inter = w * h
+        overlap = inter / (areas[i] + areas[order[:last]] - inter)
+
+        order = np.delete(order, np.concatenate(([last],
+            np.where(overlap > thresh)[0])))
+
+    return pick
 
 
+def py_nms_torch(dets, thresh):
+    x1 = dets[:, 1]
+    y1 = dets[:, 0]
+    x2 = dets[:, 3]
+    y2 = dets[:, 2]
+    scores = dets[:, 4]
 
+    areas = (x2 - x1 + 1) * (y2 - y1 + 1)
+    order = scores.sort(0, descending=False)[1]
+    pick = torch.LongTensor()
 
+    cuda = dets.is_cuda
+    if cuda:
+        pick = pick.cuda()
+
+    while len(order) > 0:
+        last = len(order) - 1
+        i = order[last]
+        pick = torch.cat((pick, i.view(1)))
+
+        if last == 0:
+            break
+
+        xx1 = torch.max(x1[i], x1[order[:last]])
+        yy1 = torch.max(y1[i], y1[order[:last]])
+        xx2 = torch.min(x2[i], x2[order[:last]])
+        yy2 = torch.min(y2[i], y2[order[:last]])
+
+        zeros = torch.zeros_like(xx1)
+
+        w = torch.max(zeros, xx2 - xx1 + 1)
+        h = torch.max(zeros, yy2 - yy1 + 1)
+        inter = w * h
+        overlap = inter / (areas[i] + areas[order[:last]] - inter)
+
+        under_thresh = (overlap <= thresh).nonzero()
+        if under_thresh.nelement() > 0:
+            under_thresh = under_thresh.squeeze(1)
+
+        order = torch.index_select(order, 0, under_thresh)
+
+    return pick
