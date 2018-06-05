@@ -59,9 +59,10 @@ AX_PYTHON_MODULE_VERSION([wheel], [0.29.0], [python3])
 AX_PYTHON_MODULE_VERSION([h5py], [2.7.0], [python3])
 AX_PYTHON_MODULE_VERSION([torch], [0.4.0], [python3])
 
-AC_CONFIG_FILES([Makefile 
+AC_CONFIG_FILES([Makefile
          src/Makefile
          src/nn/Makefile
+         src/codec/Makefile
          src/nnfc/Makefile
          src/frontend/Makefile
          python/Makefile

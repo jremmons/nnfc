@@ -26,6 +26,9 @@ Makefile
 Makefile.in
 *.log
 *.trs
+*.la
+*.lo
+.libs
 
 /INSTALL
 /aclocal.m4
