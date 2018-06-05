@@ -1,1 +1,1 @@
-SUBDIRS = nn nnfc frontend
+SUBDIRS = nn codec nnfc frontend

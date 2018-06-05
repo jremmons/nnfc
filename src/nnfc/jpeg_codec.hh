@@ -13,15 +13,14 @@ extern "C" {
 
 #include "nnfc_CXXAPI.hh"
 #include "tensor.hh"
+#include "codec/jpeg.hh"
 
 namespace nnfc {
 
     class JPEGEncoder
     {
     private:
-        const int quality_;
-        std::vector<uint8_t> compress(std::vector<uint8_t> & buffer,
-                                      const size_t width, const size_t height);
+        codec::JPEGEncoder encoder_;
 
     public:
         JPEGEncoder(int quality);
