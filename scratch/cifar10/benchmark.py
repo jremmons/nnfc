@@ -18,7 +18,7 @@ from PIL import Image
 import cifar10_utils
 from cifar10_networks import cifar10_networks as networks
 
-import torch; torch.set_num_threads(1)
+import torch; 
 import torch.nn as nn
 
 import torchvision
@@ -32,12 +32,14 @@ try:
 except:
     use_cuda = False
 
-N = 100
+N = 10
     
 def test(model, loss_fn, testloader):
 
     model.eval()
 
+    compressed_sizes = []
+    
     test_loss = 0
     correct = 0
     count = testloader.batch_size * len(testloader)
@@ -52,7 +54,8 @@ def test(model, loss_fn, testloader):
             batch_labels = batch_labels.cuda()
 
         output = model(batch_data)
-
+        compressed_sizes += model.get_compressed_sizes()
+        
         test_loss += loss_fn(output, batch_labels).data.item()
         pred = output.data.max(1, keepdim=True)[1]
         correct += pred.eq(batch_labels.data.view_as(pred)).long().cpu().sum().item()
@@ -64,6 +67,9 @@ def test(model, loss_fn, testloader):
     t2 = timeit.default_timer()
     logging.info('Test Epoch took {} seconds'.format(t2-t1))
 
+    print(np.median(np.asarray(compressed_sizes)))
+    print(np.mean(np.asarray(compressed_sizes)))
+    
     return {
         'validation_top1' : correct / count,
         'validation_loss' : test_loss
@@ -131,7 +137,6 @@ def main(checkpoint_dir, config):
         for key in net.state_dict().keys():
             model_params[key].data.copy_(torch.from_numpy(np.asarray(f[key])))
 
-
         ##############################################################
         # compute the accuracy on the test set
         ##############################################################
@@ -141,6 +146,7 @@ def main(checkpoint_dir, config):
         ##############################################################
         # record the execution time
         ##############################################################
+        torch.set_num_threads(1)
         input_x = np.random.randn(1,3,32,32).astype(np.float32)
         input_x = torch.autograd.Variable(torch.from_numpy(input_x)).cpu()
 
@@ -161,64 +167,63 @@ def main(checkpoint_dir, config):
             'mean' : np.mean(times),
             'median' : np.mean(times),
             'std' : np.std(times),
-        }, indent=4, sort_keys=True))
-            
+        }, indent=4, sort_keys=True))            
         
-        ##############################################################
-        # record the number of cycles
-        ##############################################################
-        input_x = np.random.randn(1,3,32,32).astype(np.float32)
-        input_x = torch.autograd.Variable(torch.from_numpy(input_x)).cpu()
+        # ##############################################################
+        # # record the number of cycles
+        # ##############################################################
+        # input_x = np.random.randn(1,3,32,32).astype(np.float32)
+        # input_x = torch.autograd.Variable(torch.from_numpy(input_x)).cpu()
 
-        instruction_counter = perflib.PerfCounter(counter_name='LIBPERF_COUNT_HW_INSTRUCTIONS')
+        # instruction_counter = perflib.PerfCounter(counter_name='LIBPERF_COUNT_HW_INSTRUCTIONS')
         
-        net = net.cpu()
-        out = net(input_x)
-        instructions = []
-        for _ in range(N):
-            instruction_counter.start()
-            out = net(input_x)
-            instruction_counter.stop()
-            instructions.append(instruction_counter.getval())
-            instruction_counter.reset()
+        # net = net.cpu()
+        # out = net(input_x)
+        # instructions = []
+        # for _ in range(N):
+        #     instruction_counter.start()
+        #     out = net(input_x)
+        #     instruction_counter.stop()
+        #     instructions.append(instruction_counter.getval())
+        #     instruction_counter.reset()
             
-        instructions = np.asarray(instructions)
+        # instructions = np.asarray(instructions)
             
-        print(json.dumps({
-            'name' : 'instructions', 
-            'count' : N,
-            'mean' : np.mean(instructions),
-            'median' : np.mean(instructions),
-            'std' : np.std(instructions),
-        }, indent=4, sort_keys=True))
+        # print(json.dumps({
+        #     'name' : 'instructions', 
+        #     'count' : N,
+        #     'mean' : np.mean(instructions),
+        #     'median' : np.mean(instructions),
+        #     'std' : np.std(instructions),
+        # }, indent=4, sort_keys=True))
 
-        ##############################################################
-        # record the number of instructions retired
-        ##############################################################
-        input_x = np.random.randn(1,3,32,32).astype(np.float32)
-        input_x = torch.autograd.Variable(torch.from_numpy(input_x)).cpu()
+        # ##############################################################
+        # # record the number of instructions retired
+        # ##############################################################
+        # input_x = np.random.randn(1,3,32,32).astype(np.float32)
+        # input_x = torch.autograd.Variable(torch.from_numpy(input_x)).cpu()
 
-        cycle_counter = perflib.PerfCounter(counter_name='LIBPERF_COUNT_HW_CPU_CYCLES')
+        # cycle_counter = perflib.PerfCounter(counter_name='LIBPERF_COUNT_HW_CPU_CYCLES')
         
-        net = net.cpu()
-        out = net(input_x)
-        cycles = []
-        for _ in range(N):
-            cycle_counter.start()
-            out = net(input_x)
-            cycle_counter.stop()
-            cycles.append(cycle_counter.getval())
-            cycle_counter.reset()
+        # net = net.cpu()
+        # out = net(input_x)
+        # cycles = []
+        # for _ in range(N):
+        #     cycle_counter.start()
+        #     out = net(input_x)
+        #     cycle_counter.stop()
+        #     cycles.append(cycle_counter.getval())
+        #     cycle_counter.reset()
             
-        cycles = np.asarray(cycles)
+        # cycles = np.asarray(cycles)
             
-        print(json.dumps({
-            'name' : 'cycles', 
-            'count' : N,
-            'mean' : np.mean(cycles),
-            'median' : np.mean(cycles),
-            'std' : np.std(cycles),
-        }, indent=4, sort_keys=True))
+        # print(json.dumps({
+        #     'name' : 'cycles', 
+        #     'count' : N,
+        #     'mean' : np.mean(cycles),
+        #     'median' : np.mean(cycles),
+        #     'std' : np.std(cycles),
+        # }, indent=4, sort_keys=True))
         
         
 if __name__ == '__main__':
