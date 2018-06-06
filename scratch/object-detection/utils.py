@@ -42,38 +42,38 @@ class DetectionOutput:
         return str(self)
 
 def parse_detections(y):
-    detections = []
+    all_detections = []
 
-    # TODO(sadjad) add support for larger batch sizes.
-    # To handle a batch_size > 1 we need to iterate over the 0th dim
-    # of the input tensor `y`. The code currently only looks at the
-    # first batch element in the output.    
-    for i in range(y.shape[1]):
-        coords = y[0, i, :4]
-        objectness = y[0, i, 4]
-        classes = y[0, i, 5:]
+    for i in range(y.shape[0]):
+        detections = []
+        for i in range(y.shape[1]):
+            coords = y[0, i, :4]
+            objectness = y[0, i, 4]
+            classes = y[0, i, 5:]
 
-        if objectness > 0.6:
-            confidences = y[0, i, 5:].detach().cpu().numpy()
-            confidences /= sum(confidences)
-            idx = np.argmax(confidences)
+            if objectness > 0.6:
+                confidences = y[0, i, 5:].detach().cpu().numpy()
+                confidences /= sum(confidences)
+                idx = np.argmax(confidences)
 
-            det = DetectionOutput()
-            det.coco_idx = idx
-            det.coco_name = coco_names[idx]
-            det.confidence = confidences[idx]
+                det = DetectionOutput()
+                det.coco_idx = idx
+                det.coco_name = coco_names[idx]
+                det.confidence = confidences[idx]
 
-            bb = y[0, i, :4].detach().cpu().numpy()
-            det.bb = [
-                bb[0] - bb[2] / 2, #x1
-                bb[1] - bb[3] / 2, #y1
-                bb[0] + bb[2] / 2, #x2
-                bb[1] + bb[3] / 2  #y2
-            ]
+                bb = y[0, i, :4].detach().cpu().numpy()
+                det.bb = [
+                    bb[0] - bb[2] / 2, #x1
+                    bb[1] - bb[3] / 2, #y1
+                    bb[0] + bb[2] / 2, #x2
+                    bb[1] + bb[3] / 2  #y2
+                ]
 
-            detections += [det]
+                detections += [det]
 
-    return detections
+        all_detections += [detections]
+
+    return all_detections
 
 # box = [x1, y1, x2, y2]
 def iou(box_1, box_2):
@@ -87,7 +87,6 @@ def iou(box_1, box_2):
 
 def normalize_image(img_path, size=416):
     img_original = Image.open(img_path).convert('RGB')
-    #img_original = img_original.resize((416, 416))
     img_original = img_original.resize((size, size))
     img = np.asarray(img_original)
     img = img.transpose((2, 0, 1))
