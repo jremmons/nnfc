@@ -9,6 +9,10 @@ import multiprocessing as mp
 
 import torch
 from torch.utils.data import Dataset, DataLoader
+
+import torchvision
+import torchvision.transforms as transforms
+
 from PIL import Image
 
 import utils
@@ -38,7 +42,7 @@ def parse_labels(label, size):
     return labels
 
 class YoloDataset(Dataset):
-    def __init__(self, images_path, labels_path, size=416):
+    def __init__(self, images_path, labels_path, transforms, size=416):
         self.images = []
         self.labels = []
         self.images_path = images_path
@@ -46,6 +50,8 @@ class YoloDataset(Dataset):
         self.size = size
         self.max_items = 50
 
+        self.transforms = transforms
+        
         for img in sorted(os.listdir(images_path)):
             lbl = os.path.basename(img).split('.')[0] + '.txt'
             label_path = os.path.join(labels_path, lbl)
@@ -67,14 +73,23 @@ class YoloDataset(Dataset):
         with open(label_path) as label_file:
             labels += [label_file.read()]
 
-        image = utils.normalize_image(image_path, self.size)
+        image_original = Image.open(image_path).convert('RGB')
+        image_original = image_original.resize((self.size, self.size))
+        image = np.asarray(image_original)
 
-        return image[0,:,:,:], labels
+        image = self.transforms(image)
+
+        return image, labels
 
 def main(images_path, labels_path):
     size = 416
 
-    data = DataLoader(YoloDataset(images_path, labels_path, size), batch_size=128, shuffle=True, num_workers=mp.cpu_count())
+    t = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
+    
+    data = DataLoader(YoloDataset(images_path, labels_path, t, size), batch_size=128, shuffle=True, num_workers=mp.cpu_count())
     model = yolo.load_model()
     model.to(device)
 
