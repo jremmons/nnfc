@@ -5,7 +5,7 @@ import sys
 import pprint
 
 import numpy as np
-import torch; torch.set_num_threads(1)
+import torch
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image
 
@@ -52,7 +52,7 @@ class YoloDataset(Dataset):
                 self.labels += [lbl]
 
         assert(len(self.images) == len(self.labels))
-
+        
     def __len__(self):
         return len(self.images)
 
@@ -64,12 +64,13 @@ class YoloDataset(Dataset):
         with open(label_path) as label_file:
             labels += [label_file.read()]
 
-        return utils.normalize_image(image_path, self.size), labels
+        image = utils.normalize_image(image_path, self.size)            
+        return image[0,:,:,:], labels
 
 def main(images_path, labels_path):
     size = 416
 
-    data = DataLoader(YoloDataset(images_path, labels_path, size), batch_size=1, shuffle=False)
+    data = DataLoader(YoloDataset(images_path, labels_path, size), batch_size=32, shuffle=False)
     model = yolo.load_model()
     model.to(device)
 
@@ -78,7 +79,7 @@ def main(images_path, labels_path):
     for i, (local_batch, local_labels) in enumerate(data):
         with torch.no_grad():
             local_batch = local_batch.to(device)
-            output = model(local_batch[0])
+            output = model(local_batch)
 
             # XXX normally the above line should be:
             # output = model(local_batch)
