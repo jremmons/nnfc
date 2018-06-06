@@ -3,7 +3,7 @@
 ## Getting started:
 ```bash
 # download the YOLOv3 weights from S3
-wget https://s3-us-west-2.amazonaws.com/demo-excamera-s3/yolov3.h5
+wget https://s3-us-west-2.amazonaws.com/nnfc-data/yolov3.h5
 
 # Run the network
 python yolov3.py
