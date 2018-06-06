@@ -44,6 +44,10 @@ class DetectionOutput:
 def parse_detections(y):
     detections = []
 
+    # TODO(sadjad) add support for larger batch sizes.
+    # To handle a batch_size > 1 we need to iterate over the 0th dim
+    # of the input tensor `y`. The code currently only looks at the
+    # first batch element in the output.    
     for i in range(y.shape[1]):
         coords = y[0, i, :4]
         objectness = y[0, i, 4]
