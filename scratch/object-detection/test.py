@@ -5,6 +5,8 @@ import sys
 import pprint
 
 import numpy as np
+import multiprocessing as mp
+
 import torch
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image
@@ -64,38 +66,33 @@ class YoloDataset(Dataset):
         with open(label_path) as label_file:
             labels += [label_file.read()]
 
-        image = utils.normalize_image(image_path, self.size)            
+        image = utils.normalize_image(image_path, self.size)
+
         return image[0,:,:,:], labels
 
 def main(images_path, labels_path):
     size = 416
 
-    data = DataLoader(YoloDataset(images_path, labels_path, size), batch_size=32, shuffle=False)
+    data = DataLoader(YoloDataset(images_path, labels_path, size), batch_size=128, shuffle=False, num_workers=mp.cpu_count())
     model = yolo.load_model()
     model.to(device)
 
     correct, total_targets = 0, 0
 
-    for i, (local_batch, local_labels) in enumerate(data):
-        with torch.no_grad():
+    with torch.no_grad():
+        for i, (local_batch, local_labels) in enumerate(data):
             local_batch = local_batch.to(device)
             output = model(local_batch)
+            
+        for j, detections in enumerate(utils.parse_detections(output)):
+            detections = utils.non_max_suppression(detections)
 
-            # XXX normally the above line should be:
-            # output = model(local_batch)
-            # (processing the whole batch at once), but for some
-            # reason it doesn't work. so the current code only
-            # works for batch_size=1, which is far from ideal.
-
-        detections = utils.parse_detections(output)
-        detections = utils.non_max_suppression(detections)
-
-        for target in parse_labels(local_labels[0][0], size):
-            total_targets += 1
-            for det in [det for det in detections if det.coco_idx == target['coco_idx']]:
-                if utils.iou(target['bb'], det.bb) >= 0.5:
-                    correct += 1
-                    break
+            for target in parse_labels(local_labels[0][j], size):
+                total_targets += 1
+                for det in [det for det in detections if det.coco_idx == target['coco_idx']]:
+                    if utils.iou(target['bb'], det.bb) >= 0.5:
+                        correct += 1
+                        break
 
         if total_targets:
             print('[%d/%d] mAP: %.6f' % (i + 1, len(data), correct / total_targets))
