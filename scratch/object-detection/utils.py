@@ -81,8 +81,8 @@ def iou(box_1, box_2):
     f_area = lambda b: ((b[3] - b[1]) * (b[2] - b[0]))
 
     # intersection coordinates
-    box_i = [max(box_1[0], box_2[0]), max(box_1[1], box_2[1]),
-             min(box_1[2], box_2[2]), min(box_1[3], box_2[3])]
+    box_i = [min(box_1[0], box_2[0]), min(box_1[1], box_2[1]),
+             max(box_1[2], box_2[2]), max(box_1[3], box_2[3])]
 
     return f_area(box_i) / (f_area(box_1) + f_area(box_2) - f_area(box_i))
 
