@@ -1,0 +1,6 @@
+#!/bin/bash
+
+SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+find $SCRIPTDIR -name *.cc | xargs -I{} clang-format -style=Google -i {}
+find $SCRIPTDIR -name *.hh | xargs -I{} clang-format -style=Google -i {}
