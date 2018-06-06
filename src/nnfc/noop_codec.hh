@@ -9,34 +9,33 @@
 
 namespace nnfc {
 
-    class NoopEncoder
-    {
-    private:
-        
-    public:
-        NoopEncoder();
-        ~NoopEncoder();
+class NoopEncoder {
+ private:
+ public:
+  NoopEncoder();
+  ~NoopEncoder();
 
-        std::vector<uint8_t> forward(nn::Tensor<float, 3> input);
-        nn::Tensor<float, 3> backward(nn::Tensor<float, 3> input);
+  std::vector<uint8_t> forward(nn::Tensor<float, 3> input);
+  nn::Tensor<float, 3> backward(nn::Tensor<float, 3> input);
 
-        static nnfc::cxxapi::constructor_type_list initialization_params() { return {}; }
-    };
-    
-    class NoopDecoder
-    {
-    private:
-        
-    public:
-        NoopDecoder();
-        ~NoopDecoder();
+  static nnfc::cxxapi::constructor_type_list initialization_params() {
+    return {};
+  }
+};
 
-        nn::Tensor<float, 3> forward(std::vector<uint8_t> input);
-        nn::Tensor<float, 3> backward(nn::Tensor<float, 3> input);
+class NoopDecoder {
+ private:
+ public:
+  NoopDecoder();
+  ~NoopDecoder();
 
-        static nnfc::cxxapi::constructor_type_list initialization_params() { return {}; }
-    };
+  nn::Tensor<float, 3> forward(std::vector<uint8_t> input);
+  nn::Tensor<float, 3> backward(nn::Tensor<float, 3> input);
 
+  static nnfc::cxxapi::constructor_type_list initialization_params() {
+    return {};
+  }
+};
 }
 
-#endif // _NNFC_NOOP_H
+#endif  // _NNFC_NOOP_H
