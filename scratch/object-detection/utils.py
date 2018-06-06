@@ -44,15 +44,15 @@ class DetectionOutput:
 def parse_detections(y):
     all_detections = []
 
-    for i in range(y.shape[0]):
+    for k in range(y.shape[0]):
         detections = []
         for i in range(y.shape[1]):
-            coords = y[0, i, :4]
-            objectness = y[0, i, 4]
-            classes = y[0, i, 5:]
+            coords = y[k, i, :4]
+            objectness = y[k, i, 4]
+            classes = y[k, i, 5:]
 
             if objectness > 0.6:
-                confidences = y[0, i, 5:].detach().cpu().numpy()
+                confidences = y[k, i, 5:].detach().cpu().numpy()
                 confidences /= sum(confidences)
                 idx = np.argmax(confidences)
 
