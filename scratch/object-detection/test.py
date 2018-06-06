@@ -12,6 +12,7 @@ from torch.utils.data import Dataset, DataLoader
 from PIL import Image
 
 import utils
+import timeit
 import yolov3 as yolo
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -73,7 +74,7 @@ class YoloDataset(Dataset):
 def main(images_path, labels_path):
     size = 416
 
-    data = DataLoader(YoloDataset(images_path, labels_path, size), batch_size=128, shuffle=False, num_workers=mp.cpu_count())
+    data = DataLoader(YoloDataset(images_path, labels_path, size), batch_size=128, shuffle=True, num_workers=mp.cpu_count())
     model = yolo.load_model()
     model.to(device)
 
@@ -83,19 +84,19 @@ def main(images_path, labels_path):
         for i, (local_batch, local_labels) in enumerate(data):
             local_batch = local_batch.to(device)
             output = model(local_batch)
-            
-        for j, detections in enumerate(utils.parse_detections(output)):
-            detections = utils.non_max_suppression(detections)
 
-            for target in parse_labels(local_labels[0][j], size):
-                total_targets += 1
-                for det in [det for det in detections if det.coco_idx == target['coco_idx']]:
-                    if utils.iou(target['bb'], det.bb) >= 0.5:
-                        correct += 1
+            for j, detections in enumerate(utils.parse_detections(output)):
+                detections = utils.non_max_suppression(detections, confidence_threshold=0.25)
+                
+                for target in parse_labels(local_labels[0][j], size):
+                    total_targets += 1
+                    for det in [det for det in detections if det.coco_idx == target['coco_idx']]:
+                        if utils.iou(target['bb'], det.bb) >= 0.5:
+                            correct += 1
                         break
 
-        if total_targets:
-            print('[%d/%d] mAP: %.6f' % (i + 1, len(data), correct / total_targets))
+            if total_targets:
+                print('[%d/%d] mAP: %.6f' % (i + 1, len(data), correct / total_targets))
 
 
 if __name__ == '__main__':
