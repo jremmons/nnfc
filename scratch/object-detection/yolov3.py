@@ -7,18 +7,22 @@ import itertools
 import argparse
 
 import numpy as np
-
 import torch; torch.set_num_threads(1)
 import torch.nn as nn
 import torch.nn.functional as F
-
 from torch.autograd import Variable
 from PIL import Image, ImageDraw
 from timeit import Timer
 
+import utils
+
 class TimeLog:
     def __init__(self, enabled=True):
         self.enabled = enabled
+        self.start = time.time()
+        self.points = []
+
+    def begin(self):
         self.start = time.time()
         self.points = []
 
@@ -31,31 +35,8 @@ class TimeLog:
         self.start = now
 
 log_extra_info = False
-timelogger = None
+timelogger = TimeLog(False)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-coco_names = [
-    'person',        'bicycle',       'car',           'motorbike',
-    'aeroplane',     'bus',           'train',         'truck',
-    'boat',          'traffic light', 'fire hydrant',  'stop sign',
-    'parking meter', 'bench',         'bird',          'cat',
-    'dog',           'horse',         'sheep',         'cow',
-    'elephant',      'bear',          'zebra',         'giraffe',
-    'backpack',      'umbrella',      'handbag',       'tie',
-    'suitcase',      'frisbee',       'skis',          'snowboard',
-    'sports ball',   'kite',          'baseball bat',  'baseball glove',
-    'skateboard',    'surfboard',     'tennis racket', 'bottle',
-    'wine glass',    'cup',           'fork',          'knife',
-    'spoon',         'bowl',          'banana',        'apple',
-    'sandwich',      'orange',        'broccoli',      'carrot',
-    'hot dog',       'pizza',         'donut',         'cake',
-    'chair',         'sofa',          'pottedplant',   'bed',
-    'diningtable',   'toilet',        'tvmonitor',     'laptop',
-    'mouse',         'remote',        'keyboard',      'cell phone',
-    'microwave',     'oven',          'toaster',       'sink',
-    'refrigerator',  'book',          'clock',         'vase',
-    'scissors',      'teddy bear',    'hair drier',    'toothbrush',
-]
 
 def dn_register_weights_helper(register_p, register_b, block_name, i, conv, bn):
     register_p('{}_conv{}_weight'.format(block_name, i), conv.weight)
@@ -354,31 +335,6 @@ def load_model():
 
     return yolov3
 
-def dump_detections(y, img):
-
-    for i in range(y.shape[1]):
-        coords = y[0, i, :4]
-        objectness = y[0, i, 4]
-        classes = y[0, i, 5:]
-
-        detections = []
-        if objectness > 0.6:
-            confidences = y[0, i, 5:].detach().cpu().numpy()
-            confidences /= sum(confidences)
-            idx = np.argmax(confidences)
-
-            print('"' + coco_names[idx] + '"',
-                  '(' + str(confidences[idx]) + ')',
-                  y[0, i, :4].detach().cpu().numpy())
-
-            x1 = y[0, i, 0] - y[0, i ,2] / 2
-            x2 = y[0, i, 0] + y[0, i ,2] / 2
-            y1 = y[0, i, 1] - y[0, i ,3] / 2
-            y2 = y[0, i, 1] + y[0, i ,3] / 2
-
-            draw = ImageDraw.Draw(img)
-            draw.rectangle(((x1, y1), (x2, y2)))
-
 def main():
     global log_extra_info, device, timelogger
 
@@ -394,26 +350,22 @@ def main():
     print("* Running on:", device)
 
     timelogger = TimeLog(args.log_time)
+    timelogger.begin()
 
     yolov3 = load_model()
     timelogger.add_point('model loaded')
 
     for img_path in args.image:
-        img_original = Image.open(img_path).convert('RGB')
-        #img_original = img_original.resize((416, 416))
-        img_original = img_original.resize((1920, 1920))
-        img = np.asarray(img_original)
-        img = img.transpose((2, 0, 1))
-        img = np.expand_dims(img, 0)
-        img = torch.from_numpy(img).float().div(255.0)
-        x = Variable(img).to(device)
+        x = Variable(utils.normalize_image(img_path)).to(device)
         timelogger.add_point('image loaded: ' + img_path)
 
         y = yolov3(x)
         timelogger.add_point('inference done: ' + img_path)
 
-        dump_detections(y, img_original)
-        img_original.save(os.path.splitext(img_path)[0] + '.out.jpg')
+        detections = utils.parse_detections(y)
+        detections = utils.non_max_suppression(detections)
+        pprint.pprint(detections)
+        #img_original.save(os.path.splitext(img_path)[0] + '.out.jpg')
 
     if args.log_time:
         pprint.pprint(timelogger.points)
