@@ -93,7 +93,8 @@ def main(images_path, labels_path):
     model = yolo.load_model()
     model.to(device)
 
-    correct, total_targets = 0, 0
+    count = [0 for _ in range(80)]
+    correct = [0 for _ in range(80)]
 
     with torch.no_grad():
         for i, (local_batch, local_labels) in enumerate(data):
@@ -104,14 +105,23 @@ def main(images_path, labels_path):
                 detections = utils.non_max_suppression(detections, confidence_threshold=0.25)
                 
                 for target in parse_labels(local_labels[0][j], size):
-                    total_targets += 1
+
+                    count[target['coco_idx']] += 1
                     for det in [det for det in detections if det.coco_idx == target['coco_idx']]:
                         if utils.iou(target['bb'], det.bb) >= 0.5:
-                            correct += 1
+                            correct[target['coco_idx']] += 1
                         break
 
-            if total_targets:
-                print('[%d/%d] mAP: %.6f' % (i + 1, len(data), correct / total_targets))
+            psum = 0
+            for j in range(80):
+                if count[j] == 0:
+                    psum = -80
+                    break
+
+                p = correct[j] / count[j]
+                psum += p
+                
+            print('[%d/%d] mAP: %.6f' % (i + 1, len(data), psum / 80))
 
 
 if __name__ == '__main__':
