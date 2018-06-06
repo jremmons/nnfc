@@ -42,34 +42,35 @@ class DetectionOutput:
         return str(self)
 
 def parse_detections(y):
+
+    object_threshold = 0.25
+    y = y.detach().cpu().numpy()
+    
     all_detections = []
-
     for k in range(y.shape[0]):
+
         detections = []
-        for i in range(y.shape[1]):
-            coords = y[k, i, :4]
-            objectness = y[k, i, 4]
-            classes = y[k, i, 5:]
+        detection_indices = np.argwhere(y[k, :, 4] > object_threshold)
+        
+        for i in detection_indices:
+            confidences = y[k, i, 5:][0]
+            confidences /= sum(confidences)
+            idx = np.argmax(confidences)
+            
+            det = DetectionOutput()
+            det.coco_idx = idx
+            det.coco_name = coco_names[idx]
+            det.confidence = confidences[idx]
 
-            if objectness > 0.6:
-                confidences = y[k, i, 5:].detach().cpu().numpy()
-                confidences /= sum(confidences)
-                idx = np.argmax(confidences)
+            bb = y[k, i, :4][0]
+            det.bb = [
+                bb[0] - bb[2] / 2, #x1
+                bb[1] - bb[3] / 2, #y1
+                bb[0] + bb[2] / 2, #x2
+                bb[1] + bb[3] / 2  #y2
+            ]
 
-                det = DetectionOutput()
-                det.coco_idx = idx
-                det.coco_name = coco_names[idx]
-                det.confidence = confidences[idx]
-
-                bb = y[0, i, :4].detach().cpu().numpy()
-                det.bb = [
-                    bb[0] - bb[2] / 2, #x1
-                    bb[1] - bb[3] / 2, #y1
-                    bb[0] + bb[2] / 2, #x2
-                    bb[1] + bb[3] / 2  #y2
-                ]
-
-                detections += [det]
+            detections += [det]
 
         all_detections += [detections]
 
@@ -94,7 +95,7 @@ def normalize_image(img_path, size=416):
     img = torch.from_numpy(img).float().div(255.0)
     return img
 
-def non_max_suppression(detections, confidence_threshold=0.3, iou_threshold=0.4):
+def non_max_suppression(detections, confidence_threshold=0.25, iou_threshold=0.4):
     # throw out the results with confidence less than the threshold
     outputs = [det for det in detections if det.confidence >= confidence_threshold]
 
