@@ -21,7 +21,7 @@ import mobilenet
 import mobilenetv2
 import simplenet
 
-N = 10
+N = 100
 
 def main(args):
 
