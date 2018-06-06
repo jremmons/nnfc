@@ -362,7 +362,7 @@ def main():
         y = yolov3(x)
         timelogger.add_point('inference done: ' + img_path)
 
-        detections = utils.parse_detections(y)
+        detections = utils.parse_detections(y)[0]
         detections = utils.non_max_suppression(detections)
         pprint.pprint(detections)
         #img_original.save(os.path.splitext(img_path)[0] + '.out.jpg')
