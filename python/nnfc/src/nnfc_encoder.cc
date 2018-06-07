@@ -16,7 +16,7 @@
 
 static std::vector<nn::Tensor<float, 3>> blob2tensors(PyArrayObject *input_array) {
 
-    WrapperAssert(PyArray_ISCARRAY(input_array), PyExc_TypeError, "the input array must be a c-style array and conriguous in memory.");    
+    WrapperAssert(PyArray_ISCARRAY(input_array), PyExc_TypeError, "the input array must be a c-style array and contiguous in memory.");
     WrapperAssert(PyArray_TYPE(input_array) == NPY_FLOAT32, PyExc_TypeError, "the input array must have dtype==float32.");
 
     const int ndims = PyArray_NDIM(input_array);
