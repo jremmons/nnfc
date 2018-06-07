@@ -105,22 +105,11 @@ def main(checkpoint_dir, config):
     latest_checkpoint = checkpoints[0]
     logging.info('loading from last checkpoint: {}'.format(latest_checkpoint))
 
-    pytorch_checkpoints = glob.glob(os.path.join(checkpoint_dir, 'pytorch_checkpoint-epoch*.pt'))
-    pytorch_checkpoints = list(reversed(sorted(pytorch_checkpoints)))
-
-    latest_pytorch_checkpoint = pytorch_checkpoints[0]
-    logging.info('loading from last pytorch_checkpoint: {}'.format(latest_pytorch_checkpoint))
-
     latest_epoch = latest_checkpoint.split('.h5')[0].split('checkpoint-epoch')[-1]
     logging.info('checkpoint epoch: {}'.format(latest_epoch))
     latest_epoch = int(latest_epoch)
 
-    latest_pytorch_epoch = latest_pytorch_checkpoint.split('.pt')[0].split('pytorch_checkpoint-epoch')[-1]
-    logging.info('pytorch checkpoint epoch: {}'.format(latest_pytorch_epoch))
-    latest_pytorch_epoch = int(latest_pytorch_epoch)
-
     # initialize the epoch to one after the last checkpoint
-    assert latest_epoch == latest_pytorch_epoch
     initial_epoch = latest_epoch + 1
 
     # restore the parameters to the value was stored in hdf5 file
@@ -135,7 +124,7 @@ def main(checkpoint_dir, config):
 
         model_params = net.state_dict()
         for key in net.state_dict().keys():
-            model_params[key].data.copy_(torch.from_numpy(np.asarray(f[key])))
+            model_params[key].data.copy_(torch.from_numpy(np.asarray(f['module.'+key])))
 
         ##############################################################
         # compute the accuracy on the test set
