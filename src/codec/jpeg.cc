@@ -36,8 +36,8 @@ vector<uint8_t> codec::JPEGEncoder::encode(vector<uint8_t>& image,
   context.image_height = height;
   context.input_components = channels;
 
-  const int row_stride = channels * width; 
-  
+  const size_t row_stride = channels * width;
+
   jpeg_mem_dest(&context, &compressed_image, &jpeg_size);
   jpeg_start_compress(&context, true);
 
