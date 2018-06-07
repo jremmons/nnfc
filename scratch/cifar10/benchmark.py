@@ -32,7 +32,7 @@ try:
 except:
     use_cuda = False
 
-N = 10
+N = 32
     
 def test(model, loss_fn, testloader):
 
