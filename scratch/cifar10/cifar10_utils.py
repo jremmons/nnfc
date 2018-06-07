@@ -4,6 +4,7 @@ import torch
 import torch.utils.data
 
 from PIL import Image
+from nnfc.modules.nnfc import CompressionLayer
 
 class Cifar10(torch.utils.data.Dataset):
 
@@ -17,13 +18,31 @@ class Cifar10(torch.utils.data.Dataset):
         self.data_labels = data_labels
         self.transform = transform
 
+        # self.nnfc_compression_layer = CompressionLayer(encoder_name='jpeg_image_encoder',
+        #                                                encoder_params_dict={'quantizer' : 100},
+        #                                                decoder_name='jpeg_image_decoder',
+        #                                                decoder_params_dict={})
+
     def __len__(self):
 
         return len(self.data_raw)
 
     def __getitem__(self, idx):
 
-        image = Image.fromarray(self.data_raw[idx,:,:,:])
+        image = self.data_raw[idx,:,:,:]
+        # image = image.transpose((2,0,1))
+        # image = image.astype(np.float32)
+        # image = np.expand_dims(image, axis=0)
+        # image = np.ascontiguousarray(image)
+        
+        # image = torch.from_numpy(image)
+        # image = self.nnfc_compression_layer(image)
+        # image = image.numpy()
+        
+        # image = np.squeeze(image, axis=0)
+        # image = image.astype(np.uint8)
+        # image = image.transpose((1,2,0))
+        image = Image.fromarray(image)
 
         if self.transform:
             image = self.transform(image)
