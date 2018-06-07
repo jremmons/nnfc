@@ -36,11 +36,13 @@ vector<uint8_t> codec::JPEGEncoder::encode(vector<uint8_t>& image,
   context.image_height = height;
   context.input_components = channels;
 
+  const int row_stride = channels * width; 
+  
   jpeg_mem_dest(&context, &compressed_image, &jpeg_size);
   jpeg_start_compress(&context, true);
 
   while (context.next_scanline < context.image_height) {
-    unsigned char* location = &image[context.next_scanline * width];
+    unsigned char* location = &image[context.next_scanline * row_stride];
     jpeg_write_scanlines(&context, &location, 1);
   }
 
