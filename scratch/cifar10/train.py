@@ -135,10 +135,10 @@ def main(checkpoint_dir, test_run, resume, config):
     ])
 
     trainset = cifar10_utils.Cifar10(train_data_raw, train_data_labels, transform=transform_train)
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=config['batch_size'], shuffle=True, num_workers=2)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=config['batch_size'], shuffle=True, num_workers=8)
 
     testset = cifar10_utils.Cifar10(test_data_raw, test_data_labels, transform=transform_test)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=config['batch_size'], shuffle=False, num_workers=2)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=config['batch_size'], shuffle=False, num_workers=8)
 
     shutil.copy(config['data_hdf5'], checkpoint_dir)
 
@@ -159,28 +159,16 @@ def main(checkpoint_dir, test_run, resume, config):
         latest_checkpoint = checkpoints[0]
         logging.info('loading from last checkpoint: {}'.format(latest_checkpoint))
 
-        pytorch_checkpoints = glob.glob(os.path.join(checkpoint_dir, 'pytorch_checkpoint-epoch*.pt'))
-        pytorch_checkpoints = list(reversed(sorted(pytorch_checkpoints)))
-
-        latest_pytorch_checkpoint = pytorch_checkpoints[0]
-        logging.info('loading from last pytorch_checkpoint: {}'.format(latest_pytorch_checkpoint))
-
         latest_epoch = latest_checkpoint.split('.h5')[0].split('checkpoint-epoch')[-1]
         logging.info('checkpoint epoch: {}'.format(latest_epoch))
         latest_epoch = int(latest_epoch)
 
-        latest_pytorch_epoch = latest_pytorch_checkpoint.split('.pt')[0].split('pytorch_checkpoint-epoch')[-1]
-        logging.info('pytorch checkpoint epoch: {}'.format(latest_pytorch_epoch))
-        latest_pytorch_epoch = int(latest_pytorch_epoch)
-
         # initialize the epoch to one after the last checkpoint
-        assert latest_epoch == latest_pytorch_epoch
         initial_epoch = latest_epoch + 1
 
         # restore the parameters to the value was stored in hdf5 file
         checkpoint_filename = os.path.abspath(os.path.join(checkpoint_dir, latest_checkpoint))
         logging.info('restoring parameters: ' +  checkpoint_filename)
-        #net = torch.load(latest_pytorch_checkpoint)
 
         net = networks[config['network_name']]
         if use_cuda:
@@ -221,11 +209,8 @@ def main(checkpoint_dir, test_run, resume, config):
                 model_params = net.state_dict()
                 with h5py.File(checkpoint_filename, 'w') as f:
                     for param_name in model_params.keys():
+                        
                         f.create_dataset(param_name, data=model_params[param_name])
-
-                pytorch_checkpoint_filename = os.path.abspath(os.path.join(checkpoint_dir,
-                                                   'pytorch_checkpoint-epoch{}.pt'.format(str(epoch).zfill(5))))
-                torch.save(net, pytorch_checkpoint_filename)
 
                 logfile.write('{},{},{},{},{},{},{}\n'.format(epoch,
                                                             current_lr,
@@ -321,7 +306,6 @@ if __name__ == '__main__':
 
         with open(os.path.join(args.checkpoint_dir, 'metadata.json'), 'w') as f:
             f.write(json.dumps(experiment_configuration, indent=4, sort_keys=True))
-
 
         with open(os.path.join(args.checkpoint_dir, 'training_log.csv'), 'w') as logfile:
 
