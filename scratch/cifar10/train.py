@@ -177,7 +177,7 @@ def main(checkpoint_dir, test_run, resume, config):
 
             model_params = net.state_dict()
             for key in net.state_dict().keys():
-                model_params[key].data.copy_(torch.from_numpy(np.asarray(f['module.'+key])))
+                model_params[key].data.copy_(torch.from_numpy(np.asarray(f[key])))
 
 
     current_lr = get_learning_rate(initial_epoch, config['learning_rate'])
