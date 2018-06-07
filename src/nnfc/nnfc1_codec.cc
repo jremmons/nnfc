@@ -22,10 +22,8 @@ std::vector<float> kmeans(nn::Tensor<float, 3> input, int nbins,
                           &input(0, 0, 0) + dim0 * dim1 * dim2);
   std::sort(vals.begin(), vals.end());
 
-  const float min = vals[0];
-  const float max = vals[dim0 * dim1 * dim2 - 1];
-  // std::cout << min  << " " << max << " " << nbins << " " << vals[0] << " " <<
-  // vals[dim0*dim1*dim2-1] << "\n";
+  const float min = vals[0]; // min is first element since array is sorted.
+  const float max = vals[dim0 * dim1 * dim2 - 1]; // max is last element since array is sorted. 
 
   // initial means to be linearly spaced
   std::vector<float> means(nbins);
@@ -35,6 +33,7 @@ std::vector<float> kmeans(nn::Tensor<float, 3> input, int nbins,
 
   // perform multiple iterations of llyod's algorithm
   for (int iter = 0; iter < max_iter; iter++) {
+      // TODO(jemmons) add k-mean here. 
   }
 
   return means;
