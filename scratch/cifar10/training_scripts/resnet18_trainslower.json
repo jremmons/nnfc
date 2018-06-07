@@ -1,8 +1,8 @@
 {
     "data_hdf5" : "/home/jemmons/projects/nnfc/scratch/cifar10/data/cifar10.h5",
     "network_name" : "resnet18",
-    "learning_rate" : { "0": 0.1, "10" : 0.01, "25" : 0.001 },
+    "learning_rate" : { "0": 0.1, "75" : 0.01, "150" : 0.001 },
     "batch_size" : 500,
-    "num_epochs" : 50,
+    "num_epochs" : 250,
     "parameter_initialization" : "random"
 }
