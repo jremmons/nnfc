@@ -12,6 +12,7 @@ lib_LTLIBRARIES = libnnfc.la
 libnnfc_la_SOURCES = nnfc_CXXAPI.hh nnfc_CXXAPI.cc \
                      noop_codec.hh noop_codec.cc \
                      jpeg_codec.hh jpeg_codec.cc \
+                     jpeg_image_codec.hh jpeg_image_codec.cc \
                      nnfc1_codec.hh nnfc1_codec.cc
 
 libnnfc_la_LDFLAGS = -version-info 0:0:0
