@@ -27,7 +27,7 @@ def parse_labels(label, size):
         data = line.strip().split(' ')
         bb_o = [float(x) for x in data[1:]]
         idx = int(data[0])
-
+        
         bb = [0] * 4
         bb[0] = size * (bb_o[0] - bb_o[2] / 2)
         bb[1] = size * (bb_o[1] - bb_o[3] / 2)
@@ -89,7 +89,7 @@ def main(images_path, labels_path):
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
     
-    data = DataLoader(YoloDataset(images_path, labels_path, t, size), batch_size=128, shuffle=True, num_workers=mp.cpu_count())
+    data = DataLoader(YoloDataset(images_path, labels_path, t, size), batch_size=1, shuffle=True, num_workers=mp.cpu_count())
     model = yolo.load_model()
     model.to(device)
 
@@ -98,6 +98,7 @@ def main(images_path, labels_path):
 
     with torch.no_grad():
         for i, (local_batch, local_labels) in enumerate(data):
+
             local_batch = local_batch.to(device)
             output = model(local_batch)
 
@@ -108,10 +109,10 @@ def main(images_path, labels_path):
 
                     count[target['coco_idx']] += 1
                     for det in [det for det in detections if det.coco_idx == target['coco_idx']]:
-                        if utils.iou(target['bb'], det.bb) >= 0.4:
+                        if utils.iou(target['bb'], det.bb) >= 0.5:
                             correct[target['coco_idx']] += 1
                         break
-
+                    
             psum = 0
             for j in range(80):
                 if count[j] == 0:
@@ -121,7 +122,7 @@ def main(images_path, labels_path):
                 p = correct[j] / count[j]
                 psum += p
                 
-            print('[%d/%d] mAP: %.6f' % (i + 1, len(data), psum / 80))
+            print('[%d/%d] mAP: %.6f (%.6f)' % (i + 1, len(data), psum / 80, sum(correct)/sum(count)))
 
 
 if __name__ == '__main__':
