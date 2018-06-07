@@ -35,7 +35,6 @@ std::vector<float> kmeans(nn::Tensor<float, 3> input, int nbins,
 
   // perform multiple iterations of llyod's algorithm
   for (int iter = 0; iter < max_iter; iter++) {
-    // update the means to improve the L2 loss
   }
 
   return means;
@@ -76,14 +75,14 @@ vector<uint8_t> nnfc::NNFC1Encoder::forward(nn::Tensor<float, 3> input) {
   uint64_t dim2 = input.dimension(2);
 
   // quantize the input data
-  // std::vector<float> means = kmeans(input, 8);
-  // for(size_t i = 0; i < dim0; i++){
-  //     for(size_t j = 0; j < dim1; j++){
-  //         for(size_t k = 0; k < dim2; k++){
-  //             input(i,j,k) = means[quantize(input(i,j,k), means)];
-  //         }
-  //     }
-  // }
+  std::vector<float> means = kmeans(input, 256);
+  for (size_t i = 0; i < dim0; i++) {
+    for (size_t j = 0; j < dim1; j++) {
+      for (size_t k = 0; k < dim2; k++) {
+        input(i, j, k) = means[quantize(input(i, j, k), means)];
+      }
+    }
+  }
 
   std::vector<uint8_t> encoding;
   for (size_t i = 0; i < dim0; i++) {
