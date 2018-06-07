@@ -102,13 +102,13 @@ def main(images_path, labels_path):
             output = model(local_batch)
 
             for j, detections in enumerate(utils.parse_detections(output)):
-                detections = utils.non_max_suppression(detections, confidence_threshold=0.25)
+                detections = utils.non_max_suppression(detections, confidence_threshold=0.2)
                 
                 for target in parse_labels(local_labels[0][j], size):
 
                     count[target['coco_idx']] += 1
                     for det in [det for det in detections if det.coco_idx == target['coco_idx']]:
-                        if utils.iou(target['bb'], det.bb) >= 0.5:
+                        if utils.iou(target['bb'], det.bb) >= 0.4:
                             correct[target['coco_idx']] += 1
                         break
 
