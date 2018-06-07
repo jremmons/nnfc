@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "jpeg_codec.hh"
+#include "jpeg_image_codec.hh"
 #include "nnfc1_codec.hh"
 #include "noop_codec.hh"
 
@@ -158,6 +159,9 @@ static std::vector<EncoderContextFactory> nnfc_available_encoders = {
     {.exported_name = "jpeg_encoder",
      .new_context_func = new_encoder<nnfc::JPEGEncoder, int>,
      .constructor_types_func = constructor_types<nnfc::JPEGEncoder>},
+    {.exported_name = "jpeg_image_encoder",
+     .new_context_func = new_encoder<nnfc::JPEGImageEncoder, int>,
+     .constructor_types_func = constructor_types<nnfc::JPEGImageEncoder>},
     {.exported_name = "nnfc1_encoder",
      .new_context_func = new_encoder<nnfc::NNFC1Encoder, int>,
      .constructor_types_func = constructor_types<nnfc::NNFC1Encoder>}};
@@ -169,6 +173,9 @@ static std::vector<DecoderContextFactory> nnfc_available_decoders = {
     {.exported_name = "jpeg_decoder",
      .new_context_func = new_decoder<nnfc::JPEGDecoder>,
      .constructor_types_func = constructor_types<nnfc::JPEGDecoder>},
+    {.exported_name = "jpeg_image_decoder",
+     .new_context_func = new_decoder<nnfc::JPEGImageDecoder>,
+     .constructor_types_func = constructor_types<nnfc::JPEGImageDecoder>},
     {.exported_name = "nnfc1_decoder",
      .new_context_func = new_decoder<nnfc::NNFC1Decoder>,
      .constructor_types_func = constructor_types<nnfc::NNFC1Decoder>}};
