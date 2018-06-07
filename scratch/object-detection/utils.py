@@ -43,7 +43,7 @@ class DetectionOutput:
 
 def parse_detections(y):
 
-    object_threshold = 0.25
+    object_threshold = 0.2
     y = y.detach().cpu().numpy()
     
     all_detections = []
