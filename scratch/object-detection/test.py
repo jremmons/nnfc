@@ -27,7 +27,7 @@ def parse_labels(label, size):
         data = line.strip().split(' ')
         bb_o = [float(x) for x in data[1:]]
         idx = int(data[0])
-        
+
         bb = [0] * 4
         bb[0] = size * (bb_o[0] - bb_o[2] / 2)
         bb[1] = size * (bb_o[1] - bb_o[3] / 2)
@@ -51,7 +51,7 @@ class YoloDataset(Dataset):
         self.max_items = 50
 
         self.transforms = transforms
-        
+
         for img in sorted(os.listdir(images_path)):
             lbl = os.path.basename(img).split('.')[0] + '.txt'
             label_path = os.path.join(labels_path, lbl)
@@ -61,7 +61,7 @@ class YoloDataset(Dataset):
                 self.labels += [lbl]
 
         assert(len(self.images) == len(self.labels))
-        
+
     def __len__(self):
         return len(self.images)
 
@@ -88,13 +88,13 @@ def main(images_path, labels_path):
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
-    
-    data = DataLoader(YoloDataset(images_path, labels_path, t, size), batch_size=1, shuffle=True, num_workers=mp.cpu_count())
+
+    data = DataLoader(YoloDataset(images_path, labels_path, t, size), batch_size=64, shuffle=True, num_workers=mp.cpu_count())
     model = yolo.load_model()
     model.to(device)
 
-    count = [0 for _ in range(80)]
-    correct = [0 for _ in range(80)]
+    count = [0] * 80
+    correct = [0] * 80
 
     with torch.no_grad():
         for i, (local_batch, local_labels) in enumerate(data):
@@ -104,15 +104,15 @@ def main(images_path, labels_path):
 
             for j, detections in enumerate(utils.parse_detections(output)):
                 detections = utils.non_max_suppression(detections, confidence_threshold=0.2)
-                
+
                 for target in parse_labels(local_labels[0][j], size):
 
                     count[target['coco_idx']] += 1
                     for det in [det for det in detections if det.coco_idx == target['coco_idx']]:
                         if utils.iou(target['bb'], det.bb) >= 0.5:
                             correct[target['coco_idx']] += 1
-                        break
-                    
+                            break
+
             psum = 0
             for j in range(80):
                 if count[j] == 0:
@@ -121,7 +121,7 @@ def main(images_path, labels_path):
 
                 p = correct[j] / count[j]
                 psum += p
-                
+
             print('[%d/%d] mAP: %.6f (%.6f)' % (i + 1, len(data), psum / 80, sum(correct)/sum(count)))
 
 
