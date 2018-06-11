@@ -1,0 +1,14 @@
+{
+    "checkpoint_filename": "/mnt/data/jemmons/nnfc/results/cifar10/simplenet9_thin/checkpoint-epoch00350.h5",
+    "network_name": "simplenet9_thin",
+    "timing": {
+        "count": 32,
+        "mean": 0.006566599749021407,
+        "median": 0.006566599749021407,
+        "std": 0.0013069889926482798
+    },
+    "validation_loss": 4.963337734341621,
+    "validation_mean_size": 2.0,
+    "validation_median_size": 2.0,
+    "validation_top1": 0.9267
+}
