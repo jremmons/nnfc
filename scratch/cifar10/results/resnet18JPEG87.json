@@ -1,0 +1,14 @@
+{
+    "checkpoint_filename": "/mnt/data/jemmons/nnfc/results/cifar10/resnet18JPEG87_trainslowest/checkpoint-epoch00350.h5",
+    "network_name": "resnet18JPEG87",
+    "timing": {
+        "count": 32,
+        "mean": 0.00024132874568749685,
+        "median": 0.00024132874568749685,
+        "std": 3.523812715860405e-06
+    },
+    "validation_loss": 5.22127440571785,
+    "validation_mean_size": 674.7387,
+    "validation_median_size": 678.0,
+    "validation_top1": 0.9335
+}
