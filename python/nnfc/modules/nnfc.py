@@ -37,8 +37,8 @@ class CompressionLayer(Module):
 
         @staticmethod
         def backward(ctx, grad_output):
-            grad_output = ctx.decoder.backward(grad_output)
-            grad_output = ctx.encoder.backward(grad_output)
+            # grad_output = ctx.decoder.backward(grad_output)
+            # grad_output = ctx.encoder.backward(grad_output)
 
             return grad_output, None, None, None
 
