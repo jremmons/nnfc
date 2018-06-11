@@ -4,10 +4,12 @@ AM_CPPFLAGS = $(CXX14_FLAGS) $(JPEG_CFLAGS) \
 
 AM_CXXFLAGS = $(PICKY_CXXFLAGS) -fPIC \
               -Wl,-Bstatic -L$(srcdir)/../nn \
-              -L$(srcdir)/../codec -lnn -l:libcodec.a \
+              -L$(srcdir)/../codec -l:libnn.a -l:libcodec.a \
               -Wl,-Bdynamic -lturbojpeg -ljpeg
 
 lib_LTLIBRARIES = libnnfc.la
+
+EXTRA_libnnfc_la_DEPENDENCIES = ../codec/libcodec.a ../nn/libnn.a
 
 libnnfc_la_SOURCES = nnfc_CXXAPI.hh nnfc_CXXAPI.cc \
                      noop_codec.hh noop_codec.cc \
