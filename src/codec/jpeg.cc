@@ -18,6 +18,10 @@ vector<uint8_t> codec::JPEGEncoder::encode(vector<uint8_t>& image,
     throw runtime_error("number of channels must be 1 or 3");
   }
 
+  if (image.size() != width * height * channels) {
+    throw runtime_error("image.size != width * height * channels");
+  }
+
   jpeg_compress_struct context;
   jpeg_error_mgr jerr;
 
