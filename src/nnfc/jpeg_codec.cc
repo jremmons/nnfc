@@ -26,7 +26,7 @@ vector<uint8_t> nnfc::JPEGEncoder::forward(nn::Tensor<float, 3> input) {
   const size_t jpeg_height = jpeg_chunks * dim1;
   const size_t jpeg_width = jpeg_chunks * dim2;
 
-  vector<uint8_t> buffer(jpeg_height * jpeg_width + 1024);
+  vector<uint8_t> buffer(jpeg_height * jpeg_width);
   fill(buffer.begin(), buffer.end(), 0);
 
   // compute the strides for laying out the data in memory
