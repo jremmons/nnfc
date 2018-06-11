@@ -177,7 +177,14 @@ def main(checkpoint_dir, test_run, resume, config):
 
             model_params = net.state_dict()
             for key in net.state_dict().keys():
-                model_params[key].data.copy_(torch.from_numpy(np.asarray(f[key])))
+                data = None
+                try:
+                    data = f[key]
+                except:
+                    logging.warning('Could not find key using standard name. Now trying to preprend "module." to name.')
+                    data = f['module.'+key]
+                    
+                model_params[key].data.copy_(torch.from_numpy(np.asarray(data)))
 
 
     current_lr = get_learning_rate(initial_epoch, config['learning_rate'])

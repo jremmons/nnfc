@@ -54,8 +54,12 @@ def test(model, loss_fn, testloader):
             batch_labels = batch_labels.cuda()
 
         output = model(batch_data)
-        compressed_sizes += model.get_compressed_sizes()
-        
+        try:
+            compressed_sizes += model.get_compressed_sizes()
+        except:
+            logging.warning('Could not get the compressed size. Assuming this is a regular model without compression.')
+            compressed_sizes += [2]
+            
         test_loss += loss_fn(output, batch_labels).data.item()
         pred = output.data.max(1, keepdim=True)[1]
         correct += pred.eq(batch_labels.data.view_as(pred)).long().cpu().sum().item()
@@ -67,12 +71,11 @@ def test(model, loss_fn, testloader):
     t2 = timeit.default_timer()
     logging.info('Test Epoch took {} seconds'.format(t2-t1))
 
-    print(np.median(np.asarray(compressed_sizes)))
-    print(np.mean(np.asarray(compressed_sizes)))
-    
     return {
         'validation_top1' : correct / count,
-        'validation_loss' : test_loss
+        'validation_loss' : test_loss,
+        'validation_mean_size' : np.mean(np.asarray(compressed_sizes)),
+        'validation_median_size' : np.median(np.asarray(compressed_sizes)),
         }
 
 
@@ -124,13 +127,19 @@ def main(checkpoint_dir, config):
 
         model_params = net.state_dict()
         for key in net.state_dict().keys():
-            model_params[key].data.copy_(torch.from_numpy(np.asarray(f['module.'+key])))
+            data = None
+            try:
+                data = f[key]
+            except:
+                logging.warning('Could not find key using standard name. Now trying to preprend "module." to name.')
+                data = f['module.'+key]
+
+            model_params[key].data.copy_(torch.from_numpy(np.asarray(data)))
 
         ##############################################################
         # compute the accuracy on the test set
         ##############################################################
         test_log = test(net, loss_fn, testloader)
-        print(json.dumps(test_log, indent=4, sort_keys=True))
         
         ##############################################################
         # record the execution time
@@ -140,6 +149,7 @@ def main(checkpoint_dir, config):
         input_x = torch.autograd.Variable(torch.from_numpy(input_x)).cpu()
 
         net = net.cpu()
+        net.timing = True
         out = net(input_x)
         times = []
         for _ in range(N):
@@ -149,15 +159,23 @@ def main(checkpoint_dir, config):
             times.append(t2 - t1)
 
         times = np.asarray(times)
-            
-        print(json.dumps({
-            'name' : 'time', 
+
+        test_log['timing'] = {
             'count' : N,
             'mean' : np.mean(times),
             'median' : np.mean(times),
             'std' : np.std(times),
-        }, indent=4, sort_keys=True))            
+        }
+
+        test_log['network_name'] = config['network_name']
+        test_log['checkpoint_filename'] = checkpoint_filename
         
+        with open(args.output_json, 'w') as f:
+            output = json.dumps(test_log, indent=4, sort_keys=True)
+            print(output)
+            f.write(output)
+
+            
         # ##############################################################
         # # record the number of cycles
         # ##############################################################
@@ -218,6 +236,7 @@ def main(checkpoint_dir, config):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='')
+    parser.add_argument('output_json', type=str)
     parser.add_argument('checkpoint_dir', type=str)
     args = parser.parse_args()
 
