@@ -1,0 +1,14 @@
+{
+    "checkpoint_filename": "/mnt/data/jemmons/nnfc/results/cifar10/mobilenetv2/checkpoint-epoch01000.h5",
+    "network_name": "mobilenetv2",
+    "timing": {
+        "count": 32,
+        "mean": 0.20755679374360625,
+        "median": 0.20755679374360625,
+        "std": 0.01225230860810132
+    },
+    "validation_loss": 13.110543623566628,
+    "validation_mean_size": 2.0,
+    "validation_median_size": 2.0,
+    "validation_top1": 0.9312
+}
