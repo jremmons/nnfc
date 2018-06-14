@@ -11,7 +11,10 @@ addons:
     - nasm
     - libhdf5-dev
     - hdf5-helpers
-    
+    - libavcodec-dev
+    - libavformat-dev
+    - libavutil-dev
+
 install:
   - uname -a
   - lsb_release -a
@@ -33,7 +36,7 @@ install:
   - sudo apt-get install -q -y libeigen3-dev
 
   # upgrade python version
-  - sudo add-apt-repository ppa:fkrull/deadsnakes -y 
+  - sudo add-apt-repository ppa:fkrull/deadsnakes -y
   - sudo apt-get update -q
   - sudo apt-get install -q -y --allow-unauthenticated python3.5-dev
   - sudo rm -f /usr/bin/python3 /usr/bin/python
@@ -43,7 +46,7 @@ install:
   - python3 --version
 
   # install and upgrade pip
-  - sudo apt-get install -q -y python3-pip 
+  - sudo apt-get install -q -y python3-pip
   - sudo pip3 install --quiet --upgrade pip
   - sudo rm -f /usr/local/bin/pip
   - sudo ln -s /usr/local/bin/pip3 /usr/local/bin/pip
@@ -61,7 +64,7 @@ install:
   - python3 -c "import numpy; print('numpy', numpy.__version__)"
 
   # this torch wheel file was compiled and is hosted by John Emmons (jemmons@cs.stanford.edu).
-  # this "should" work on just about any ubuntu machine >= 14.04. 
+  # this "should" work on just about any ubuntu machine >= 14.04.
   # the bdist_wheel was compiled on an Ubuntu 14.04 machines with the following flags:
   #  export NO_CUDA=1
   #  export NO_CUDNN=1
@@ -84,7 +87,7 @@ install:
 
   - sudo pip3 install --quiet --upgrade h5py
   - python3 -c "import h5py; print('h5py', h5py.__version__)"
-  
+
 script:
   - ./autogen.sh
   - ./configure

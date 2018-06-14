@@ -33,6 +33,12 @@ AM_PROG_LIBTOOL
 PKG_CHECK_MODULES([JPEG], [libturbojpeg])
 AX_CHECK_HDF5_SERIAL()
 
+PKG_CHECK_MODULES([AVFORMAT], [libavformat])
+PKG_CHECK_MODULES([AVCODEC], [libavcodec])
+PKG_CHECK_MODULES([AVUTIL], [libavutil])
+PKG_CHECK_MODULES([AVFILTER], [libavfilter])
+PKG_CHECK_MODULES([AVDEVICE], [libavdevice])
+
 # Important: need to add flags for AVX, SSE, etc. to get good performance
 AC_CHECK_FILE([/usr/include/eigen3/unsupported/Eigen/CXX11/Tensor], [
     EIGEN3_CFLAGS="-isystem /usr/include/eigen3/"
