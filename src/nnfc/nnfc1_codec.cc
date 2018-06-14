@@ -26,6 +26,7 @@ std::vector<float> kmeans(nn::Tensor<float, 3> input, int nbins,
   const float max = vals[dim0 * dim1 * dim2 - 1]; // max is last element since array is sorted. 
 
   // initial means to be linearly spaced
+  assert(nbins > 1);
   std::vector<float> means(nbins);
   for (int i = 0; i < nbins; i++) {
     means[i] = min + ((max - min) * (static_cast<float>(i) / (nbins - 1)));
@@ -33,7 +34,34 @@ std::vector<float> kmeans(nn::Tensor<float, 3> input, int nbins,
 
   // perform multiple iterations of llyod's algorithm
   for (int iter = 0; iter < max_iter; iter++) {
-      // TODO(jemmons) add k-mean here. 
+
+      int centroid_idx = 0;
+      float sum = 0;
+      int count = 0;
+      bool last = false;
+      
+      const int vals_size = vals.size();
+      for (int i = 0; i < vals_size; i++) {
+          if (last or vals[i] < ((means[centroid_idx] + means[centroid_idx+1]) / 2)) {
+              sum += vals[i];
+              ++count;
+          }
+          else {              
+              // set the new value of the centroid
+              means[centroid_idx] = sum / count;
+
+              // setup things for processing the next centroid
+              ++centroid_idx;
+              sum = vals[i];
+              count = 1;
+
+              if (centroid_idx >= static_cast<int>(means.size()) - 1) {
+                  last = true;
+              }
+          }
+          // set the value of the last centroid
+          means[centroid_idx] = sum / count;
+      }
   }
 
   return means;
@@ -74,7 +102,7 @@ vector<uint8_t> nnfc::NNFC1Encoder::forward(nn::Tensor<float, 3> input) {
   uint64_t dim2 = input.dimension(2);
 
   // quantize the input data
-  std::vector<float> means = kmeans(input, 256);
+  std::vector<float> means = kmeans(input, 8);
   for (size_t i = 0; i < dim0; i++) {
     for (size_t j = 0; j < dim1; j++) {
       for (size_t k = 0; k < dim2; k++) {
