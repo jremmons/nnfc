@@ -6,4 +6,4 @@ AM_CXXFLAGS = $(PICKY_CXXFLAGS) -fPIC
 
 noinst_LIBRARIES = libcodec.a
 
-libcodec_a_SOURCES = jpeg.hh jpeg.cc
+libcodec_a_SOURCES = jpeg.hh jpeg.cc mpeg.hh mpeg.cc
