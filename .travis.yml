@@ -1,100 +1,12 @@
 language: cpp
 sudo: required
+services: docker
 
-addons:
-  apt:
-    sources:
-    - ubuntu-toolchain-r-test
-    packages:
-    - gcc-7
-    - g++-7
-    - nasm
-    - libhdf5-dev
-    - hdf5-helpers
-    - libavcodec-dev
-    - libavformat-dev
-    - libavutil-dev
-
-install:
-  - uname -a
-  - lsb_release -a
-
-  # install newer libjpegturbo-dev (with .so and .pc)
-  - sudo add-apt-repository -y ppa:keithw/libjpeg-turbo-backports
-  - sudo apt-get update -q
-  - sudo apt-get install -q -y libturbojpeg0-dev
-
-  # upgrade gcc
-  - sudo apt-get update -q
-  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 99
-  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 99
-  - g++ -v
-
-  # install eigen3
-  - sudo add-apt-repository -y ppa:jremmons/libeigen3-backports
-  - sudo apt-get update -q
-  - sudo apt-get install -q -y libeigen3-dev
-
-  # upgrade python version
-  - sudo add-apt-repository ppa:fkrull/deadsnakes -y
-  - sudo apt-get update -q
-  - sudo apt-get install -q -y --allow-unauthenticated python3.5-dev
-  - sudo rm -f /usr/bin/python3 /usr/bin/python
-  - sudo ln -s /usr/bin/python3.5 /usr/bin/python
-  - sudo ln -s /usr/bin/python3.5 /usr/bin/python3
-  - python --version
-  - python3 --version
-
-  # install and upgrade pip
-  - sudo apt-get install -q -y python3-pip
-  - sudo pip3 install --quiet --upgrade pip
-  - sudo rm -f /usr/local/bin/pip
-  - sudo ln -s /usr/local/bin/pip3 /usr/local/bin/pip
-  - pip --version
-  - pip3 --version
-
-  # upgrade python build tools
-  - sudo pip3 install --quiet --upgrade setuptools
-  - python -c "import setuptools; print('setuptools', setuptools.__version__)"
-  - sudo pip3 install --quiet --upgrade wheel
-  - python -c "import wheel; print('wheel', wheel.__version__)"
-
-  # install python dependencies
-  - sudo pip3 install --quiet --upgrade numpy
-  - python3 -c "import numpy; print('numpy', numpy.__version__)"
-
-  # this torch wheel file was compiled and is hosted by John Emmons (jemmons@cs.stanford.edu).
-  # this "should" work on just about any ubuntu machine >= 14.04.
-  # the bdist_wheel was compiled on an Ubuntu 14.04 machines with the following flags:
-  #  export NO_CUDA=1
-  #  export NO_CUDNN=1
-  #  export NO_MKLDNN=1
-  #  export NO_DISTRIBUTED=1
-  #  export PYTORCH_BUILD_VERSION=0.5.0
-  #  export PYTORCH_BUILD_NUMBER=0
-  #  export CFLAGS="-mtune=generic"
-  #  export CXXFLAGS="-mtune=generic"
-  # - wget https://www.dropbox.com/s/b9zy3vso4kl25yz/torch-0.5.0-cp35-cp35m-linux_x86_64.whl
-  # - wget https://www.dropbox.com/s/qb0gp6w1amcrm3x/torch-0.5.0-cp35-cp35m-linux_x86_64.whl.sha256
-  # - sha256sum --check torch-0.5.0-cp35-cp35m-linux_x86_64.whl.sha256
-  # - sudo pip3 install torch-0.5.0-cp35-cp35m-linux_x86_64.whl
-
-  - sudo pip3 install --quiet --upgrade torch
-  - python3 -c "import torch; print('torch', torch.__version__)"
-
-  - sudo pip3 install --quiet --upgrade torchvision
-  - python3 -c "import torchvision; print('torchvision', torchvision.__version__)"
-
-  - sudo pip3 install --quiet --upgrade h5py
-  - python3 -c "import h5py; print('h5py', h5py.__version__)"
+before_install:
+  - docker build -t nnfc-travis -f .travis.Dockerfile .
 
 script:
-  - ./autogen.sh
-  - ./configure
-  - make -j4
-  - make check
-  - cat tests/test-suite.log
-  - cat tests/pythonpath.txt
+  - docker run -ti nnfc-travis:latest /home/user/nnfc/.travis-check.sh
 
 notifications:
   email: false
