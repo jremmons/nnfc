@@ -37,7 +37,8 @@ vector<uint8_t> MPEGEncoder<codec_id>::encode(const vector<uint8_t>& image,
     throw runtime_error("number of channels must be 1 or 3");
   }
 
-  if (image.size() < width * height * channels) {
+  if ((channels == 1 and image.size() < width * height) or
+      (channels == 3 and image.size() < width * height * 3 / 2)) {
     throw runtime_error("unexpected image length");
   }
 
