@@ -9,8 +9,7 @@ AM_CXXFLAGS = $(PICKY_CXXFLAGS) -fPIC \
               -L$(srcdir)/../codec -l:libnn.a -l:libcodec.a \
               -Wl,-Bdynamic -lturbojpeg -Wl,-Bdynamic -ljpeg \
               $(AVFORMAT_LIBS) $(AVCODEC_LIBS) $(AVUTIL_LIBS) \
-              $(SWSCALE_LIBS) -Wl,-Bdynamic -lswscale \
-              -Wl,-Bdynamic -lva-drm -Wl,-Bdynamic -lva-x11
+              $(SWSCALE_LIBS) -Wl,-Bdynamic -lswscale 
 
 lib_LTLIBRARIES = libnnfc.la
 
