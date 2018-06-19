@@ -6,10 +6,7 @@
 #include "swizzler.hh"
 #include "tensor.hh"
 
-nnfc::RGBSwizzlerEncoder::RGBSwizzlerEncoder() :
-    converter_(448,448),
-    deconverter_(448,448)
-{}
+nnfc::RGBSwizzlerEncoder::RGBSwizzlerEncoder() {}
 
 nnfc::RGBSwizzlerEncoder::~RGBSwizzlerEncoder() {}
 
@@ -34,8 +31,13 @@ std::vector<uint8_t> nnfc::RGBSwizzlerEncoder::forward(nn::Tensor<float, 3> inpu
       ((input.tensor() - min) * (255 / (max - min))).cast<uint8_t>();
 
   std::memcpy(buffer.data(), &input_q(0,0,0), dim0 * dim1 * dim2);
-  std::vector<uint8_t> yuv = converter_.convert(buffer);
-  std::vector<uint8_t> rgb = deconverter_.convert(yuv);
+
+  codec::RGBp_to_YUV420p converter(dim1, dim2);
+  std::vector<uint8_t> yuv = converter.convert(buffer);
+
+  codec::YUV420p_to_RGBp deconverter(dim1, dim2);
+  std::vector<uint8_t> rgb = deconverter.convert(yuv);
+
   std::memcpy(&input_q(0,0,0), rgb.data(), dim0 * dim1 * dim2);
 
   std::vector<uint8_t> encoding;

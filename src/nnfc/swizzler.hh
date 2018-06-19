@@ -12,8 +12,8 @@ namespace nnfc {
 
 class RGBSwizzlerEncoder {
  private:
-    codec::RGBp_to_YUV420p converter_;
-    codec::YUV420p_to_RGBp deconverter_;
+    // codec::RGBp_to_YUV420p converter_;
+    // codec::YUV420p_to_RGBp deconverter_;
     //codec::RGB24_to_YUV422p converter_;
     //codec::YUV422p_to_RGB24 deconverter_;
     
