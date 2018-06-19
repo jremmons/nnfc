@@ -85,15 +85,25 @@ vector<uint8_t> MPEGEncoder<codec_id>::encode(const vector<uint8_t>& image,
   CheckAVCommand("av_frame_get_buffer", av_frame_get_buffer(frame.get(), 32));
   CheckAVCommand("av_frame_make_writable", av_frame_make_writable(frame.get()));
 
-  memcpy(frame->data[0], image.data(), width * height);
+  for (size_t row = 0; row < height; row++) {
+    memcpy(frame->data[0] + frame->linesize[0] * row,
+           image.data() + width * row, width);
+  }
 
   if (channels == 1) {
-    memset(frame->data[1], 0, width * height / 4);
-    memset(frame->data[2], 0, width * height / 4);
+    memset(frame->data[1], 0, frame->linesize[1] * height / 2);
+    memset(frame->data[2], 0, frame->linesize[2] * height / 2);
   }
   else {
-    memcpy(frame->data[1], &image[width * height], width * height / 4);
-    memcpy(frame->data[2], &image[width * height * 5 / 4], width * height / 4);
+    for (size_t row = 0; row < height / 2; row++) {
+      memcpy(frame->data[1] + frame->linesize[1] * row,
+             image.data() + width * height + width * row / 2,
+             width / 2);
+
+      memcpy(frame->data[2] + frame->linesize[2] * row,
+             image.data() + 5 * width * height / 4 + width * row / 2,
+             width / 2);
+    }
   }
 
   vector<uint8_t> result;
@@ -136,9 +146,21 @@ vector<vector<uint8_t>> decode_frame(AVCodecContext * context, AVFrame * frame,
     vector<uint8_t> output;
     output.resize(width * height * 3 / 2);
 
-    memcpy(output.data(), frame->data[0], width * height);
-    memcpy(output.data() + width * height, frame->data[1], width * height / 4);
-    memcpy(output.data() + 5 * width * height / 4, frame->data[2], width * height / 4);
+    for (size_t row = 0; row < height; row++) {
+      memcpy(output.data() + width * row,
+             frame->data[0] + frame->linesize[0] * row,
+             width);
+    }
+
+    for (size_t row = 0; row < height / 2; row++) {
+      memcpy(output.data() + width * height + width * row / 2,
+             frame->data[1] + frame->linesize[1] * row,
+             width / 2);
+
+      memcpy(output.data() + 5 * width * height / 4 + width * row / 2,
+             frame->data[2] + frame->linesize[2] * row,
+             width / 2);
+    }
 
     outputs.emplace_back(move(output));
   }
