@@ -1,6 +1,7 @@
 #include <cassert>
 #include <memory>
 #include <vector>
+#include <iostream>
 
 #include "swizzle.hh"
 
