@@ -15,15 +15,21 @@ using namespace std;
 
 std::vector<float> kmeans(nn::Tensor<float, 3> input, int nbins,
                           int max_iter = 10) {
+
+  // auto total_t1 = std::chrono::high_resolution_clock::now();
   const int dim0 = input.dimension(0);
   const int dim1 = input.dimension(1);
   const int dim2 = input.dimension(2);
   std::vector<float> vals(&input(0, 0, 0),
                           &input(0, 0, 0) + dim0 * dim1 * dim2);
-  std::sort(vals.begin(), vals.end());
 
-  const float min = vals[0]; // min is first element since array is sorted.
-  const float max = vals[dim0 * dim1 * dim2 - 1]; // max is last element since array is sorted. 
+  // auto sort_t1 = std::chrono::high_resolution_clock::now();
+  // std::sort(vals.begin(), vals.end());
+  // auto sort_t2 = std::chrono::high_resolution_clock::now();
+  //std::cout << "sort: " << std::chrono::duration_cast<std::chrono::duration<double>>(sort_t2 - sort_t1).count() << std::endl;
+  
+  const float min = input.minimum();
+  const float max = input.maximum();
 
   // initial means to be linearly spaced
   assert(nbins > 1);
@@ -32,39 +38,83 @@ std::vector<float> kmeans(nn::Tensor<float, 3> input, int nbins,
     means[i] = min + ((max - min) * (static_cast<float>(i) / (nbins - 1)));
   }
 
+  std::vector<float> means_sum(nbins);
+  std::vector<float> means_count(nbins);
+
   // perform multiple iterations of llyod's algorithm
+  // auto llyods_t1 = std::chrono::high_resolution_clock::now();
   for (int iter = 0; iter < max_iter; iter++) {
 
-      int centroid_idx = 0;
-      float sum = 0;
-      int count = 0;
-      bool last = false;
+      for (int i = 0; i < nbins; i++) {
+          means_count[i] = 0;
+          means_sum[i] = 0;
+      }
       
       const int vals_size = vals.size();
       for (int i = 0; i < vals_size; i++) {
-          if (last or vals[i] < ((means[centroid_idx] + means[centroid_idx+1]) / 2)) {
-              sum += vals[i];
-              ++count;
-          }
-          else {              
-              // set the new value of the centroid
-              means[centroid_idx] = sum / count;
+          const float val = vals[i];
 
-              // setup things for processing the next centroid
-              ++centroid_idx;
-              sum = vals[i];
-              count = 1;
-
-              if (centroid_idx >= static_cast<int>(means.size()) - 1) {
-                  last = true;
-              }
+          int best_mean = 0;
+          float best_distance = means[0] - val > 0 ? means[0] - val : val - means[0];
+          for (int j = 1; j < nbins; j++) {
+              const float curr_distance = means[j] - val > 0 ? means[j] - val : val - means[j];
+              if (curr_distance < best_distance) {
+                  best_distance = curr_distance;
+                  best_mean = j;
+              }              
           }
-          // set the value of the last centroid
-          means[centroid_idx] = sum / count;
+
+          means_count[best_mean] += 1;
+          means_sum[best_mean] += val;
       }
+
+      for (int i = 0; i < nbins; i++) {
+          means[i] = means_sum[i] / means_count[i];
+      }            
+
   }
 
+  // auto llyods_t2 = std::chrono::high_resolution_clock::now();
+  // std::cout << "llyods: " << std::chrono::duration_cast<std::chrono::duration<double>>(llyods_t2 - llyods_t1).count() << std::endl;
+  // auto total_t2 = std::chrono::high_resolution_clock::now();
+  // std::cout << "total: " << std::chrono::duration_cast<std::chrono::duration<double>>(total_t2 - total_t1).count() << std::endl;
+
   return means;
+      
+  //     int centroid_idx = 0;
+  //     float sum = 0;
+  //     int count = 0;
+  //     bool last = false;
+      
+  //     const int vals_size = vals.size();
+  //     for (int i = 0; i < vals_size; i++) {
+  //         if (last or vals[i] < ((means[centroid_idx] + means[centroid_idx+1]) / 2)) {
+  //             sum += vals[i];
+  //             ++count;
+  //         }
+  //         else {              
+  //             // set the new value of the centroid
+  //             means[centroid_idx] = sum / count;
+
+  //             // setup things for processing the next centroid
+  //             ++centroid_idx;
+  //             sum = vals[i];
+  //             count = 1;
+
+  //             if (centroid_idx >= static_cast<int>(means.size()) - 1) {
+  //                 last = true;
+  //             }
+  //         }
+  //         // set the value of the last centroid
+  //         means[centroid_idx] = sum / count;
+  //     }
+  // }
+  // auto llyods_t2 = std::chrono::high_resolution_clock::now();
+  //std::cout << "llyods: " << std::chrono::duration_cast<std::chrono::duration<double>>(llyods_t2 - llyods_t1).count() << std::endl;
+  // auto total_t2 = std::chrono::high_resolution_clock::now();
+  //std::cout << "total: " << std::chrono::duration_cast<std::chrono::duration<double>>(total_t2 - total_t1).count() << std::endl;
+
+  //return means;
 }
 
 int quantize(float val, std::vector<float> &bins) {
@@ -102,7 +152,7 @@ vector<uint8_t> nnfc::NNFC1Encoder::forward(nn::Tensor<float, 3> input) {
   uint64_t dim2 = input.dimension(2);
 
   // quantize the input data
-  std::vector<float> means = kmeans(input, 8);
+  std::vector<float> means = kmeans(input, 4);
   for (size_t i = 0; i < dim0; i++) {
     for (size_t j = 0; j < dim1; j++) {
       for (size_t k = 0; k < dim2; k++) {
