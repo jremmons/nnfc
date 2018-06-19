@@ -17,7 +17,7 @@ def get_def(header_filepath, definition_name):
 VERSION = get_def('../config.h', 'VERSION')
 EXTENSION_NAME = 'nnfc._ext.nnfc_codec'
 #CUDA_AVAILABLE = torch.cuda.is_available()
-CUDA_AVAILABLE = False
+CUDA_AVAILABLE = False # TODO(jremmons) add back support for CUDA functions
 
 cuda_sources = ['nnfc/src/nnfc_cuda.cc',] if CUDA_AVAILABLE else []
 
