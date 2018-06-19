@@ -14,7 +14,6 @@ namespace nnfc {
 
 class H264ImageEncoder {
  private:
-    codec::RGBp_to_YUV420p converter_;
     codec::AVCEncoder encoder_;
     
  public:
@@ -31,7 +30,6 @@ class H264ImageEncoder {
 
 class H264ImageDecoder {
  private:
-    codec::YUV420p_to_RGBp deconverter_;
     codec::AVCDecoder decoder_;
 
  public:

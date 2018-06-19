@@ -12,7 +12,6 @@
 using namespace std;
 
 nnfc::H264ImageEncoder::H264ImageEncoder(int quality) :
-    converter_(416, 416),
     encoder_(quality)
 {}
 
@@ -28,7 +27,6 @@ vector<uint8_t> nnfc::H264ImageEncoder::forward(nn::Tensor<float, 3> input) {
   const float min = input.minimum();
   const float max = input.maximum();
 
-  // create a buffer to put the swizzled pixels
   vector<uint8_t> buffer(dim0 * dim1 * dim2);
   fill(buffer.begin(), buffer.end(), 0);
   
@@ -37,11 +35,13 @@ vector<uint8_t> nnfc::H264ImageEncoder::forward(nn::Tensor<float, 3> input) {
       ((input.tensor() - min) * (255 / (max - min))).cast<uint8_t>();
   
   std::memcpy(buffer.data(), &input_q(0,0,0), dim0 * dim1 * dim2);
-  std::vector<uint8_t> yuv = converter_.convert(buffer);
+  codec::RGBp_to_YUV420p converter (dim1, dim2);
+  std::vector<uint8_t> yuv = converter.convert(buffer);
   
   // H264 compress
-  vector<uint8_t> encoding = encoder_.encode(yuv, dim2, dim1, 3);
-
+  vector<uint8_t> encoding = encoder_.encode(yuv, dim1, dim2, 3);
+  //auto encoding = yuv;
+  
   const uint8_t *min_bytes = reinterpret_cast<const uint8_t *>(&min);
   const uint8_t *max_bytes = reinterpret_cast<const uint8_t *>(&max);
 
@@ -75,7 +75,6 @@ nn::Tensor<float, 3> nnfc::H264ImageEncoder::backward(
 }
 
 nnfc::H264ImageDecoder::H264ImageDecoder() :
-    deconverter_(416, 416),
     decoder_()
 {}
 
@@ -111,7 +110,13 @@ nn::Tensor<float, 3> nnfc::H264ImageDecoder::forward(vector<uint8_t> input) {
   }
 
   vector<uint8_t> decoded = decoder_.decode(input, dim2, dim1);
-  std::vector<uint8_t> rgb = deconverter_.convert(decoded);
+  // vector<uint8_t> decoded;
+  // for(size_t i = 0; i < input.size() - 3*sizeof(uint64_t) - 2*sizeof(float); i++){
+  //     decoded.push_back(input[i]);
+  // }      
+  
+  codec::YUV420p_to_RGBp deconverter(dim1, dim2);
+  std::vector<uint8_t> rgb = deconverter.convert(decoded);
 
   nn::Tensor<uint8_t, 3> output_q(dim0, dim1, dim2);
   std::memcpy(&output_q(0,0,0), rgb.data(), dim0 * dim1 * dim2);
