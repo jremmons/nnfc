@@ -11,6 +11,7 @@
 #include "jpeg_codec.hh"
 #include "jpeg_image_codec.hh"
 #include "h264_image_codec.hh"
+#include "h265_image_codec.hh"
 #include "mpeg_codec.hh"
 #include "nnfc1_codec.hh"
 #include "noop_codec.hh"
@@ -171,6 +172,9 @@ static std::vector<EncoderContextFactory> nnfc_available_encoders = {
     {.exported_name = "h264_image_encoder",
      .new_context_func = new_encoder<nnfc::H264ImageEncoder, int>,
      .constructor_types_func = constructor_types<nnfc::H264ImageEncoder>},
+    {.exported_name = "h265_image_encoder",
+     .new_context_func = new_encoder<nnfc::H265ImageEncoder, int>,
+     .constructor_types_func = constructor_types<nnfc::H265ImageEncoder>},
     {.exported_name = "avc_encoder",
      .new_context_func = new_encoder<nnfc::AVCEncoder, int>,
      .constructor_types_func = constructor_types<nnfc::AVCEncoder>},
@@ -197,6 +201,9 @@ static std::vector<DecoderContextFactory> nnfc_available_decoders = {
     {.exported_name = "h264_image_decoder",
      .new_context_func = new_decoder<nnfc::H264ImageDecoder>,
      .constructor_types_func = constructor_types<nnfc::H264ImageDecoder>},
+    {.exported_name = "h265_image_decoder",
+     .new_context_func = new_decoder<nnfc::H265ImageDecoder>,
+     .constructor_types_func = constructor_types<nnfc::H265ImageDecoder>},
     {.exported_name = "avc_decoder",
      .new_context_func = new_decoder<nnfc::AVCDecoder>,
      .constructor_types_func = constructor_types<nnfc::AVCDecoder>},

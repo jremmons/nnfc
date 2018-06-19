@@ -21,6 +21,7 @@ libnnfc_la_SOURCES = nnfc_CXXAPI.hh nnfc_CXXAPI.cc \
                      jpeg_codec.hh jpeg_codec.cc \
                      jpeg_image_codec.hh jpeg_image_codec.cc \
                      h264_image_codec.hh h264_image_codec.cc \
+                     h265_image_codec.hh h265_image_codec.cc \
                      mpeg_codec.hh mpeg_codec.cc \
                      nnfc1_codec.hh nnfc1_codec.cc
 
