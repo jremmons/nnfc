@@ -4,6 +4,8 @@ import torch
 import numpy as np
 from PIL import Image
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 coco_names = [
     'person',        'bicycle',       'car',           'motorbike',
     'aeroplane',     'bus',           'train',         'truck',
@@ -45,18 +47,18 @@ def parse_detections(y):
 
     object_threshold = 0.2
     y = y.detach().cpu().numpy()
-    
+
     all_detections = []
     for k in range(y.shape[0]):
 
         detections = []
         detection_indices = np.argwhere(y[k, :, 4] > object_threshold)
-        
+
         for i in detection_indices:
             confidences = y[k, i, 5:][0]
             confidences /= sum(confidences)
             idx = np.argmax(confidences)
-            
+
             det = DetectionOutput()
             det.coco_idx = idx
             det.coco_name = coco_names[idx]
