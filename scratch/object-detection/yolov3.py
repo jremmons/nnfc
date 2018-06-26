@@ -1,4 +1,5 @@
 import os
+import sys
 import h5py
 import time
 import timeit
@@ -66,15 +67,12 @@ class DarknetBlock(nn.Module):
         for i, (conv, bn) in enumerate(zip(self.conv, self.bn)):
             dn_register_weights_helper(register_p, register_b, self.block_name, i, conv, bn)
 
-    def forward(self, x, targets=None):
+    def forward(self, x):
         out = self.activaction_func(self.bn[0](self.conv[0](x)))
         out = self.activaction_func(self.bn[1](self.conv[1](out)))
         out = out + x
 
-        if targets:
-            pass
-        else:
-            return out
+        return out
 
 class DarknetConv(nn.Module):
     def __init__(self, conv_num, nFilter1, nFilter2, stride=2, activaction_func=nn.LeakyReLU(0.1)):
@@ -89,13 +87,9 @@ class DarknetConv(nn.Module):
     def register_weights(self, register_p, register_b):
         dn_register_weights_helper(register_p, register_b, self.conv_name, 0, self.conv, self.bn)
 
-    def forward(self, x, targets=None):
+    def forward(self, x):
         out = self.activaction_func(self.bn(self.conv(x)))
-
-        if targets:
-            pass
-        else:
-            return out
+        return out
 
 class YoloBlock(nn.Module):
     def __init__(self, conv_num, nFilter1, nFilter2, size, stride, padding, activaction_func=nn.LeakyReLU(0.1)):
@@ -110,13 +104,9 @@ class YoloBlock(nn.Module):
     def register_weights(self, register_p, register_b):
         dn_register_weights_helper(register_p, register_b, self.conv_name, 0, self.conv, self.bn)
 
-    def forward(self, x, targets=None):
+    def forward(self, x):
         out = self.activaction_func(self.bn(self.conv(x)))
-
-        if targets:
-            pass
-        else:
-            return out
+        return out
 
 class YoloConv(nn.Module):
     def __init__(self, conv_num, nFilter1, nFilter2, activaction_func=lambda x: x):
@@ -131,13 +121,9 @@ class YoloConv(nn.Module):
         register_p('{}_conv0_weight'.format(self.conv_name), self.conv.weight)
         register_p('{}_conv0_bias'.format(self.conv_name), self.conv.bias)
 
-    def forward(self, x, targets=None):
+    def forward(self, x):
         out = self.activaction_func(self.conv(x))
-
-        if targets:
-            pass
-        else:
-            return out
+        return out
 
 class YoloUpsample(nn.Module):
     def __init__(self):
@@ -147,11 +133,8 @@ class YoloUpsample(nn.Module):
     def register_weights(self, register_p, register_b):
         pass
 
-    def forward(self, x, targets=None):
-        if targets:
-            pass
-        else:
-            return self.upsample(x)
+    def forward(self, x):
+        return self.upsample(x)
 
 class YoloV3(nn.Module):
     anchors0 = torch.Tensor([(116,90), (156,198), (373,326)]).to(device)
@@ -273,9 +256,9 @@ class YoloV3(nn.Module):
 
         anchors = [(a[0]/stride, a[1]/stride) for a in anchors]
 
-        prediction = prediction.view(batch_size, bbox_attrs*num_anchors, grid_size*grid_size)
+        prediction = prediction.view(batch_size, bbox_attrs * num_anchors, grid_size * grid_size)
         prediction = prediction.transpose(1,2).contiguous()
-        prediction = prediction.view(batch_size, grid_size*grid_size*num_anchors, bbox_attrs)
+        prediction = prediction.view(batch_size, grid_size * grid_size * num_anchors, bbox_attrs)
 
         prediction[:,:,0] = torch.sigmoid(prediction[:,:,0])
         prediction[:,:,1] = torch.sigmoid(prediction[:,:,1])
@@ -299,7 +282,6 @@ class YoloV3(nn.Module):
         prediction[:,:,:4] *= stride
 
         return prediction
-
 
     def forward(self, x):
         # DARKNET
@@ -350,8 +332,6 @@ def load_model(load_weights=True):
             for param_name in model_params.keys():
                 weights = torch.from_numpy(np.asarray(f[param_name]).astype(np.float32))
                 model_params[param_name].data.copy_(weights)
-    else:
-        yolov3.apply(lambda m: tonch.nn.init.normal_(m.weight.data, 0.0, 0.0))
 
     return yolov3
 

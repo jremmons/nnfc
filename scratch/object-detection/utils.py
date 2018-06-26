@@ -29,6 +29,31 @@ coco_names = [
     'scissors',      'teddy bear',    'hair drier',    'toothbrush',
 ]
 
+class Box:
+    def __init__(self, x, y, w, h):
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
+
+        assert(self.x >= 0)
+        assert(self.y >= 0)
+        assert(self.w >= 0)
+        assert(self.h >= 0)
+
+    def to_x1y1x2y2(self):
+        return [self.x - self.w / 2,
+                self.y - self.h / 2,
+                self.x + self.w / 2,
+                self.y + self.h / 2]
+
+    def __str__(self):
+        return "box[center=(%.5f, %.5f), dims=(%.5f, %.5f)]" % (self.x,
+            self.y, self.w, self.h)
+
+    def __repr__(self):
+        return str(self)
+
 class DetectionOutput:
     def __init__(self):
         self.coco_idx = None
@@ -44,13 +69,11 @@ class DetectionOutput:
         return str(self)
 
 def parse_detections(y):
-
     object_threshold = 0.2
     y = y.detach().cpu().numpy()
 
     all_detections = []
     for k in range(y.shape[0]):
-
         detections = []
         detection_indices = np.argwhere(y[k, :, 4] > object_threshold)
 
@@ -63,24 +86,19 @@ def parse_detections(y):
             det.coco_idx = idx
             det.coco_name = coco_names[idx]
             det.confidence = confidences[idx]
-
-            bb = y[k, i, :4][0]
-            det.bb = [
-                bb[0] - bb[2] / 2, #x1
-                bb[1] - bb[3] / 2, #y1
-                bb[0] + bb[2] / 2, #x2
-                bb[1] + bb[3] / 2  #y2
-            ]
-
+            det.bb = Box(*(y[k, i, :4][0]))
             detections += [det]
 
         all_detections += [detections]
 
     return all_detections
 
-# box = [x1, y1, x2, y2]
+# box = [x, y, w, h]
 def iou(box_1, box_2):
     f_area = lambda b: ((b[3] - b[1] + 1) * (b[2] - b[0] + 1))
+
+    box_1 = box_1.to_x1y1x2y2()
+    box_2 = box_2.to_x1y1x2y2()
 
     # intersection coordinates
     box_i = [max(box_1[0], box_2[0]), max(box_1[1], box_2[1]),
@@ -110,3 +128,17 @@ def non_max_suppression(detections, confidence_threshold=0.25, iou_threshold=0.5
         final_outputs += label_finals
 
     return final_outputs
+
+def parse_labels(label, size):
+    labels = []
+    for line in label.split("\n")[:-1]:
+        data = line.strip().split(' ')
+        bb_o = [float(x) * size for x in data[1:]]
+        idx = int(data[0])
+
+        labels += [{
+            'coco_idx': idx,
+            'bb': Box(*bb_o)
+        }]
+
+    return labels
