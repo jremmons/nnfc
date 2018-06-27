@@ -18,6 +18,8 @@ from timeit import Timer
 import utils
 from utils import device
 
+from nnfc.modules.nnfc import CompressionLayer
+
 class TimeLog:
     def __init__(self, enabled=True):
         self.enabled = enabled
@@ -141,8 +143,12 @@ class YoloV3(nn.Module):
     anchors1 = torch.Tensor([(30,61), (62,45), (59,119)]).to(device)
     anchors2 = torch.Tensor([(10,13), (16,30), (33,23)]).to(device)
 
-    def __init__(self):
+    # If compression_layer_index != None, compression layer will be inserted
+    # *before* that block.
+    def __init__(self, compression_layer_index=None, compression_layer=None):
         super(YoloV3, self).__init__()
+
+        self.compression_layer_index = compression_layer_index
 
         # darknet53 layers (the first 52 conv layers are present)
         self.dn53_standalone = [
@@ -167,19 +173,25 @@ class YoloV3(nn.Module):
         # The blocks below are layer where the features are taken from
         self.layers = [None] * 13
 
-        self.layers[0] = (self.dn53_standalone[0] +
-                          self.dn53_standalone[1] +
-                          self.dn53_block[0] +
-                          self.dn53_standalone[2] +
-                          self.dn53_block[1] +
-                          self.dn53_standalone[3] +
-                          self.dn53_block[2])
+        self.layers[0] = (
+            self.dn53_standalone[0] +
+            self.dn53_standalone[1] +
+            self.dn53_block[0] +
+            self.dn53_standalone[2] +
+            self.dn53_block[1] +
+            self.dn53_standalone[3] +
+            self.dn53_block[2]
+        )
 
-        self.layers[1] = (self.dn53_standalone[4] +
-                          self.dn53_block[3])
+        self.layers[1] = (
+            self.dn53_standalone[4] +
+            self.dn53_block[3]
+        )
 
-        self.layers[2] = (self.dn53_standalone[5] +
-                          self.dn53_block[4])
+        self.layers[2] = (
+            self.dn53_standalone[5] +
+            self.dn53_block[4]
+        )
 
         # yolo detection layers
         # detection 1
@@ -232,6 +244,18 @@ class YoloV3(nn.Module):
         for layers in self.layers:
             for layer in layers:
                 layer.register_weights(self.register_parameter, self.register_buffer)
+
+        # adding the compression layer
+        if compression_layer_index is not None and compression_layer is not None:
+            i = 0
+            for layers in self.layers:
+                j = 0
+                for layer in layers:
+                    if i == compression_layer_index:
+                        layers.insert(j, compression_layer)
+
+                    i += 1
+                    j += 1
 
     @staticmethod
     def apply_layers(layers, x):
