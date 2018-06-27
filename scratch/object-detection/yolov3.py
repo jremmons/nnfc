@@ -144,8 +144,13 @@ class YoloV3(nn.Module):
                  log_time=False):
         super(YoloV3, self).__init__()
 
-        self.compression_layer_index = compression_layer_index
-        self.compression_layer_class_name = compression_layer.__class__.__name__
+        if compression_layer and compression_layer_index:
+            self.compression_layer_index = compression_layer_index
+            self.compression_layer_class_name = compression_layer.__class__.__name__
+        else:
+            self.compression_layer_index = None
+            self.compression_layer_class_name = None
+
         self.timelogger = TimeLog(log_time)
 
         # darknet53 layers (the first 52 conv layers are present)
@@ -244,7 +249,7 @@ class YoloV3(nn.Module):
                 layer.register_weights(self.register_parameter, self.register_buffer)
 
         # adding the compression layer
-        if compression_layer_index is not None and compression_layer is not None:
+        if self.compression_layer_index != None:
             i = 0
             for layers in self.layers:
                 j = 0
