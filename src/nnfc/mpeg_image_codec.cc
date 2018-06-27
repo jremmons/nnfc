@@ -11,13 +11,13 @@
 #include "tensor.hh"
 using namespace std;
 
-template<class Encoder>
-nnfc::MPEGImageEncoder<Encoder>::MPEGImageEncoder(int quality) :
-    encoder_(quality)
-{}
+template <class Encoder>
+nnfc::MPEGImageEncoder<Encoder>::MPEGImageEncoder(int quality)
+    : encoder_(quality) {}
 
-template<class Encoder>
-vector<uint8_t> nnfc::MPEGImageEncoder<Encoder>::forward(nn::Tensor<float, 3> input) {
+template <class Encoder>
+vector<uint8_t> nnfc::MPEGImageEncoder<Encoder>::forward(
+    nn::Tensor<float, 3> input) {
   const uint64_t dim0 = input.dimension(0);
   const uint64_t dim1 = input.dimension(1);
   const uint64_t dim2 = input.dimension(2);
@@ -36,13 +36,13 @@ vector<uint8_t> nnfc::MPEGImageEncoder<Encoder>::forward(nn::Tensor<float, 3> in
   Eigen::Tensor<uint8_t, 3, Eigen::RowMajor> input_q =
       ((input.tensor() - min) * (255 / (max - min))).cast<uint8_t>();
 
-  std::memcpy(buffer.data(), &input_q(0,0,0), dim0 * dim1 * dim2);
-  codec::RGBp_to_YUV420p converter (dim1, dim2);
+  std::memcpy(buffer.data(), &input_q(0, 0, 0), dim0 * dim1 * dim2);
+  codec::RGBp_to_YUV420p converter(dim1, dim2);
   std::vector<uint8_t> yuv = converter.convert(buffer);
 
   // H264 compress
   vector<uint8_t> encoding = encoder_.encode(yuv, dim1, dim2, 3);
-  //auto encoding = yuv;
+  // auto encoding = yuv;
 
   const uint8_t *min_bytes = reinterpret_cast<const uint8_t *>(&min);
   const uint8_t *max_bytes = reinterpret_cast<const uint8_t *>(&max);
@@ -71,19 +71,18 @@ vector<uint8_t> nnfc::MPEGImageEncoder<Encoder>::forward(nn::Tensor<float, 3> in
   return encoding;
 }
 
-template<class Encoder>
+template <class Encoder>
 nn::Tensor<float, 3> nnfc::MPEGImageEncoder<Encoder>::backward(
     nn::Tensor<float, 3> input) {
   return input;
 }
 
-template<class Decoder>
-nnfc::MPEGImageDecoder<Decoder>::MPEGImageDecoder() :
-    decoder_()
-{}
+template <class Decoder>
+nnfc::MPEGImageDecoder<Decoder>::MPEGImageDecoder() : decoder_() {}
 
-template<class Decoder>
-nn::Tensor<float, 3> nnfc::MPEGImageDecoder<Decoder>::forward(vector<uint8_t> input) {
+template <class Decoder>
+nn::Tensor<float, 3> nnfc::MPEGImageDecoder<Decoder>::forward(
+    vector<uint8_t> input) {
   uint64_t dim0;
   uint64_t dim1;
   uint64_t dim2;
@@ -114,7 +113,8 @@ nn::Tensor<float, 3> nnfc::MPEGImageDecoder<Decoder>::forward(vector<uint8_t> in
 
   vector<uint8_t> decoded = decoder_.decode(input, dim2, dim1);
   // vector<uint8_t> decoded;
-  // for(size_t i = 0; i < input.size() - 3*sizeof(uint64_t) - 2*sizeof(float); i++){
+  // for(size_t i = 0; i < input.size() - 3*sizeof(uint64_t) - 2*sizeof(float);
+  // i++){
   //     decoded.push_back(input[i]);
   // }
 
@@ -122,23 +122,22 @@ nn::Tensor<float, 3> nnfc::MPEGImageDecoder<Decoder>::forward(vector<uint8_t> in
   std::vector<uint8_t> rgb = deconverter.convert(decoded);
 
   nn::Tensor<uint8_t, 3> output_q(dim0, dim1, dim2);
-  std::memcpy(&output_q(0,0,0), rgb.data(), dim0 * dim1 * dim2);
+  std::memcpy(&output_q(0, 0, 0), rgb.data(), dim0 * dim1 * dim2);
 
   nn::Tensor<float, 3> output(dim0, dim1, dim2);
   for (size_t row = 0; row < dim1; row++) {
-      for (size_t col = 0; col < dim2; col++) {
-          for (size_t channel = 0; channel < dim0; channel++) {
-              output(channel, row, col) =
-                  static_cast<float>(((output_q(channel, row, col) *
-                                       (max - min)) / 255) + min);
-          }
+    for (size_t col = 0; col < dim2; col++) {
+      for (size_t channel = 0; channel < dim0; channel++) {
+        output(channel, row, col) = static_cast<float>(
+            ((output_q(channel, row, col) * (max - min)) / 255) + min);
       }
+    }
   }
 
   return output;
 }
 
-template<class Decoder>
+template <class Decoder>
 nn::Tensor<float, 3> nnfc::MPEGImageDecoder<Decoder>::backward(
     nn::Tensor<float, 3> input) {
   return input;
