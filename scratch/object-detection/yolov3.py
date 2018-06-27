@@ -253,6 +253,7 @@ class YoloV3(nn.Module):
                 for layer in layers:
                     if i == compression_layer_index:
                         layers.insert(j, compression_layer)
+                        return
 
                     i += 1
                     j += 1
