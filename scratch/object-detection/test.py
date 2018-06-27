@@ -22,7 +22,7 @@ import yolov3 as yolo
 from utils import device
 from dataset import YoloDataset
 
-def do_test(model, images_path, labels_path, progress_callback=None):
+def do_test(model, images_path, labels_path, batch_size=32, progress_callback=None):
     size = 416
 
     t = transforms.Compose([
@@ -30,7 +30,7 @@ def do_test(model, images_path, labels_path, progress_callback=None):
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
 
-    data = DataLoader(YoloDataset(images_path, labels_path, t, size), batch_size=64, shuffle=True, num_workers=mp.cpu_count())
+    data = DataLoader(YoloDataset(images_path, labels_path, t, size), batch_size=batch_size, shuffle=True, num_workers=mp.cpu_count())
 
     count = [0] * 80
     correct = [0] * 80
@@ -72,7 +72,7 @@ def main(images_path, labels_path):
     model = yolo.load_model()
     model.to(device)
 
-    do_test(model, images_path, labels_path, progress_callback)
+    do_test(model, images_path, labels_path, progress_callback=progress_callback)
     return 0
 
 if __name__ == '__main__':

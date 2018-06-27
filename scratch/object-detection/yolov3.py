@@ -250,12 +250,14 @@ class YoloV3(nn.Module):
 
         # adding the compression layer
         if self.compression_layer_index != None:
+            self.compression_layer = compression_layer
+
             i = 0
             for layers in self.layers:
                 j = 0
                 for layer in layers:
                     if i == compression_layer_index:
-                        layers.insert(j, compression_layer)
+                        layers.insert(j, self.compression_layer)
                         return
 
                     i += 1
@@ -349,6 +351,9 @@ class YoloV3(nn.Module):
 
     def timelog(self):
         return self.timelog
+
+    def get_compressed_sizes(self):
+        return self.compression_layer.get_compressed_sizes()
 
 def load_model(*args, **kwargs):
     yolov3 = YoloV3(*args, **kwargs)
