@@ -269,7 +269,7 @@ class YoloV3(nn.Module):
 
             if (self.compression_layer_index and
                 layer.__class__.__name__ == self.compression_layer_class_name):
-                self.timelogger.add_point('compression done')
+                self.timelogger.add_point('compression_done')
 
         return x
 
@@ -346,7 +346,7 @@ class YoloV3(nn.Module):
         detections2 = YoloV3.process_prediction(predict2, YoloV3.anchors2)
 
         out = torch.cat((detections0, detections1, detections2), 1)
-        self.timelogger.add_point('network done')
+        self.timelogger.add_point('network_done')
         return out
 
     def timelog(self):
