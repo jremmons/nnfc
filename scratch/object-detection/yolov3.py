@@ -348,15 +348,14 @@ class YoloV3(nn.Module):
         timelogger.add_point('yolo done')
         return out
 
-def load_model(load_weights=True):
-    yolov3 = YoloV3()
+def load_model(*args, **kwargs):
+    yolov3 = YoloV3(*args, **kwargs)
 
-    if load_weights:
-        with h5py.File('yolov3.h5', 'r') as f:
-            model_params = yolov3.state_dict()
-            for param_name in model_params.keys():
-                weights = torch.from_numpy(np.asarray(f[param_name]).astype(np.float32))
-                model_params[param_name].data.copy_(weights)
+    with h5py.File('yolov3.h5', 'r') as f:
+        model_params = yolov3.state_dict()
+        for param_name in model_params.keys():
+            weights = torch.from_numpy(np.asarray(f[param_name]).astype(np.float32))
+            model_params[param_name].data.copy_(weights)
 
     return yolov3
 
