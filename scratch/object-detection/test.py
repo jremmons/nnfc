@@ -22,7 +22,7 @@ import yolov3 as yolo
 from utils import device
 from dataset import YoloDataset
 
-def main(images_path, labels_path):
+def do_test(model, images_path, labels_path, progress_callback=None):
     size = 416
 
     t = transforms.Compose([
@@ -31,8 +31,6 @@ def main(images_path, labels_path):
     ])
 
     data = DataLoader(YoloDataset(images_path, labels_path, t, size), batch_size=64, shuffle=True, num_workers=mp.cpu_count())
-    model = yolo.load_model()
-    model.to(device)
 
     count = [0] * 80
     correct = [0] * 80
@@ -62,10 +60,20 @@ def main(images_path, labels_path):
                 p = correct[j] / count[j]
                 psum += p
 
-            print('[%d/%d] mAP: %.6f (%.6f)' % (i + 1, len(data), psum / 80, sum(correct)/sum(count)))
+            if progress_callback:
+                progress_callback(model, batch_number=(i + 1), batch_count=len(data), map_score=psum / 80)
 
+    return psum / 80
+
+def progress_callback(model, batch_number, batch_count, map_score):
+    print('[%d/%d] mAP: %.6f' % (batch_number, batch_count, map_score))
+
+def main(images_path, labels_path):
+    model = yolo.load_model()
+    model.to(device)
+
+    do_test(model, images_path, labels_path, progress_callback)
     return 0
-
 
 if __name__ == '__main__':
     sys.exit(main(images_path=sys.argv[1], labels_path=sys.argv[2]))
