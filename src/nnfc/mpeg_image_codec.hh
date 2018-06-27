@@ -12,10 +12,10 @@
 
 namespace nnfc {
 
-template<class Encoder>
+template <class Encoder>
 class MPEGImageEncoder {
  private:
-    Encoder encoder_;
+  Encoder encoder_;
 
  public:
   MPEGImageEncoder(int quality);
@@ -29,10 +29,10 @@ class MPEGImageEncoder {
   }
 };
 
-template<class Decoder>
+template <class Decoder>
 class MPEGImageDecoder {
  private:
-    Decoder decoder_;
+  Decoder decoder_;
 
  public:
   MPEGImageDecoder();
@@ -50,6 +50,6 @@ using H264ImageEncoder = MPEGImageEncoder<codec::AVCEncoder>;
 using H264ImageDecoder = MPEGImageDecoder<codec::AVCDecoder>;
 using H265ImageEncoder = MPEGImageEncoder<codec::HEIFEncoder>;
 using H265ImageDecoder = MPEGImageDecoder<codec::HEIFDecoder>;
-}
+}  // namespace nnfc
 
 #endif /* _MPEG_IMAGE_CODEC_HH */
