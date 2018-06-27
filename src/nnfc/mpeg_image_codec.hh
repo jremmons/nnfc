@@ -1,5 +1,5 @@
-#ifndef _NNFC_H264_IMAGE_H
-#define _NNFC_H264_IMAGE_H
+#ifndef _MPEG_IMAGE_CODEC_HH
+#define _MPEG_IMAGE_CODEC_HH
 
 #include <cstdint>
 #include <functional>
@@ -12,13 +12,14 @@
 
 namespace nnfc {
 
-class H264ImageEncoder {
+template<class Encoder>
+class MPEGImageEncoder {
  private:
-    codec::AVCEncoder encoder_;
-    
+    Encoder encoder_;
+
  public:
-  H264ImageEncoder(int quality);
-  ~H264ImageEncoder() {}
+  MPEGImageEncoder(int quality);
+  ~MPEGImageEncoder() {}
 
   std::vector<uint8_t> forward(nn::Tensor<float, 3> input);
   nn::Tensor<float, 3> backward(nn::Tensor<float, 3> input);
@@ -28,13 +29,14 @@ class H264ImageEncoder {
   }
 };
 
-class H264ImageDecoder {
+template<class Decoder>
+class MPEGImageDecoder {
  private:
-    codec::AVCDecoder decoder_;
+    Decoder decoder_;
 
  public:
-  H264ImageDecoder();
-  ~H264ImageDecoder();
+  MPEGImageDecoder();
+  ~MPEGImageDecoder() {}
 
   nn::Tensor<float, 3> forward(std::vector<uint8_t> input);
   nn::Tensor<float, 3> backward(nn::Tensor<float, 3> input);
@@ -43,6 +45,11 @@ class H264ImageDecoder {
     return {};
   }
 };
+
+using H264ImageEncoder = MPEGImageEncoder<codec::AVCEncoder>;
+using H264ImageDecoder = MPEGImageDecoder<codec::AVCDecoder>;
+using H265ImageEncoder = MPEGImageEncoder<codec::HEIFEncoder>;
+using H265ImageDecoder = MPEGImageDecoder<codec::HEIFDecoder>;
 }
 
-#endif  // _NNFC_H264_IMAGE_H
+#endif /* _MPEG_IMAGE_CODEC_HH */
