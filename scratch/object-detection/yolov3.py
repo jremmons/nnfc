@@ -1,10 +1,11 @@
 import os
 import sys
-import h5py
+import time
 import pprint
 import itertools
 import argparse
 
+import h5py
 import numpy as np
 import torch; torch.set_num_threads(1)
 import torch.nn as nn
@@ -15,7 +16,25 @@ from PIL import Image, ImageDraw
 import utils
 from utils import device
 
-from nnfc.modules.nnfc import CompressionLayer
+class TimeLog:
+    def __init__(self, enabled=True):
+        self.enabled = enabled
+        self.start = None
+        self.points = []
+
+    def begin(self):
+        self.start = time.time()
+        self.points = []
+
+    def add_point(self, title):
+        if not self.enabled:
+            return
+
+        assert self.start, "the timer has not been started"
+
+        now = time.time()
+        self.points += [(title, now - self.start)]
+        self.start = now
 
 def dn_register_weights_helper(register_p, register_b, block_name, i, conv, bn):
     register_p('{}_conv{}_weight'.format(block_name, i), conv.weight)
@@ -121,10 +140,13 @@ class YoloV3(nn.Module):
 
     # If compression_layer_index != None, compression layer will be inserted
     # *before* that block.
-    def __init__(self, compression_layer_index=None, compression_layer=None):
+    def __init__(self, compression_layer_index=None, compression_layer=None,
+                 log_time=False):
         super(YoloV3, self).__init__()
 
         self.compression_layer_index = compression_layer_index
+        self.compression_layer_class_name = compression_layer.__class__.__name__
+        self.timelogger = TimeLog(log_time)
 
         # darknet53 layers (the first 52 conv layers are present)
         self.dn53_standalone = [
@@ -234,10 +256,13 @@ class YoloV3(nn.Module):
                     i += 1
                     j += 1
 
-    @staticmethod
-    def apply_layers(layers, x):
+    def apply_layers(self, layers, x):
         for layer in layers:
             x = layer(x)
+
+            if (self.compression_layer_index and
+                layer.__class__.__name__ == self.compression_layer_class_name):
+                self.timelogger.add_point('compression done')
 
         return x
 
@@ -285,33 +310,40 @@ class YoloV3(nn.Module):
         return prediction
 
     def forward(self, x):
+        self.timelogger.begin()
+
         # DARKNET-53
-        layer0 = YoloV3.apply_layers(self.layers[0], x)
-        layer1 = YoloV3.apply_layers(self.layers[1], layer0)
-        layer2 = YoloV3.apply_layers(self.layers[2], layer1)
+        layer0 = self.apply_layers(self.layers[0], x)
+        layer1 = self.apply_layers(self.layers[1], layer0)
+        layer2 = self.apply_layers(self.layers[2], layer1)
 
         # YoloV3
         # process the intermediates for detections
-        layer3 = YoloV3.apply_layers(self.layers[3], layer2)
-        predict0 = YoloV3.apply_layers(self.layers[4] + self.layers[5], layer3)
+        layer3 = self.apply_layers(self.layers[3], layer2)
+        predict0 = self.apply_layers(self.layers[4] + self.layers[5], layer3)
 
-        layer6 = YoloV3.apply_layers(self.layers[6], layer3)
+        layer6 = self.apply_layers(self.layers[6], layer3)
         layer86 = torch.cat((layer6, layer1), 1)
 
-        layer7 = YoloV3.apply_layers(self.layers[7], layer86)
-        predict1 = YoloV3.apply_layers(self.layers[8] + self.layers[9], layer7)
+        layer7 = self.apply_layers(self.layers[7], layer86)
+        predict1 = self.apply_layers(self.layers[8] + self.layers[9], layer7)
 
-        layer10 = YoloV3.apply_layers(self.layers[10], layer7)
+        layer10 = self.apply_layers(self.layers[10], layer7)
         layer12 = torch.cat((layer10, layer0), 1)
 
-        predict2 = YoloV3.apply_layers(self.layers[11] + self.layers[12], layer12)
+        predict2 = self.apply_layers(self.layers[11] + self.layers[12], layer12)
 
         # process the detections
         detections0 = YoloV3.process_prediction(predict0, YoloV3.anchors0)
         detections1 = YoloV3.process_prediction(predict1, YoloV3.anchors1)
         detections2 = YoloV3.process_prediction(predict2, YoloV3.anchors2)
 
-        return torch.cat((detections0, detections1, detections2), 1)
+        out = torch.cat((detections0, detections1, detections2), 1)
+        self.timelogger.add_point('network done')
+        return out
+
+    def timelog(self):
+        return self.timelog
 
 def load_model(*args, **kwargs):
     yolov3 = YoloV3(*args, **kwargs)
