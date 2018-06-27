@@ -142,3 +142,8 @@ nn::Tensor<float, 3> nnfc::MPEGImageDecoder<Decoder>::backward(
     nn::Tensor<float, 3> input) {
   return input;
 }
+
+template class nnfc::MPEGImageEncoder<codec::AVCEncoder>;
+template class nnfc::MPEGImageDecoder<codec::AVCDecoder>;
+template class nnfc::MPEGImageEncoder<codec::HEIFEncoder>;
+template class nnfc::MPEGImageDecoder<codec::HEIFDecoder>;
