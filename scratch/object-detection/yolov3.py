@@ -1,8 +1,6 @@
 import os
 import sys
 import h5py
-import time
-import timeit
 import pprint
 import itertools
 import argparse
@@ -13,33 +11,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 from PIL import Image, ImageDraw
-from timeit import Timer
 
 import utils
 from utils import device
 
 from nnfc.modules.nnfc import CompressionLayer
-
-class TimeLog:
-    def __init__(self, enabled=True):
-        self.enabled = enabled
-        self.start = time.time()
-        self.points = []
-
-    def begin(self):
-        self.start = time.time()
-        self.points = []
-
-    def add_point(self, title):
-        if not self.enabled:
-            return
-
-        now = time.time()
-        self.points += [(title, now - self.start)]
-        self.start = now
-
-log_extra_info = False
-timelogger = TimeLog(False)
 
 def dn_register_weights_helper(register_p, register_b, block_name, i, conv, bn):
     register_p('{}_conv{}_weight'.format(block_name, i), conv.weight)
@@ -309,20 +285,12 @@ class YoloV3(nn.Module):
         return prediction
 
     def forward(self, x):
-        # DARKNET
+        # DARKNET-53
         layer0 = YoloV3.apply_layers(self.layers[0], x)
         layer1 = YoloV3.apply_layers(self.layers[1], layer0)
         layer2 = YoloV3.apply_layers(self.layers[2], layer1)
 
-        if log_extra_info:
-            print("[INFO] Darknet outputs: ")
-            print("[INFO]   * layer0:", layer0.data.nelement() * 8)
-            print("[INFO]   * layer1:", layer1.data.nelement() * 8)
-            print("[INFO]   * layer2:", layer2.data.nelement() * 8)
-
-        timelogger.add_point('darknet done')
-
-        #YoloV3
+        # YoloV3
         # process the intermediates for detections
         layer3 = YoloV3.apply_layers(self.layers[3], layer2)
         predict0 = YoloV3.apply_layers(self.layers[4] + self.layers[5], layer3)
@@ -343,10 +311,7 @@ class YoloV3(nn.Module):
         detections1 = YoloV3.process_prediction(predict1, YoloV3.anchors1)
         detections2 = YoloV3.process_prediction(predict2, YoloV3.anchors2)
 
-        out = torch.cat((detections0, detections1, detections2), 1)
-
-        timelogger.add_point('yolo done')
-        return out
+        return torch.cat((detections0, detections1, detections2), 1)
 
 def load_model(*args, **kwargs):
     yolov3 = YoloV3(*args, **kwargs)
@@ -360,39 +325,20 @@ def load_model(*args, **kwargs):
     return yolov3
 
 def main():
-    global log_extra_info, device, timelogger
-
     parser = argparse.ArgumentParser('Run YoloV3 on input image.')
     parser.add_argument('image', nargs='+')
-    parser.add_argument('--log-extra-info', dest='log_extra_info', action='store_true')
-    parser.add_argument('--log-time', dest='log_time', action='store_true')
     args = parser.parse_args()
-
-    if args.log_extra_info:
-        log_extra_info = True
 
     print("* Running on:", device)
 
-    timelogger = TimeLog(args.log_time)
-    timelogger.begin()
-
     yolov3 = load_model()
-    timelogger.add_point('model loaded')
-
     for img_path in args.image:
         x = Variable(utils.normalize_image(img_path)).to(device)
-        timelogger.add_point('image loaded: ' + img_path)
-
         y = yolov3(x)
-        timelogger.add_point('inference done: ' + img_path)
-
         detections = utils.parse_detections(y)[0]
         detections = utils.non_max_suppression(detections)
         pprint.pprint(detections)
         #img_original.save(os.path.splitext(img_path)[0] + '.out.jpg')
-
-    if args.log_time:
-        pprint.pprint(timelogger.points)
 
 if __name__ == '__main__':
     main()
