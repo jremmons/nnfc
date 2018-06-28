@@ -17,6 +17,7 @@ from PIL import Image
 
 import utils
 import timeit
+#import yolov3 as yolo
 import yolov3_compress as yolo
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -103,8 +104,13 @@ def main(images_path, labels_path):
     #                                            decoder_params_dict={})
 
     # image_compression_layer = CompressionLayer(encoder_name='h264_image_encoder',
-    #                                            encoder_params_dict={'quantizer' : 2},
+    #                                            encoder_params_dict={'quantizer' : 29},
     #                                            decoder_name='h264_image_decoder',
+    #                                            decoder_params_dict={}) 
+
+    # image_compression_layer = CompressionLayer(encoder_name='h265_image_encoder',
+    #                                            encoder_params_dict={'quantizer' : 1},
+    #                                            decoder_name='h265_image_decoder',
     #                                            decoder_params_dict={}) 
 
     # image_compression_layer = CompressionLayer(encoder_name='rgbswizzler_encoder',
@@ -117,10 +123,10 @@ def main(images_path, labels_path):
         for i, (local_batch, local_labels) in enumerate(data):
 
             local_batch = local_batch.to(device)
-            #local_batch = image_compression_layer(local_batch)
+            # local_batch = image_compression_layer(local_batch)
             output = model(local_batch)
             compressed_sizes += model.compression_layer.get_compressed_sizes()
-            #compressed_sizes += image_compression_layer.get_compressed_sizes()
+            # compressed_sizes += image_compression_layer.get_compressed_sizes()
             print(compressed_sizes[-3:])
 
             for j, detections in enumerate(utils.parse_detections(output)):

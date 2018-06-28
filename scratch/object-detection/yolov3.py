@@ -11,6 +11,7 @@ import torch; torch.set_num_threads(1)
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
+import torchvision.transforms as transforms
 from PIL import Image, ImageDraw
 
 import utils

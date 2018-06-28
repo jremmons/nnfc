@@ -152,6 +152,10 @@ class YoloV3(nn.Module):
         #                                           encoder_params_dict={'quantizer' : 87},
         #                                           decoder_name='jpeg_image_decoder',
         #                                           decoder_params_dict={})
+        # self.compression_layer = CompressionLayer(encoder_name='jpeg_encoder',
+        #                                           encoder_params_dict={'quantizer' : 39},
+        #                                           decoder_name='jpeg_decoder',
+        #                                           decoder_params_dict={})
         self.compression_layer = CompressionLayer(encoder_name='nnfc1_encoder',
                                                   encoder_params_dict={'quantizer' : -1},
                                                   decoder_name='nnfc1_decoder',
@@ -185,12 +189,13 @@ class YoloV3(nn.Module):
         self.layers[0] = (self.dn53_standalone[0] +
                           self.dn53_standalone[1] +
                           self.dn53_block[0] +
+#                          [self.compression_layer] +
                           self.dn53_standalone[2] +
-                          self.dn53_block[1]
-                          + [self.compression_layer] +
+                          self.dn53_block[1] +
+#                         [self.compression_layer] +
                           self.dn53_standalone[3] +
                           self.dn53_block[2] \
-                          #+ [self.compression_layer]
+                          + [self.compression_layer]
                           )
         
         # self.layers[0] = (self.dn53_standalone[0] +
@@ -198,7 +203,7 @@ class YoloV3(nn.Module):
         #                   self.dn53_block[0] +
         #                   self.dn53_standalone[2] +
         #                   self.dn53_block[1]
-        #                     + [self.compression_layer]
+        #                   + [self.compression_layer]
         # )
         
         # self.layers[0] = (self.dn53_standalone[0] +
@@ -325,11 +330,6 @@ class YoloV3(nn.Module):
         # t2 = timeit.default_timer()
         # print('dn', t2 - t1)
         # return x
-        
-        # t1 = timeit.default_timer()
-        # layer0 = self.compression_layer(layer0) 
-        # t2 = timeit.default_timer()
-        # print('compress', t2 - t1)
 
         layer1 = YoloV3.apply_layers(self.layers[1], layer0)
         layer2 = YoloV3.apply_layers(self.layers[2], layer1)
@@ -427,20 +427,18 @@ def main():
         x = Variable(image).to(device)
 
         # times = []
-        # for _ in range(1):
+        # for _ in range(32):
         #     t1 = timeit.default_timer()
         #     x = image_compression_layer(x)
 
-        #     img = 255*x.cpu().numpy()[0,:,:,:]
-        #     img = np.transpose(img, (2,1,0))
-        #     print(img.shape)
-        #     img = Image.fromarray(img.astype(np.uint8))
-        #     img.save('/home/jemmons/test.png')
+        #     # img = 255*x.cpu().numpy()[0,:,:,:]
+        #     # img = np.transpose(img, (2,1,0))
+        #     # print(img.shape)
+        #     # img = Image.fromarray(img.astype(np.uint8))
             
         #     t2 = timeit.default_timer()
         #     times.append(t2-t1)
         #     print(t2-t1)
-
         # print(np.mean(np.asarray(times)))
 
         timelogger.add_point('image loaded: ' + img_path)
