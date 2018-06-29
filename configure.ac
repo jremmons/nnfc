@@ -37,6 +37,7 @@ PKG_CHECK_MODULES([AVFORMAT], [libavformat])
 PKG_CHECK_MODULES([AVCODEC], [libavcodec])
 PKG_CHECK_MODULES([AVUTIL], [libavutil])
 PKG_CHECK_MODULES([SWSCALE], [libswscale])
+PKG_CHECK_MODULES([FFTW3F], [fftw3f])
 
 # Important: need to add flags for AVX, SSE, etc. to get good performance
 AC_CHECK_FILE([/usr/include/eigen3/unsupported/Eigen/CXX11/Tensor], [
