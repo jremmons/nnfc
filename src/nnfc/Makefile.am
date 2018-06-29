@@ -5,11 +5,13 @@ AM_CPPFLAGS = $(CXX14_FLAGS) $(JPEG_CFLAGS) \
               -I$(srcdir)/../nn/ -I$(srcdir)/..
 
 AM_CXXFLAGS = $(PICKY_CXXFLAGS) -fPIC \
-              -Wl,-Bstatic -L$(srcdir)/../nn \
-              -L$(srcdir)/../codec -l:libnn.a -l:libcodec.a \
-              -Wl,-Bdynamic -lturbojpeg -Wl,-Bdynamic -ljpeg \
+              -L$(srcdir)/../nn -L$(srcdir)/../codec \
+              -Wl,-Bstatic \
+              -l:libcodec.a -l:libnn.a \
+              -Wl,-Bdynamic \
+              -lturbojpeg -ljpeg \
               $(AVFORMAT_LIBS) $(AVCODEC_LIBS) $(AVUTIL_LIBS) \
-              $(SWSCALE_LIBS) -Wl,-Bdynamic -lswscale
+              $(SWSCALE_LIBS) $(FFTW3F_LIBS) -lswscale
 
 lib_LTLIBRARIES = libnnfc.la
 

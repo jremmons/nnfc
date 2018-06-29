@@ -4,9 +4,11 @@ AM_CPPFLAGS = $(CXX14_FLAGS) $(JPEG_INCLUDE) \
               -I$(srcdir)/../src/nn \
               -I$(srcdir)/../src/nnfc
 
-AM_CXXFLAGS = $(PICKY_CXXFLAGS) $(HDF5_LDFLAGS) $(HDF5_LIBS) \
-              -L$(srcdir)/../src/nn -lnn \
-              -L$(srcdir)/../src/nnfc/.libs -lnnfc
+AM_CXXFLAGS = $(PICKY_CXXFLAGS)
+
+AM_LDFLAGS = -L$(srcdir)/../src/nnfc/.libs
+
+LDADD = -lnnfc $(HDF5_LDFLAGS) $(HDF5_LIBS)
 
 check_PROGRAMS = avgpool.bin \
                  batchnorm.bin batchnorm_hl.bin \
@@ -18,43 +20,31 @@ check_PROGRAMS = avgpool.bin \
                  cxxapi_simple.bin
 
 avgpool_bin_SOURCES = avgpool_test.cc
-avgpool_bin_LDADD =
 
 batchnorm_bin_SOURCES = batchnorm_test.cc
-batchnorm_bin_LDADD =
 
 batchnorm_hl_bin_SOURCES = batchnorm_hl_test.cc
-batchnorm_hl_bin_LDADD =
 
 conv2d_bin_SOURCES = conv2d_test.cc
-conv2d_bin_LDADD =
 
 conv2d_hl_bin_SOURCES = conv2d_hl_test.cc
-conv2d_hl_bin_LDADD =
 
 fc_bin_SOURCES = fc_test.cc
-fc_bin_LDADD =
 
 relu_bin_SOURCES = relu_test.cc
-relu_bin_LDADD =
 
 relu_hl_bin_SOURCES = relu_hl_test.cc
-relu_hl_bin_LDADD =
 
 composed_hl_bin_SOURCES = composed_hl_test.cc
-composed_hl_bin_LDADD =
 
 simplecnn_bin_SOURCES = simplecnn_test.cc
-simplecnn_bin_LDADD =
 
 simplecnn_hl_bin_SOURCES = simplecnn_hl_test.cc
-simplecnn_hl_bin_LDADD =
 
 cxxapi_simple_bin_SOURCES = cxxapi_simple.cc
-cxxapi_simple_bin_LADD = 
 
 dist_check_SCRIPTS = pythonpath_python.test \
-	                 import_python.test \
+	                   import_python.test \
                      noop_python.test \
                      nnfc_python.test \
                      jpeg_python.test \
@@ -70,7 +60,7 @@ dist_check_SCRIPTS = pythonpath_python.test \
                      composed_hl_cpp.test \
                      simplecnn_hl_cpp.test
 
-#gpu2cpu_python.test 
+#gpu2cpu_python.test
 
 AM_TESTS_ENVIRONMENT = ./test-environment.sh
 
