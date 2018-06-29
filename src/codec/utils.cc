@@ -1,6 +1,8 @@
 #include "utils.hh"
 
 #include <stdexcept>
+#include <iostream>
+
 extern "C" {
   #include <fftw3.h>
 }
