@@ -41,7 +41,7 @@ std::vector<float> kmeans(nn::Tensor<float, 3> input, int nbins,
           means_count[i] = 0;
           means_sum[i] = 0;
       }
-      
+
       const int vals_size = vals.size();
       for (int i = 0; i < vals_size; i++) {
           const float val = vals[i];
@@ -53,7 +53,7 @@ std::vector<float> kmeans(nn::Tensor<float, 3> input, int nbins,
               if (curr_distance < best_distance) {
                   best_distance = curr_distance;
                   best_mean = j;
-              }              
+              }
           }
 
           means_count[best_mean] += 1;
@@ -62,11 +62,11 @@ std::vector<float> kmeans(nn::Tensor<float, 3> input, int nbins,
 
       for (int i = 0; i < nbins; i++) {
           means[i] = means_sum[i] / means_count[i];
-      }            
+      }
 
   }
 
-  return means;      
+  return means;
 }
 
 uint32_t quantize(float val, std::vector<float> &bins) {
@@ -102,7 +102,7 @@ vector<uint8_t> nnfc::NNFC1Encoder::forward(nn::Tensor<float, 3> input) {
   uint64_t dim0 = input.dimension(0);
   uint64_t dim1 = input.dimension(1);
   uint64_t dim2 = input.dimension(2);
- 
+
   std::vector<float> means = kmeans(input, 4);
 
   // quantize the input data
@@ -156,12 +156,12 @@ vector<uint8_t> nnfc::NNFC1Encoder::forward(nn::Tensor<float, 3> input) {
     }
     for (size_t i = 0; i < sizeof(float); i++) {
       encoding.push_back(q2_bytes[i]);
-    }  
+    }
     for (size_t i = 0; i < sizeof(float); i++) {
       encoding.push_back(q3_bytes[i]);
-    }  
+    }
   }
-  
+
   return encoding;
 }
 
@@ -196,7 +196,7 @@ nn::Tensor<float, 3> nnfc::NNFC1Decoder::forward(vector<uint8_t> input) {
       dim2_bytes[i] = input[i + dim2_offset];
     }
   }
-  
+
   float means[4];
   {
     uint8_t *q0_bytes = reinterpret_cast<uint8_t *>(&means[0]);
@@ -213,9 +213,9 @@ nn::Tensor<float, 3> nnfc::NNFC1Decoder::forward(vector<uint8_t> input) {
         q1_bytes[i] = input[i + q1_offset];
         q2_bytes[i] = input[i + q2_offset];
         q3_bytes[i] = input[i + q3_offset];
-    }  
+    }
   }
-  
+
   nn::Tensor<float, 3> output(dim0, dim1, dim2);
 
   uint32_t count = 0;
@@ -231,7 +231,7 @@ nn::Tensor<float, 3> nnfc::NNFC1Decoder::forward(vector<uint8_t> input) {
           uint8_t qval = (byte >> 2*(count % 4)) & 0b11;
           output(i, j, k) = means[qval];
           count++;
-          
+
       }
     }
   }
