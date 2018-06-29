@@ -36,6 +36,7 @@ def main(options):
                       num_workers=mp.cpu_count())
 
     model = yolo.load_model(load_weights=False)
+    model.train()
     model.to(device)
 
     # values from:
@@ -48,11 +49,17 @@ def main(options):
             optimizer.zero_grad()
             local_batch = local_batch.to(device)
 
-            # XXX DOESN'T WORK
-            loss = model(local_batch, local_labels)
-            loss.backward()
-            optimizer.step()
+            outputs = model(local_batch)
+            # detections = yolo.YoloV3.get_detections(outputs)
+            # print(detections.shape)
 
+            loss = yolo.YoloV3.get_loss(outputs, local_labels)
+            print(loss[0].shape)
+            # print(loss.shape)
+            # loss.backward()
+            # optimizer.step()
+
+            
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('--epochs', type=int, default=100)
