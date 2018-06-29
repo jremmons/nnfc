@@ -1,10 +1,11 @@
 #include "utils.hh"
 
 #include <stdexcept>
-#include <fftw3.h>
+extern "C" {
+  #include <fftw3.h>
+}
 
 using namespace std;
-using namespace codec::utils;
 
 nn::Tensor<float, 3> _dct_idct(nn::Tensor<float, 3> & input,
                                const int N,
@@ -58,10 +59,10 @@ nn::Tensor<float, 3> _dct_idct(nn::Tensor<float, 3> & input,
   return output;
 }
 
-nn::Tensor<float, 3> dct(nn::Tensor<float, 3> & input, const int N) {
+nn::Tensor<float, 3> codec::utils::dct(nn::Tensor<float, 3> & input, const int N) {
   return _dct_idct(input, N, false);
 }
 
-nn::Tensor<float, 3> idct(nn::Tensor<float, 3> & input, const int N) {
+nn::Tensor<float, 3> codec::utils::idct(nn::Tensor<float, 3> & input, const int N) {
   return _dct_idct(input, N, true);
 }
