@@ -39,9 +39,10 @@ def do_test(model, images_path, labels_path, batch_size=32, progress_callback=No
         for i, (local_batch, local_labels) in enumerate(data):
 
             local_batch = local_batch.to(device)
-            output = model(local_batch)
-
-            for j, detections in enumerate(utils.parse_detections(output)):
+            outputs = model(local_batch)
+            detections = yolo.YoloV3.get_detections(outputs) 
+            
+            for j, detections in enumerate(utils.parse_detections(detections)):
                 detections = utils.non_max_suppression(detections, confidence_threshold=0.2)
 
                 for target in utils.parse_labels(local_labels[0][j], size):
