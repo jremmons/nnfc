@@ -11,6 +11,8 @@
 
 namespace nnfc {
 
+const int BLOCK_WIDTH = 4;
+
 class NNFC1Encoder {
  private:
   const int quantizer_;

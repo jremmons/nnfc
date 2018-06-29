@@ -100,7 +100,7 @@ nnfc::NNFC1Encoder::NNFC1Encoder(int quantizer)
 nnfc::NNFC1Encoder::~NNFC1Encoder() {}
 
 vector<uint8_t> nnfc::NNFC1Encoder::forward(nn::Tensor<float, 3> t_input) {
-  nn::Tensor<float, 3> input(move(codec::utils::dct(t_input, 4)));
+  nn::Tensor<float, 3> input(move(codec::utils::dct(t_input, BLOCK_WIDTH)));
 
   uint64_t dim0 = input.dimension(0);
   uint64_t dim1 = input.dimension(1);
@@ -239,7 +239,7 @@ nn::Tensor<float, 3> nnfc::NNFC1Decoder::forward(vector<uint8_t> input) {
     }
   }
 
-  return codec::utils::idct(output, 4);
+  return codec::utils::idct(output, BLOCK_WIDTH);
 }
 
 nn::Tensor<float, 3> nnfc::NNFC1Decoder::backward(nn::Tensor<float, 3> input) {
