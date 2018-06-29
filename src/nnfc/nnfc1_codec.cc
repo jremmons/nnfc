@@ -99,6 +99,13 @@ nnfc::NNFC1Encoder::NNFC1Encoder(int quantizer)
 
 nnfc::NNFC1Encoder::~NNFC1Encoder() {}
 
+constexpr int ZIGZAG_ORDER[][2] = {
+  {0, 0}, {0, 1}, {1, 0}, {2, 0},
+  {1, 1}, {0, 2}, {0, 3}, {1, 2},
+  {2, 1}, {3, 0}, {3, 1}, {2, 2},
+  {1, 3}, {2, 3}, {3, 2}, {3, 3},
+};
+
 vector<uint8_t> nnfc::NNFC1Encoder::forward(nn::Tensor<float, 3> t_input) {
   nn::Tensor<float, 3> input(move(codec::utils::dct(t_input, BLOCK_WIDTH)));
 
@@ -112,20 +119,29 @@ vector<uint8_t> nnfc::NNFC1Encoder::forward(nn::Tensor<float, 3> t_input) {
   uint32_t count = 0;
   uint8_t byte = 0;
   std::vector<uint8_t> encoding;
-  for (size_t i = 0; i < dim0; i++) {
-    for (size_t j = 0; j < dim1; j++) {
-      for (size_t k = 0; k < dim2; k++) {
+
+  const uint64_t block_rows = dim1 / BLOCK_WIDTH;
+  const uint64_t block_cols = dim2 / BLOCK_WIDTH;
+
+  for (size_t i = 0; i < dim0; i++) { /* channels */
+    for (size_t jj = 0; jj < block_rows; jj++) {
+      for (size_t kk = 0; kk < block_cols; kk++) {
+        for (size_t zz = 0; zz < BLOCK_WIDTH * BLOCK_WIDTH; zz++) {
+          const size_t j = ZIGZAG_ORDER[zz][0];
+          const size_t k = ZIGZAG_ORDER[zz][1];
 
           if(count % 4 == 0 and count != 0) {
               encoding.push_back(byte);
               byte = 0;
           }
-          const uint32_t qval = quantize(input(i, j, k), means);
+
+          const float val = input(i, jj * BLOCK_WIDTH + j, kk * BLOCK_WIDTH + k);
+          const uint32_t qval = quantize(val, means);
           assert(qval <= 0b11);
           const uint32_t shift = 2 * (count % 4);
           byte |= (static_cast<uint8_t>(qval) << shift);
           count++;
-
+        }
       }
     }
   }
@@ -221,20 +237,27 @@ nn::Tensor<float, 3> nnfc::NNFC1Decoder::forward(vector<uint8_t> input) {
 
   nn::Tensor<float, 3> output(dim0, dim1, dim2);
 
+  const uint64_t block_rows = dim1 / BLOCK_WIDTH;
+  const uint64_t block_cols = dim2 / BLOCK_WIDTH;
+
   uint32_t count = 0;
   uint8_t byte = 0;
-  for (size_t i = 0; i < dim0; i++) {
-    for (size_t j = 0; j < dim1; j++) {
-      for (size_t k = 0; k < dim2; k++) {
+
+  for (size_t i = 0; i < dim0; i++) { /* channels */
+    for (size_t jj = 0; jj < block_rows; jj++) {
+      for (size_t kk = 0; kk < block_cols; kk++) {
+        for (size_t zz = 0; zz < BLOCK_WIDTH * BLOCK_WIDTH; zz++) {
+          const size_t j = ZIGZAG_ORDER[zz][0];
+          const size_t k = ZIGZAG_ORDER[zz][1];
 
           if(count % 4 == 0) {
               byte = input[count >> 2];
           }
 
           uint8_t qval = (byte >> 2*(count % 4)) & 0b11;
-          output(i, j, k) = means[qval];
+          output(i, jj * BLOCK_WIDTH + j, kk * BLOCK_WIDTH + k) = means[qval];
           count++;
-
+        }
       }
     }
   }
