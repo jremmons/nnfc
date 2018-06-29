@@ -8,4 +8,5 @@ noinst_LIBRARIES = libcodec.a
 
 libcodec_a_SOURCES = jpeg.hh jpeg.cc \
                      mpeg.hh mpeg.cc \
-                     swizzle.hh swizzle.cc
+                     swizzle.hh swizzle.cc \
+                     utils.hh utils.cc
