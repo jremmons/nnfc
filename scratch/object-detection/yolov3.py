@@ -141,8 +141,8 @@ class YoloV3(nn.Module):
 
     # If compression_layer_index != None, compression layer will be inserted
     # *before* that block.
-    def __init__(self, compression_layer_index=None, compression_layer=None,
-                 log_time=False):
+    def __init__(self, load_weights=False, compression_layer_index=None,
+                 compression_layer=None, log_time=False):
         super(YoloV3, self).__init__()
 
         if compression_layer and compression_layer_index:
@@ -274,6 +274,23 @@ class YoloV3(nn.Module):
 
         return x
 
+    
+    @staticmethod
+    def get_loss(predictions, targets):
+        return predictions
+
+    
+    @staticmethod
+    def get_detections(predictions):
+
+        detections0 = YoloV3.process_prediction(predictions[0], YoloV3.anchors0)
+        detections1 = YoloV3.process_prediction(predictions[1], YoloV3.anchors1)
+        detections2 = YoloV3.process_prediction(predictions[2], YoloV3.anchors2)
+
+        out = torch.cat((detections0, detections1, detections2), 1)
+        return out
+
+    
     @staticmethod
     def process_prediction(prediction, anchors):
         batch_size = prediction.size(0)
@@ -317,6 +334,7 @@ class YoloV3(nn.Module):
 
         return prediction
 
+    
     def forward(self, x):
         self.timelogger.begin()
 
@@ -341,21 +359,18 @@ class YoloV3(nn.Module):
 
         predict2 = self.apply_layers(self.layers[11] + self.layers[12], layer12)
 
-        # process the detections
-        detections0 = YoloV3.process_prediction(predict0, YoloV3.anchors0)
-        detections1 = YoloV3.process_prediction(predict1, YoloV3.anchors1)
-        detections2 = YoloV3.process_prediction(predict2, YoloV3.anchors2)
-
-        out = torch.cat((detections0, detections1, detections2), 1)
         self.timelogger.add_point('network_done')
-        return out
+        return (predict0, predict1, predict2)
 
+    
     def timelog(self):
         return self.timelog
 
+  
     def get_compressed_sizes(self):
         return self.compression_layer.get_compressed_sizes()
 
+    
 def load_model(*args, **kwargs):
     yolov3 = YoloV3(*args, **kwargs)
 
