@@ -42,7 +42,7 @@ def main(options):
 
         print('[%d/%d] mAP: %.6f' % (batch_number, batch_count, map_score))
 
-    model = yolo.load_model(options.compression_layer_index, compression_layer, True)
+    model = yolo.load_model(compression_layer_index=options.compression_layer_index, compression_layer=compression_layer, log_time=True)
     map_score = do_test(model, options.images, options.labels, options.batch_size,
                         progress_callback)
 
