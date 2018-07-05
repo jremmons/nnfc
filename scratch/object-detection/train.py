@@ -35,29 +35,39 @@ def main(options):
                       batch_size=options.batch_size, shuffle=True,
                       num_workers=mp.cpu_count())
 
-    model = yolo.load_model(load_weights=False)
-    model.train()
+    model = yolo.load_model(train_dn=False, train_yolo=True, load_weights=False)
     model.to(device)
 
     # values from:
     # [yolov3.cfg](https://github.com/pjreddie/darknet/blob/master/cfg/yolov3.cfg)
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9,
-                                dampening=0, weight_decay=0.0005)
+    # optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9,
+    #                             dampening=0, weight_decay=0.0005)
+    optimizer = torch.optim.Adam(model.parameters())
 
+    # for param in model.parameters():
+    #     print(param.requires_grad)
+    #     # param.detach_()
+        
+    print('num learnable params:', len(list(model.parameters())))
+   
     for epoch in range(options.epochs):
         for i, (local_batch, local_labels) in enumerate(data):
-            optimizer.zero_grad()
-            local_batch = local_batch.to(device)
 
-            outputs = model(local_batch)
-            # detections = yolo.YoloV3.get_detections(outputs)
-            # print(detections.shape)
+            # use the same input over and over again for debugging
+            for i in range(100):
 
-            loss = yolo.YoloV3.get_loss(outputs, local_labels)
-            print(loss[0].shape)
-            # print(loss.shape)
-            # loss.backward()
-            # optimizer.step()
+                optimizer.zero_grad()
+                local_batch = local_batch.to(device)
+
+                outputs = model(local_batch)
+                # detections = yolo.YoloV3.get_detections(outputs)
+                # print(detections.shape)
+
+                loss = yolo.YoloV3.get_loss(outputs, local_labels)
+                # print(i)
+                # print(loss)
+                # loss.backward()
+                # optimizer.step()
 
             
 def parse_arguments():
