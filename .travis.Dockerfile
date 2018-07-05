@@ -6,6 +6,7 @@ RUN apt-get update -qq
 RUN apt-get install -q -y libturbojpeg0-dev gcc-7 g++-7 nasm libhdf5-dev \
                           hdf5-helpers libeigen3-dev python3-dev python-dev \
                           libavcodec-dev libavformat-dev libavutil-dev \
+                          libswscale-dev \
                           libfftw3-dev python3-pip git
 RUN apt-get install -q -y automake libtool pkg-config
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 99
