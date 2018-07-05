@@ -1,4 +1,5 @@
 import torch
+import zlib
 from torch.autograd import Variable
 from torch.nn.modules.module import Module
 from torch.autograd import Function
@@ -21,6 +22,8 @@ class CompressionLayer(Module):
 
             compressed = encoder.forward(inputs)
 
+            # compressed_0 = [zlib.compress(x.tobytes()) for x in compressed]
+            # statistics['sizeof_intermediates'] = list(map(lambda x: (len(x),), compressed_0))
             statistics['sizeof_intermediates'] = list(map(lambda x: x.shape, compressed))
 
             decompressed = decoder.forward(compressed)
