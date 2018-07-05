@@ -37,16 +37,24 @@ class TimeLog:
         self.points += [(title, now - self.start)]
         self.start = now
 
-def dn_register_weights_helper(register_p, register_b, block_name, i, conv, bn):
-    register_p('{}_conv{}_weight'.format(block_name, i), conv.weight)
+def dn_register_weights_helper(register_p, register_b, block_name, i, conv, bn, is_training):
+
+    register = register_b
+    if is_training:
+        register = register_p
+        
+    register('{}_conv{}_weight'.format(block_name, i), conv.weight)
     register_b('{}_bn{}_running_mean'.format(block_name, i), bn.running_mean)
     register_b('{}_bn{}_running_var'.format(block_name, i), bn.running_var)
     register_b('{}_bn{}_weight'.format(block_name, i), bn.weight)
     register_b('{}_bn{}_bias'.format(block_name, i), bn.bias)
 
+        
 class DarknetBlock(nn.Module):
-    def __init__(self, block_name, nFilter1, nFilter2, activaction_func=nn.LeakyReLU(0.1)):
+    def __init__(self, block_name, nFilter1, nFilter2, is_training, activaction_func=nn.LeakyReLU(0.1)):
         super(DarknetBlock, self).__init__()
+
+        self.is_training = is_training
 
         self.block_name = block_name
         self.activaction_func = activaction_func
@@ -63,7 +71,7 @@ class DarknetBlock(nn.Module):
 
     def register_weights(self, register_p, register_b):
         for i, (conv, bn) in enumerate(zip(self.conv, self.bn)):
-            dn_register_weights_helper(register_p, register_b, self.block_name, i, conv, bn)
+            dn_register_weights_helper(register_p, register_b, self.block_name, i, conv, bn, self.is_training)
 
     def forward(self, x):
         out = self.activaction_func(self.bn[0](self.conv[0](x)))
@@ -73,8 +81,10 @@ class DarknetBlock(nn.Module):
         return out
 
 class DarknetConv(nn.Module):
-    def __init__(self, conv_num, nFilter1, nFilter2, stride=2, activaction_func=nn.LeakyReLU(0.1)):
+    def __init__(self, conv_num, nFilter1, nFilter2, is_training, stride=2, activaction_func=nn.LeakyReLU(0.1)):
         super(DarknetConv, self).__init__()
+
+        self.is_training = is_training
 
         self.conv_name = 'darknet53_standalone%d_instance0' % conv_num
         self.activaction_func = activaction_func
@@ -83,16 +93,18 @@ class DarknetConv(nn.Module):
         self.bn = nn.BatchNorm2d(nFilter2).to(device)
 
     def register_weights(self, register_p, register_b):
-        dn_register_weights_helper(register_p, register_b, self.conv_name, 0, self.conv, self.bn)
+        dn_register_weights_helper(register_p, register_b, self.conv_name, 0, self.conv, self.bn, self.is_training)
 
     def forward(self, x):
         out = self.activaction_func(self.bn(self.conv(x)))
         return out
 
 class YoloBlock(nn.Module):
-    def __init__(self, conv_num, nFilter1, nFilter2, size, stride, padding, activaction_func=nn.LeakyReLU(0.1)):
+    def __init__(self, conv_num, nFilter1, nFilter2, size, stride, padding, is_training, activaction_func=nn.LeakyReLU(0.1)):
         super(YoloBlock, self).__init__()
 
+        self.is_training = is_training
+        
         self.conv_name = "yolo_standalone%d_instance0" % conv_num
         self.activaction_func = activaction_func
 
@@ -100,15 +112,17 @@ class YoloBlock(nn.Module):
         self.bn = nn.BatchNorm2d(nFilter2).to(device)
 
     def register_weights(self, register_p, register_b):
-        dn_register_weights_helper(register_p, register_b, self.conv_name, 0, self.conv, self.bn)
+        dn_register_weights_helper(register_p, register_b, self.conv_name, 0, self.conv, self.bn, self.is_training)
 
     def forward(self, x):
         out = self.activaction_func(self.bn(self.conv(x)))
         return out
 
 class YoloConv(nn.Module):
-    def __init__(self, conv_num, nFilter1, nFilter2, activaction_func=lambda x: x):
+    def __init__(self, conv_num, nFilter1, nFilter2, is_training, activaction_func=lambda x: x):
         super(YoloConv, self).__init__()
+
+        self.is_training = is_training
 
         self.conv_name = "yolo_standalone%d_instance0" % conv_num
         self.activaction_func = activaction_func
@@ -116,9 +130,13 @@ class YoloConv(nn.Module):
         self.conv = nn.Conv2d(nFilter1, nFilter2, kernel_size=1, stride=1, padding=0, bias=True).to(device)
 
     def register_weights(self, register_p, register_b):
-        register_p('{}_conv0_weight'.format(self.conv_name), self.conv.weight)
-        register_p('{}_conv0_bias'.format(self.conv_name), self.conv.bias)
-
+        if self.is_training:
+            register_p('{}_conv0_weight'.format(self.conv_name), self.conv.weight)
+            register_p('{}_conv0_bias'.format(self.conv_name), self.conv.bias)
+        else:
+            register_b('{}_conv0_weight'.format(self.conv_name), self.conv.weight)
+            register_b('{}_conv0_bias'.format(self.conv_name), self.conv.bias)
+            
     def forward(self, x):
         out = self.activaction_func(self.conv(x))
         return out
@@ -141,8 +159,13 @@ class YoloV3(nn.Module):
 
     # If compression_layer_index != None, compression layer will be inserted
     # *before* that block.
-    def __init__(self, load_weights=False, compression_layer_index=None,
-                 compression_layer=None, log_time=False):
+    def __init__(self, load_weights=False,
+                 train_dn=False,
+                 train_yolo=False,
+                 compression_layer_index=None,
+                 compression_layer=None,
+                 log_time=True):
+
         super(YoloV3, self).__init__()
 
         if compression_layer and compression_layer_index:
@@ -156,12 +179,12 @@ class YoloV3(nn.Module):
 
         # darknet53 layers (the first 52 conv layers are present)
         self.dn53_standalone = [
-            [DarknetConv(0, 3, 32, stride=1)],
-            [DarknetConv(1, 32, 64)],
-            [DarknetConv(2, 64, 128)],
-            [DarknetConv(3, 128, 256)],
-            [DarknetConv(4, 256, 512)],
-            [DarknetConv(5, 512, 1024)]
+            [DarknetConv(0, 3, 32, stride=1, is_training=train_dn)],
+            [DarknetConv(1, 32, 64, is_training=train_dn)],
+            [DarknetConv(2, 64, 128, is_training=train_dn)],
+            [DarknetConv(3, 128, 256, is_training=train_dn)],
+            [DarknetConv(4, 256, 512, is_training=train_dn)],
+            [DarknetConv(5, 512, 1024, is_training=train_dn)]
         ]
 
         self.dn53_block = []
@@ -170,7 +193,7 @@ class YoloV3(nn.Module):
         for i, k in enumerate([1, 2, 8, 8, 4]):
             self.dn53_block += [[
                 DarknetBlock('darknet53_block{}_instance{}'.format(i, j),
-                    2 ** (i + 6), 2 ** (i + 5)) for j in range(k)
+                    2 ** (i + 6), 2 ** (i + 5), is_training=train_dn) for j in range(k)
             ]]
 
         # YOLO extracts features from intermediate points in Darknet53
@@ -200,49 +223,49 @@ class YoloV3(nn.Module):
         # yolo detection layers
         # detection 1
         self.layers[3] = [
-            YoloBlock(0, 1024, 512, 1, 1, 0),
-            YoloBlock(1, 512, 1024, 3, 1, 1),
-            YoloBlock(2, 1024, 512, 1, 1, 0),
-            YoloBlock(3, 512, 1024, 3, 1, 1),
-            YoloBlock(4, 1024, 512, 1, 1, 0)
+            YoloBlock(0, 1024, 512, 1, 1, 0, is_training=train_yolo),
+            YoloBlock(1, 512, 1024, 3, 1, 1, is_training=train_yolo),
+            YoloBlock(2, 1024, 512, 1, 1, 0, is_training=train_yolo),
+            YoloBlock(3, 512, 1024, 3, 1, 1, is_training=train_yolo),
+            YoloBlock(4, 1024, 512, 1, 1, 0, is_training=train_yolo)
         ]
 
-        self.layers[4] = [YoloBlock(5, 512, 1024, 3, 1, 1)]
-        self.layers[5] = [YoloConv(6, 1024, 255)]
+        self.layers[4] = [YoloBlock(5, 512, 1024, 3, 1, 1, is_training=train_yolo)]
+        self.layers[5] = [YoloConv(6, 1024, 255, is_training=train_yolo)]
 
         # detection 2
         self.layers[6] = [
-            YoloBlock(7, 512, 256, 1, 1, 0),
+            YoloBlock(7, 512, 256, 1, 1, 0, is_training=train_yolo),
             YoloUpsample()
         ]
 
         self.layers[7] = [
-            YoloBlock(8, 768, 256, 1, 1, 0),
-            YoloBlock(9, 256, 512, 3, 1, 1),
-            YoloBlock(10, 512, 256, 1, 1, 0),
-            YoloBlock(11, 256, 512, 3, 1, 1),
-            YoloBlock(12, 512, 256, 1, 1, 0)
+            YoloBlock(8, 768, 256, 1, 1, 0, is_training=train_yolo),
+            YoloBlock(9, 256, 512, 3, 1, 1, is_training=train_yolo),
+            YoloBlock(10, 512, 256, 1, 1, 0, is_training=train_yolo),
+            YoloBlock(11, 256, 512, 3, 1, 1, is_training=train_yolo),
+            YoloBlock(12, 512, 256, 1, 1, 0, is_training=train_yolo)
         ]
 
-        self.layers[8] = [YoloBlock(13, 256, 512, 3, 1, 1)]
-        self.layers[9] = [YoloConv(14, 512, 255)]
+        self.layers[8] = [YoloBlock(13, 256, 512, 3, 1, 1, is_training=train_yolo)]
+        self.layers[9] = [YoloConv(14, 512, 255, is_training=train_yolo)]
 
         # detection 3
         self.layers[10] = [
-            YoloBlock(15, 256, 128, 1, 1, 0),
+            YoloBlock(15, 256, 128, 1, 1, 0, is_training=train_yolo),
             YoloUpsample()
         ]
 
         self.layers[11] = [
-            YoloBlock(16, 384, 128, 1, 1, 0),
-            YoloBlock(17, 128, 256, 3, 1, 1),
-            YoloBlock(18, 256, 128, 1, 1, 0),
-            YoloBlock(19, 128, 256, 3, 1, 1),
-            YoloBlock(20, 256, 128, 1, 1, 0),
-            YoloBlock(21, 128, 256, 3, 1, 1)
+            YoloBlock(16, 384, 128, 1, 1, 0, is_training=train_yolo),
+            YoloBlock(17, 128, 256, 3, 1, 1, is_training=train_yolo),
+            YoloBlock(18, 256, 128, 1, 1, 0, is_training=train_yolo),
+            YoloBlock(19, 128, 256, 3, 1, 1, is_training=train_yolo),
+            YoloBlock(20, 256, 128, 1, 1, 0, is_training=train_yolo),
+            YoloBlock(21, 128, 256, 3, 1, 1, is_training=train_yolo)
         ]
 
-        self.layers[12] = [YoloConv(22, 256, 255)]
+        self.layers[12] = [YoloConv(22, 256, 255, is_training=train_yolo)]
 
         #register the layers
         for layers in self.layers:
@@ -264,6 +287,7 @@ class YoloV3(nn.Module):
                     i += 1
                     j += 1
 
+                    
     def apply_layers(self, layers, x):
         for layer in layers:
             x = layer(x)
@@ -276,8 +300,80 @@ class YoloV3(nn.Module):
 
     
     @staticmethod
+    def preprocess_targets(raw_targets):
+        raw_targets = raw_targets[0]
+
+        targets = []
+        for image_targets in raw_targets:
+
+            t = []
+            for line in image_targets.strip().split('\n'):
+
+                c, x, y, h, w = line.split()
+                c = int(c)
+                x = float(x)
+                y = float(y)
+                h = float(y)
+                w = float(w)
+                assert(c >= 0)
+                assert(x >= 0)
+                assert(y >= 0)
+                assert(h >= 0)
+                assert(w >= 0)                
+
+                d = {
+                    'class' : c,
+                    'x' : x,
+                    'y' : y,
+                    'h' : h,
+                    'w' : w,
+                }
+
+                t.append(d)
+
+            targets.append(t)
+
+        return targets
+
+    
+    @staticmethod
     def get_loss(predictions, targets):
-        return predictions
+        # YOLO loss function is composed of several parts
+        # 1. if object present, squared error for x and y coodinates
+        # 2. if object present, sqaured error for sqrt(h) and sqrt(w)
+        # 3. if object present, squared error for confidence and IoU
+        # 4. if object not present, squared error for confidence and IoU
+        # 5. if object present, cross entropy loss for class prediction
+
+        # Constants:
+        # \lambda_{coord} = 5
+        # \lambda_{obj} = 1
+        # \lambda_{noobj} = 0.5
+        # \lambda_{class} = 1
+        
+        targets = YoloV3.preprocess_targets(targets)
+        
+        detections0 = YoloV3.process_prediction(predictions[0], YoloV3.anchors0)
+        detections1 = YoloV3.process_prediction(predictions[1], YoloV3.anchors1)
+        detections2 = YoloV3.process_prediction(predictions[2], YoloV3.anchors2)
+
+        # det = YoloV3.get_detections(predictions)
+        # print(det.shape)
+        # print(detections0.shape)
+        # print(detections1.shape)
+        # print(detections2.shape)
+        
+        # loss_fn = torch.nn.MSELoss()
+        # target = torch.zeros(8, 10647, 85).cuda()
+        # target[:,:,0:4] = 0.75
+        # target[:,:,4] = 1
+        # target[:,:,-1] = 1
+
+        # print(target[0,1000,:])
+        # print(det[0,1000,:])
+        # loss = loss_fn(det, target)
+        
+        return None
 
     
     @staticmethod
@@ -340,6 +436,17 @@ class YoloV3(nn.Module):
 
         # DARKNET-53
         layer0 = self.apply_layers(self.layers[0], x)
+
+        # TODO(jremmons) remove this debugging code
+        # if self.prev_layer is None:
+        #     self.prev_layer = layer0
+        # else:
+        #     print('prev prev')
+        #     loss_fn = torch.nn.MSELoss()
+        #     target = torch.zeros(8, 52, 52, 256).cuda()
+        #     print('loss loss', loss_fn(self.prev_layer[:,:,:] - layer0[:,:,:], target))
+        #     self.prev_layer = layer0
+            
         layer1 = self.apply_layers(self.layers[1], layer0)
         layer2 = self.apply_layers(self.layers[2], layer1)
 
@@ -376,7 +483,10 @@ def load_model(*args, **kwargs):
 
     with h5py.File('yolov3.h5', 'r') as f:
         model_params = yolov3.state_dict()
-        for param_name in model_params.keys():
+        # print(len(list(model_params.keys())))
+        # print(list(model_params.keys()))
+
+        for param_name in model_params.keys():            
             weights = torch.from_numpy(np.asarray(f[param_name]).astype(np.float32))
             model_params[param_name].data.copy_(weights)
 
