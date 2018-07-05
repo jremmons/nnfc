@@ -44,7 +44,7 @@ simplecnn_hl_bin_SOURCES = simplecnn_hl_test.cc
 cxxapi_simple_bin_SOURCES = cxxapi_simple.cc
 
 dist_check_SCRIPTS = pythonpath_python.test \
-	                   import_python.test \
+                     import_python.test \
                      noop_python.test \
                      nnfc_python.test \
                      jpeg_python.test \
