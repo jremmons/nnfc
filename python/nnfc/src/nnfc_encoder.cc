@@ -104,11 +104,11 @@ int NNFCEncoderContext_init(NNFCEncoderContext *self, PyObject *args, PyObject*)
         
         self->encoder = std::move(nnfc::cxxapi::new_encoder(encoder_name, encoder_args));
     }
-    catch(nnfc_python_exception e) {
+    catch(nnfc_python_exception& e) {
         PyErr_SetString(e.type(), e.what());
         return 0;
     }
-    catch(std::exception e) {
+    catch(std::exception& e) {
         std::string error_message = e.what();
         PyErr_SetString(PyExc_Exception, error_message.c_str());
         return 0;
@@ -143,11 +143,11 @@ PyObject* NNFCEncoderContext_forward(NNFCEncoderContext *self, PyObject *args){
         return pylist_of_buffer;
 
     }
-    catch(nnfc_python_exception e) {
+    catch(nnfc_python_exception& e) {
         PyErr_SetString(e.type(), e.what());
         return 0;
     }
-    catch(std::exception e) {
+    catch(std::exception& e) {
         std::string error_message = e.what();
         PyErr_SetString(PyExc_Exception, error_message.c_str());
         return 0;
