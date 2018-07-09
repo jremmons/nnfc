@@ -62,7 +62,9 @@ std::vector<float> kmeans(nn::Tensor<float, 3> input, int nbins,
       }
 
       for (int i = 0; i < nbins; i++) {
-          means[i] = means_sum[i] / means_count[i];
+          if (means_count[i] > 0) {
+            means[i] = means_sum[i] / means_count[i];
+          }
       }
 
   }
@@ -113,8 +115,13 @@ vector<uint8_t> nnfc::NNFC1Encoder::forward(nn::Tensor<float, 3> t_input) {
   uint64_t dim1 = input.dimension(1);
   uint64_t dim2 = input.dimension(2);
 
-  std::vector<float> means = kmeans(input, 4);
-
+  std::cerr << quantizer_nbins << " " << __builtin_popcount(quantizer_nbins) << std::endl;
+  assert(__builtin_popcount(quantizer_nbins) == 1);
+  std::vector<float> means = kmeans(input, quantizer_nbins);
+  for (int i = 0; i < quantizer_nbins; i++) {
+      std::cerr << means[i] << std::endl;
+  }
+  
   // quantize the input data
   uint32_t count = 0;
   uint8_t byte = 0;
@@ -253,6 +260,7 @@ nn::Tensor<float, 3> nnfc::NNFC1Decoder::forward(vector<uint8_t> input) {
           }
 
           uint8_t qval = (byte >> 2*(count % 4)) & 0b11;
+          std::cerr << static_cast<int>(qval) << " " << means[qval] << std::endl;
           output(i, jj * BLOCK_WIDTH + j, kk * BLOCK_WIDTH + k) = means[qval];
           count++;
         }
