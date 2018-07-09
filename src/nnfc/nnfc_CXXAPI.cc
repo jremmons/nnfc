@@ -181,7 +181,7 @@ static std::vector<EncoderContextFactory> nnfc_available_encoders = {
      .new_context_func = new_encoder<nnfc::HEIFEncoder, int>,
      .constructor_types_func = constructor_types<nnfc::HEIFEncoder>},
     {.exported_name = "nnfc1_encoder",
-     .new_context_func = new_encoder<nnfc::NNFC1Encoder, int>,
+     .new_context_func = new_encoder<nnfc::NNFC1Encoder>,
      .constructor_types_func = constructor_types<nnfc::NNFC1Encoder>}};
 
 static std::vector<DecoderContextFactory> nnfc_available_decoders = {
