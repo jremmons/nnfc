@@ -93,9 +93,9 @@ uint32_t quantize(float val, std::vector<float> &bins) {
   }
 }
 
-nnfc::NNFC1Encoder::NNFC1Encoder(int quantizer)
-    : quantizer_(quantizer),
-      jpeg_compressor(tjInitCompress(), [](void *ptr) { tjDestroy(ptr); }) {}
+nnfc::NNFC1Encoder::NNFC1Encoder()
+    : quantizer_nbins(4)
+{}
 
 nnfc::NNFC1Encoder::~NNFC1Encoder() {}
 
@@ -188,9 +188,7 @@ nn::Tensor<float, 3> nnfc::NNFC1Encoder::backward(nn::Tensor<float, 3> input) {
   return input;
 }
 
-nnfc::NNFC1Decoder::NNFC1Decoder()
-    : jpeg_decompressor(tjInitDecompress(), [](void *ptr) { tjDestroy(ptr); }) {
-}
+nnfc::NNFC1Decoder::NNFC1Decoder() {}
 
 nnfc::NNFC1Decoder::~NNFC1Decoder() {}
 

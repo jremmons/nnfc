@@ -15,24 +15,22 @@ const int BLOCK_WIDTH = 4;
 
 class NNFC1Encoder {
  private:
-  const int quantizer_;
-  std::unique_ptr<void, void (*)(void*)> jpeg_compressor;
-
+    int quantizer_nbins;
+    
  public:
-  NNFC1Encoder(int quantizer);
+  NNFC1Encoder();
   ~NNFC1Encoder();
 
   std::vector<uint8_t> forward(nn::Tensor<float, 3> input);
   nn::Tensor<float, 3> backward(nn::Tensor<float, 3> input);
 
   static nnfc::cxxapi::constructor_type_list initialization_params() {
-    return {{"quantizer", typeid(int)}};
+    return {};
   }
 };
 
 class NNFC1Decoder {
  private:
-  std::unique_ptr<void, void (*)(void*)> jpeg_decompressor;
 
  public:
   NNFC1Decoder();
