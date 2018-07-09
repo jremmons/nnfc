@@ -11,15 +11,10 @@ from pprint import pprint
 import numpy as np
 
 import yolov3 as yolo
+from utils import create_params_dict
 from test import do_test
 
 from nnfc.modules.nnfc import CompressionLayer
-
-def create_params_dict(str_data):
-    if str_data == None:
-        return {}
-
-    return {x[0]: int(x[1]) for x in [y.split("=") for y in str_data.split(",")]}
 
 def main(options):
     compression_layer = None
@@ -43,6 +38,7 @@ def main(options):
         print('[%d/%d] mAP: %.6f' % (batch_number, batch_count, map_score))
 
     model = yolo.load_model(compression_layer_index=options.compression_layer_index, compression_layer=compression_layer, log_time=True)
+
     map_score = do_test(model, options.images, options.labels, options.batch_size,
                         progress_callback)
 

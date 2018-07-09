@@ -29,6 +29,12 @@ coco_names = [
     'scissors',      'teddy bear',    'hair drier',    'toothbrush',
 ]
 
+def create_params_dict(str_data):
+    if str_data == None:
+        return {}
+
+    return {x[0]: int(x[1]) for x in [y.split("=") for y in str_data.split(",")]}
+
 class Box:
     def __init__(self, x, y, w, h):
         self.x = x

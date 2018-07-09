@@ -1,3 +1,7 @@
+import time
+import zlib
+
+import numpy as np
 import torch
 import zlib
 from torch.autograd import Variable
@@ -6,13 +10,24 @@ from torch.autograd import Function
 
 from .._ext import nnfc_codec
 
+BLOCK_SIZE = (32, 13, 13)
+TRANSFORM = np.load("/home/sadjad/projects/nnfc-temp/klt/transform.npy")
+MEANS = np.load("/home/sadjad/projects/nnfc-temp/klt/mean.npy").reshape(-1)
+
+def forward_transform_block(block):
+    d = np.dot(TRANSFORM.T, block.reshape(-1) - MEANS)
+    d[len(d)//5:] = 0.0
+    return d.reshape(*block.shape)
+
+def backward_transform_block(block):
+    return (np.dot(TRANSFORM, block.reshape(-1)) + MEANS).reshape(*block.shape)
+
 class CompressionLayer(Module):
 
     class CompressionLayerFunc(Function):
 
         @staticmethod
         def forward(ctx, inputs, encoder, decoder, statistics):
-
             on_gpu = inputs.is_cuda
 
             if on_gpu:
@@ -20,13 +35,40 @@ class CompressionLayer(Module):
             else:
                 inputs = inputs.detach().numpy()
 
-            compressed = encoder.forward(inputs)
+            #np.save('/home/sadjad/projects/nnfc-temp/klt/activations/%d' % (time.time() * 1000), inputs)
 
-            # compressed_0 = [zlib.compress(x.tobytes()) for x in compressed]
-            # statistics['sizeof_intermediates'] = list(map(lambda x: (len(x),), compressed_0))
-            statistics['sizeof_intermediates'] = list(map(lambda x: x.shape, compressed))
+            for h in range(inputs.shape[0]):
+                for i in range(inputs.shape[1] // BLOCK_SIZE[0]):
+                    for j in range(inputs.shape[2] // BLOCK_SIZE[1]):
+                        for k in range(inputs.shape[3] // BLOCK_SIZE[2]):
+                            block = inputs[h, i*BLOCK_SIZE[0]:(i+1)*BLOCK_SIZE[0],
+                                              j*BLOCK_SIZE[1]:(j+1)*BLOCK_SIZE[1],
+                                              k*BLOCK_SIZE[2]:(k+1)*BLOCK_SIZE[2]]
+                            inputs[h, i*BLOCK_SIZE[0]:(i+1)*BLOCK_SIZE[0],
+                                      j*BLOCK_SIZE[1]:(j+1)*BLOCK_SIZE[1],
+                                      k*BLOCK_SIZE[2]:(k+1)*BLOCK_SIZE[2]] = \
+                                forward_transform_block(block)
+
+            compressed = encoder.forward(inputs)
+            compressed_0 = [zlib.compress(x.tobytes(), level=9) for x in compressed]
+
+            statistics['sizeof_intermediates'] = list(map(lambda x: (len(x),), compressed_0))
+            # statistics['sizeof_intermediates'] = list(map(lambda x: x.shape, compressed))
 
             decompressed = decoder.forward(compressed)
+
+            for h in range(inputs.shape[0]):
+                for i in range(inputs.shape[1] // BLOCK_SIZE[0]):
+                    for j in range(inputs.shape[2] // BLOCK_SIZE[1]):
+                        for k in range(inputs.shape[3] // BLOCK_SIZE[2]):
+                            block = decompressed[h, i*BLOCK_SIZE[0]:(i+1)*BLOCK_SIZE[0],
+                                                    j*BLOCK_SIZE[1]:(j+1)*BLOCK_SIZE[1],
+                                                    k*BLOCK_SIZE[2]:(k+1)*BLOCK_SIZE[2]]
+                            decompressed[h, i*BLOCK_SIZE[0]:(i+1)*BLOCK_SIZE[0],
+                                            j*BLOCK_SIZE[1]:(j+1)*BLOCK_SIZE[1],
+                                            k*BLOCK_SIZE[2]:(k+1)*BLOCK_SIZE[2]] = \
+                                backward_transform_block(block)
+
             outputs = torch.from_numpy(decompressed)
 
             ctx.encoder = encoder

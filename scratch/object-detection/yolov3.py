@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import os
 import sys
 import time
@@ -16,6 +18,8 @@ from PIL import Image, ImageDraw
 
 import utils
 from utils import device
+
+from nnfc.modules.nnfc import CompressionLayer
 
 class TimeLog:
     def __init__(self, enabled=True):
@@ -298,7 +302,7 @@ class YoloV3(nn.Module):
 
         return x
 
-    
+
     @staticmethod
     def preprocess_targets(raw_targets):
         raw_targets = raw_targets[0]
@@ -375,7 +379,7 @@ class YoloV3(nn.Module):
         
         return None
 
-    
+
     @staticmethod
     def get_detections(predictions):
 
@@ -386,7 +390,7 @@ class YoloV3(nn.Module):
         out = torch.cat((detections0, detections1, detections2), 1)
         return out
 
-    
+
     @staticmethod
     def process_prediction(prediction, anchors):
         batch_size = prediction.size(0)
@@ -430,7 +434,7 @@ class YoloV3(nn.Module):
 
         return prediction
 
-    
+
     def forward(self, x):
         self.timelogger.begin()
 
@@ -469,15 +473,15 @@ class YoloV3(nn.Module):
         self.timelogger.add_point('network_done')
         return (predict0, predict1, predict2)
 
-    
+
     def timelog(self):
         return self.timelog
 
-  
+
     def get_compressed_sizes(self):
         return self.compression_layer.get_compressed_sizes()
 
-    
+
 def load_model(*args, **kwargs):
     yolov3 = YoloV3(*args, **kwargs)
 
@@ -492,21 +496,69 @@ def load_model(*args, **kwargs):
 
     return yolov3
 
+def load_image(img_path, size=416):
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
+
+    img_original = Image.open(img_path).convert('RGB')
+    img_original = img_original.resize((size, size))
+    return transform(np.asarray(img_original)).unsqueeze(0)
+
+def save_image(img_path, detections):
+    size = 416
+    img = Image.open(img_path).convert('RGB').resize((size, size))
+    draw = ImageDraw.Draw(img)
+
+    for det in detections:
+        if det.confidence < 0.5:
+            continue
+
+        bb = det.bb
+        x1 = bb.x - bb.w / 2
+        y1 = bb.y - bb.h / 2
+        x2 = bb.x + bb.w / 2
+        y2 = bb.y + bb.h / 2
+
+        draw.rectangle(((x1, y1), (x2, y2)))
+
+    img.save(os.path.splitext(img_path)[0] + '.out.jpg')
+
 def main():
     parser = argparse.ArgumentParser('Run YoloV3 on input image.')
     parser.add_argument('image', nargs='+')
-    args = parser.parse_args()
+    parser.add_argument('--codec', type=str, default=None)
+    parser.add_argument('--compression-layer-index', type=int, default=0,
+                        help='insert the compression layer before this block')
+    parser.add_argument('--encoder-params', type=str, default=None, help='A=X,B=Y,C=Z')
+    parser.add_argument('--decoder-params', type=str, default=None, help='A=X,B=Y,C=Z')
+    options = parser.parse_args()
 
     print("* Running on:", device)
 
-    yolov3 = load_model()
-    for img_path in args.image:
-        x = Variable(utils.normalize_image(img_path)).to(device)
-        y = yolov3(x)
-        detections = utils.parse_detections(y)[0]
+    for img_path in options.image:
+        compression_layer = None
+
+        if options.codec:
+            encoder_name, decoder_name = ('%s_encoder' % options.codec, '%s_decoder' % options.codec)
+            compression_layer = CompressionLayer(
+                encoder_name=encoder_name,
+                encoder_params_dict=utils.create_params_dict(options.encoder_params),
+                decoder_name=decoder_name,
+                decoder_params_dict=utils.create_params_dict(options.decoder_params))
+
+        x = load_image(img_path).to(device)
+        yolo_model = load_model(load_weights=True,
+            compression_layer_index=options.compression_layer_index,
+            compression_layer=compression_layer, log_time=True)
+        y = yolo_model(x)
+        detections = YoloV3.get_detections(y)
+        detections = utils.parse_detections(detections)[0]
         detections = utils.non_max_suppression(detections)
         pprint.pprint(detections)
-        #img_original.save(os.path.splitext(img_path)[0] + '.out.jpg')
+        #save_image(img_path, detections)
+
 
 if __name__ == '__main__':
     main()
