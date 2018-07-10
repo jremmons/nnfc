@@ -15,7 +15,7 @@ const int BLOCK_WIDTH = 4;
 
 class NNFC1Encoder {
  private:
-    int quantizer_nbins;
+    const int quantizer_nbins_;
     
  public:
   NNFC1Encoder();
