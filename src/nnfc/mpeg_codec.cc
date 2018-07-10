@@ -13,7 +13,7 @@
 using namespace std;
 using namespace nnfc;
 
-template<class Encoder>
+template <class Encoder>
 vector<uint8_t> MPEGEncoder<Encoder>::forward(nn::Tensor<float, 3> input) {
   const uint64_t dim0 = input.dimension(0);
   const uint64_t dim1 = input.dimension(1);
@@ -70,8 +70,8 @@ vector<uint8_t> MPEGEncoder<Encoder>::forward(nn::Tensor<float, 3> input) {
   const uint8_t *dim0_bytes = reinterpret_cast<const uint8_t *>(&dim0);
   const uint8_t *dim1_bytes = reinterpret_cast<const uint8_t *>(&dim1);
   const uint8_t *dim2_bytes = reinterpret_cast<const uint8_t *>(&dim2);
-  const uint8_t *width_bytes = reinterpret_cast<const uint8_t*>(&image_width);
-  const uint8_t *height_bytes = reinterpret_cast<const uint8_t*>(&image_width);
+  const uint8_t *width_bytes = reinterpret_cast<const uint8_t *>(&image_width);
+  const uint8_t *height_bytes = reinterpret_cast<const uint8_t *>(&image_width);
 
   for (size_t i = 0; i < sizeof(uint64_t); i++) {
     encoding.push_back(dim0_bytes[i]);
@@ -92,12 +92,13 @@ vector<uint8_t> MPEGEncoder<Encoder>::forward(nn::Tensor<float, 3> input) {
   return encoding;
 }
 
-template<class Encoder>
-nn::Tensor<float, 3> MPEGEncoder<Encoder>::backward(nn::Tensor<float, 3> input) {
+template <class Encoder>
+nn::Tensor<float, 3> MPEGEncoder<Encoder>::backward(
+    nn::Tensor<float, 3> input) {
   return input;
 }
 
-template<class Decoder>
+template <class Decoder>
 nn::Tensor<float, 3> MPEGDecoder<Decoder>::forward(vector<uint8_t> input) {
   uint64_t dim0;
   uint64_t dim1;
@@ -174,8 +175,9 @@ nn::Tensor<float, 3> MPEGDecoder<Decoder>::forward(vector<uint8_t> input) {
   return output;
 }
 
-template<class Decoder>
-nn::Tensor<float, 3> MPEGDecoder<Decoder>::backward(nn::Tensor<float, 3> input) {
+template <class Decoder>
+nn::Tensor<float, 3> MPEGDecoder<Decoder>::backward(
+    nn::Tensor<float, 3> input) {
   return input;
 }
 
