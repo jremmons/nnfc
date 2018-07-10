@@ -10,7 +10,8 @@ nnfc::RGBSwizzlerEncoder::RGBSwizzlerEncoder() {}
 
 nnfc::RGBSwizzlerEncoder::~RGBSwizzlerEncoder() {}
 
-std::vector<uint8_t> nnfc::RGBSwizzlerEncoder::forward(nn::Tensor<float, 3> input) {
+std::vector<uint8_t> nnfc::RGBSwizzlerEncoder::forward(
+    nn::Tensor<float, 3> input) {
   uint64_t dim0 = input.dimension(0);
   uint64_t dim1 = input.dimension(1);
   uint64_t dim2 = input.dimension(2);
@@ -30,7 +31,7 @@ std::vector<uint8_t> nnfc::RGBSwizzlerEncoder::forward(nn::Tensor<float, 3> inpu
   Eigen::Tensor<uint8_t, 3, Eigen::RowMajor> input_q =
       ((input.tensor() - min) * (255 / (max - min))).cast<uint8_t>();
 
-  std::memcpy(buffer.data(), &input_q(0,0,0), dim0 * dim1 * dim2);
+  std::memcpy(buffer.data(), &input_q(0, 0, 0), dim0 * dim1 * dim2);
 
   codec::RGBp_to_YUV420p converter(dim1, dim2);
   std::vector<uint8_t> yuv = converter.convert(buffer);
@@ -38,7 +39,7 @@ std::vector<uint8_t> nnfc::RGBSwizzlerEncoder::forward(nn::Tensor<float, 3> inpu
   codec::YUV420p_to_RGBp deconverter(dim1, dim2);
   std::vector<uint8_t> rgb = deconverter.convert(yuv);
 
-  std::memcpy(&input_q(0,0,0), rgb.data(), dim0 * dim1 * dim2);
+  std::memcpy(&input_q(0, 0, 0), rgb.data(), dim0 * dim1 * dim2);
 
   std::vector<uint8_t> encoding;
   for (size_t i = 0; i < dim0; i++) {
@@ -71,7 +72,8 @@ std::vector<uint8_t> nnfc::RGBSwizzlerEncoder::forward(nn::Tensor<float, 3> inpu
   return encoding;
 }
 
-nn::Tensor<float, 3> nnfc::RGBSwizzlerEncoder::backward(nn::Tensor<float, 3> input) {
+nn::Tensor<float, 3> nnfc::RGBSwizzlerEncoder::backward(
+    nn::Tensor<float, 3> input) {
   return input;
 }
 
@@ -79,7 +81,8 @@ nnfc::RGBSwizzlerDecoder::RGBSwizzlerDecoder() {}
 
 nnfc::RGBSwizzlerDecoder::~RGBSwizzlerDecoder() {}
 
-nn::Tensor<float, 3> nnfc::RGBSwizzlerDecoder::forward(std::vector<uint8_t> input) {
+nn::Tensor<float, 3> nnfc::RGBSwizzlerDecoder::forward(
+    std::vector<uint8_t> input) {
   uint64_t dim0;
   uint64_t dim1;
   uint64_t dim2;
@@ -119,6 +122,7 @@ nn::Tensor<float, 3> nnfc::RGBSwizzlerDecoder::forward(std::vector<uint8_t> inpu
   return output;
 }
 
-nn::Tensor<float, 3> nnfc::RGBSwizzlerDecoder::backward(nn::Tensor<float, 3> input) {
+nn::Tensor<float, 3> nnfc::RGBSwizzlerDecoder::backward(
+    nn::Tensor<float, 3> input) {
   return input;
 }

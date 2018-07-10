@@ -10,8 +10,8 @@
 
 #include "jpeg_codec.hh"
 #include "jpeg_image_codec.hh"
-#include "mpeg_image_codec.hh"
 #include "mpeg_codec.hh"
+#include "mpeg_image_codec.hh"
 #include "nnfc1_codec.hh"
 #include "noop_codec.hh"
 #include "swizzler.hh"

@@ -17,7 +17,7 @@ extern "C" {
 
 namespace nnfc {
 
-template<class Encoder>
+template <class Encoder>
 class MPEGEncoder {
  private:
   Encoder encoder_;
@@ -34,10 +34,10 @@ class MPEGEncoder {
   }
 };
 
-template<class Decoder>
+template <class Decoder>
 class MPEGDecoder {
  private:
-  Decoder decoder_ {};
+  Decoder decoder_{};
 
  public:
   MPEGDecoder() {}
@@ -55,7 +55,6 @@ using AVCEncoder = MPEGEncoder<codec::AVCEncoder>;
 using AVCDecoder = MPEGDecoder<codec::AVCDecoder>;
 using HEIFEncoder = MPEGEncoder<codec::HEIFEncoder>;
 using HEIFDecoder = MPEGDecoder<codec::HEIFDecoder>;
-
 }
 
 #endif  // _NNFC_AVC_CODEC_HH

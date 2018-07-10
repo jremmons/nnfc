@@ -1,16 +1,15 @@
 #include "utils.hh"
 
-#include <stdexcept>
 #include <iostream>
+#include <stdexcept>
 
 extern "C" {
-  #include <fftw3.h>
+#include <fftw3.h>
 }
 
 using namespace std;
 
-nn::Tensor<float, 3> _dct_idct(nn::Tensor<float, 3> & input,
-                               const int N,
+nn::Tensor<float, 3> _dct_idct(nn::Tensor<float, 3>& input, const int N,
                                bool inverse) {
   const int channels = input.dimension(0);
   const int rows = input.dimension(1);
@@ -32,15 +31,14 @@ nn::Tensor<float, 3> _dct_idct(nn::Tensor<float, 3> & input,
       const int howmany = block_rows;
       const int stride = 1;
       const int dist = (N * cols);
-      float * input_start = &input(channel, 0, 0) + col * N;
-      float * output_start = &output(channel, 0, 0) + col * N;
+      float* input_start = &input(channel, 0, 0) + col * N;
+      float* output_start = &output(channel, 0, 0) + col * N;
       const fftw_r2r_kind kinds[] = {inverse ? FFTW_REDFT01 : FFTW_REDFT10,
                                      inverse ? FFTW_REDFT01 : FFTW_REDFT10};
 
-      fftwf_plan plan = fftwf_plan_many_r2r(2, ranks, howmany,
-                                            input_start, nembed, stride, dist,
-                                            output_start, nembed, stride, dist,
-                                            kinds, FFTW_ESTIMATE);
+      fftwf_plan plan = fftwf_plan_many_r2r(
+          2, ranks, howmany, input_start, nembed, stride, dist, output_start,
+          nembed, stride, dist, kinds, FFTW_ESTIMATE);
 
       fftwf_execute(plan);
       fftwf_destroy_plan(plan);
@@ -61,10 +59,12 @@ nn::Tensor<float, 3> _dct_idct(nn::Tensor<float, 3> & input,
   return output;
 }
 
-nn::Tensor<float, 3> codec::utils::dct(nn::Tensor<float, 3> & input, const int N) {
+nn::Tensor<float, 3> codec::utils::dct(nn::Tensor<float, 3>& input,
+                                       const int N) {
   return _dct_idct(input, N, false);
 }
 
-nn::Tensor<float, 3> codec::utils::idct(nn::Tensor<float, 3> & input, const int N) {
+nn::Tensor<float, 3> codec::utils::idct(nn::Tensor<float, 3>& input,
+                                        const int N) {
   return _dct_idct(input, N, true);
 }

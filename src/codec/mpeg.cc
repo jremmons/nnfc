@@ -1,12 +1,12 @@
 #include "mpeg.hh"
 
 extern "C" {
-  #include <libavcodec/avcodec.h>
-  #include <libavutil/opt.h>
+#include <libavcodec/avcodec.h>
+#include <libavutil/opt.h>
 }
+#include <iostream>
 #include <memory>
 #include <stdexcept>
-#include <iostream>
 
 using namespace std;
 using namespace codec;
@@ -28,7 +28,7 @@ inline int CheckAVCommand(const char* s_attempt, const int return_value) {
   throw runtime_error(s_attempt);
 }
 
-template<AVCodecID codec_id>
+template <AVCodecID codec_id>
 vector<uint8_t> MPEGEncoder<codec_id>::encode(const vector<uint8_t>& image,
                                               const size_t width,
                                               const size_t height,
@@ -69,9 +69,8 @@ vector<uint8_t> MPEGEncoder<codec_id>::encode(const vector<uint8_t>& image,
 
   CheckAVCommand("avcodec_open2", avcodec_open2(context.get(), encoder, NULL));
 
-  shared_ptr<AVFrame> frame{
-      CheckAVCommand("encoder_frame", av_frame_alloc()),
-      [](auto* f) { av_frame_free(&f); }};
+  shared_ptr<AVFrame> frame{CheckAVCommand("encoder_frame", av_frame_alloc()),
+                            [](auto* f) { av_frame_free(&f); }};
 
   frame->width = width;
   frame->height = height;
@@ -93,12 +92,10 @@ vector<uint8_t> MPEGEncoder<codec_id>::encode(const vector<uint8_t>& image,
   if (channels == 1) {
     memset(frame->data[1], 0, frame->linesize[1] * height / 2);
     memset(frame->data[2], 0, frame->linesize[2] * height / 2);
-  }
-  else {
+  } else {
     for (size_t row = 0; row < height / 2; row++) {
       memcpy(frame->data[1] + frame->linesize[1] * row,
-             image.data() + width * height + width * row / 2,
-             width / 2);
+             image.data() + width * height + width * row / 2, width / 2);
 
       memcpy(frame->data[2] + frame->linesize[2] * row,
              image.data() + 5 * width * height / 4 + width * row / 2,
@@ -107,14 +104,14 @@ vector<uint8_t> MPEGEncoder<codec_id>::encode(const vector<uint8_t>& image,
   }
 
   vector<uint8_t> result;
-  int ret = CheckAVCommand("avcodec_send_frame", avcodec_send_frame(context.get(), frame.get()));
+  int ret = CheckAVCommand("avcodec_send_frame",
+                           avcodec_send_frame(context.get(), frame.get()));
 
   while (ret >= 0) {
     ret = avcodec_receive_packet(context.get(), packet.get());
     if (ret == AVERROR(EAGAIN) or ret == AVERROR_EOF) {
       break;
-    }
-    else if (ret < 0) {
+    } else if (ret < 0) {
       throw runtime_error("receive_packet");
     }
 
@@ -126,8 +123,8 @@ vector<uint8_t> MPEGEncoder<codec_id>::encode(const vector<uint8_t>& image,
   return result;
 }
 
-vector<vector<uint8_t>> decode_frame(AVCodecContext * context, AVFrame * frame,
-                                     AVPacket * packet) {
+vector<vector<uint8_t>> decode_frame(AVCodecContext* context, AVFrame* frame,
+                                     AVPacket* packet) {
   vector<vector<uint8_t>> outputs;
 
   size_t width = frame->width;
@@ -138,8 +135,7 @@ vector<vector<uint8_t>> decode_frame(AVCodecContext * context, AVFrame * frame,
     ret = avcodec_receive_frame(context, frame);
     if (ret == AVERROR(EAGAIN) or ret == AVERROR_EOF) {
       return outputs;
-    }
-    else if (ret < 0) {
+    } else if (ret < 0) {
       throw runtime_error("receive_frame");
     }
 
@@ -148,18 +144,15 @@ vector<vector<uint8_t>> decode_frame(AVCodecContext * context, AVFrame * frame,
 
     for (size_t row = 0; row < height; row++) {
       memcpy(output.data() + width * row,
-             frame->data[0] + frame->linesize[0] * row,
-             width);
+             frame->data[0] + frame->linesize[0] * row, width);
     }
 
     for (size_t row = 0; row < height / 2; row++) {
       memcpy(output.data() + width * height + width * row / 2,
-             frame->data[1] + frame->linesize[1] * row,
-             width / 2);
+             frame->data[1] + frame->linesize[1] * row, width / 2);
 
       memcpy(output.data() + 5 * width * height / 4 + width * row / 2,
-             frame->data[2] + frame->linesize[2] * row,
-             width / 2);
+             frame->data[2] + frame->linesize[2] * row, width / 2);
     }
 
     outputs.emplace_back(move(output));
@@ -168,11 +161,11 @@ vector<vector<uint8_t>> decode_frame(AVCodecContext * context, AVFrame * frame,
   return outputs;
 }
 
-template<AVCodecID codec_id>
-vector<uint8_t> MPEGDecoder<codec_id>::decode(const vector<uint8_t> & compressed,
-                                           const size_t width,
-                                           const size_t height) {
-  //compressed.resize(compressed.size() + AV_INPUT_BUFFER_PADDING_SIZE, 0);
+template <AVCodecID codec_id>
+vector<uint8_t> MPEGDecoder<codec_id>::decode(const vector<uint8_t>& compressed,
+                                              const size_t width,
+                                              const size_t height) {
+  // compressed.resize(compressed.size() + AV_INPUT_BUFFER_PADDING_SIZE, 0);
 
   av_log_set_level(AV_LOG_QUIET);
   avcodec_register_all();
@@ -196,9 +189,8 @@ vector<uint8_t> MPEGDecoder<codec_id>::decode(const vector<uint8_t> & compressed
 
   CheckAVCommand("avcodec_open2", avcodec_open2(context.get(), decoder, NULL));
 
-  shared_ptr<AVFrame> frame{
-      CheckAVCommand("frame_alloc", av_frame_alloc()),
-      [](auto* f) { av_frame_free(&f); }};
+  shared_ptr<AVFrame> frame{CheckAVCommand("frame_alloc", av_frame_alloc()),
+                            [](auto* f) { av_frame_free(&f); }};
 
   frame->width = width;
   frame->height = height;
@@ -211,20 +203,17 @@ vector<uint8_t> MPEGDecoder<codec_id>::decode(const vector<uint8_t> & compressed
   AVPacket packet;
   av_init_packet(&packet);
 
-  const uint8_t * dataptr = compressed.data();
+  const uint8_t* dataptr = compressed.data();
   int size = compressed.size();
 
   vector<vector<uint8_t>> outputs;
 
   while (size > 0) {
-    int ret = CheckAVCommand("parser_parse", av_parser_parse2(parser.get(),
-                                                              context.get(),
-                                                              &packet.data,
-                                                              &packet.size,
-                                                              dataptr, size,
-                                                              AV_NOPTS_VALUE,
-                                                              AV_NOPTS_VALUE,
-                                                              0));
+    int ret = CheckAVCommand(
+        "parser_parse",
+        av_parser_parse2(parser.get(), context.get(), &packet.data,
+                         &packet.size, dataptr, size, AV_NOPTS_VALUE,
+                         AV_NOPTS_VALUE, 0));
 
     dataptr += ret;
     size -= ret;
