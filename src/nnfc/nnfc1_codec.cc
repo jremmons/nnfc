@@ -17,7 +17,7 @@
 using namespace std;
 
 std::vector<float> kmeans(nn::Tensor<float, 3> input, int nbins,
-                          int max_iter = 100) {
+                          int max_iter = 10) {
   const int dim0 = input.dimension(0);
   const int dim1 = input.dimension(1);
   const int dim2 = input.dimension(2);
@@ -132,8 +132,8 @@ constexpr int ZIGZAG_ORDER[][2] = {
     {2, 1}, {3, 0}, {3, 1}, {2, 2}, {1, 3}, {2, 3}, {3, 2}, {3, 3},
 };
 
-vector<uint8_t> nnfc::NNFC1Encoder::forward(nn::Tensor<float, 3> t_input) {
-  nn::Tensor<float, 3> input(move(codec::utils::dct(t_input, BLOCK_WIDTH)));
+vector<uint8_t> nnfc::NNFC1Encoder::forward(nn::Tensor<float, 3> input) {
+  // nn::Tensor<float, 3> input(move(codec::utils::dct(t_input, BLOCK_WIDTH)));
 
   uint64_t dim0 = input.dimension(0);
   uint64_t dim1 = input.dimension(1);
@@ -291,7 +291,8 @@ nn::Tensor<float, 3> nnfc::NNFC1Decoder::forward(vector<uint8_t> input) {
     }
   }
 
-  return codec::utils::idct(output, BLOCK_WIDTH);
+  return output;
+  // return codec::utils::idct(output, BLOCK_WIDTH);
 }
 
 nn::Tensor<float, 3> nnfc::NNFC1Decoder::backward(nn::Tensor<float, 3> input) {
