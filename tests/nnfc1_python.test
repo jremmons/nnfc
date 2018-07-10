@@ -1,0 +1,64 @@
+#!/usr/bin/env python3
+
+import numpy as np
+
+import torch
+import torch.nn as nn
+from torch.autograd import Variable
+
+from nnfc.modules.nnfc import CompressionLayer
+
+class MyNetwork(nn.Module):
+    def __init__(self):
+        super(MyNetwork, self).__init__()
+        self.nnfc_compression_layer = CompressionLayer(encoder_name='nnfc1_encoder',
+                                                    encoder_params_dict={},
+                                                    decoder_name='nnfc1_decoder',
+                                                    decoder_params_dict={})
+
+    def forward(self, inp):
+        inp = self.nnfc_compression_layer(inp)
+        return inp
+
+model = MyNetwork()
+model.train()
+
+rand = [0, 0.125, 0.35, 0.98]
+print(rand)
+inp = Variable(torch.zeros(1, 2, 4, 4))
+for x0 in range(inp.shape[0]):
+    for x1 in range(inp.shape[1]):
+        for x2 in range(inp.shape[2]):
+            for x3 in range(inp.shape[3]):
+
+                idx = np.random.randint(0,4)
+                inp[x0,x1,x2,x3] = rand[idx] + float(np.random.rand(1)/50)
+                
+from scipy.cluster.vq import vq, kmeans, whiten
+dat = inp.detach().numpy()
+dat = dat.flatten()
+print('means', kmeans(dat, 4, 100))
+
+print('cpu only test')
+out = model(inp)
+print(out)
+print('input on gpu?', inp.is_cuda)
+print('output on gpu?', out.is_cuda)
+cpu_success = bool((abs(inp - out) < 0.1).all().item() and inp.is_cuda == out.is_cuda)
+print('nnfc success:', cpu_success)
+
+print()
+
+gpu_success = True
+if torch.cuda.is_available():
+    print('gpu only test')
+    inp = inp.cuda()
+    out = model(inp)
+    print('input on gpu?', inp.is_cuda)
+    print('output on gpu?', out.is_cuda)
+    gpu_success = bool((inp == out).all().item() and inp.is_cuda == out.is_cuda)
+    print('nnfc success:', gpu_success)
+
+assert cpu_success and gpu_success, 'test failed'
+print('test passed')
+    
