@@ -168,7 +168,7 @@ vector<uint8_t> nnfc::NNFC1Encoder::forward(nn::Tensor<float, 3> input) {
 
           const uint32_t qval = quantize(val, means);
           assert(qval <= 0xff);
-          encoding.push_back(static_cast<uint8_t>(qval));          
+          encoding.push_back(static_cast<uint8_t>(qval));
 
           // assert(qval <= 0b11);
           // const uint32_t shift = 2 * (count % 4);
@@ -181,6 +181,25 @@ vector<uint8_t> nnfc::NNFC1Encoder::forward(nn::Tensor<float, 3> input) {
   // encoding.push_back(byte);  // push the last byte
 
   {
+    for (int bin = 0; bin < quantizer_nbins_; bin++) {
+      uint8_t *bin_bytes = reinterpret_cast<uint8_t *>(&means[bin]);
+      for (size_t i = 0; i < sizeof(float); i++) {
+        encoding.push_back(bin_bytes[i]);
+      }
+    }
+  }
+
+  // 1 * 4 bytes for number of bins
+  {
+    uint32_t nbins = quantizer_nbins_;
+    uint8_t *nbins_bytes = reinterpret_cast<uint8_t *>(&nbins);
+    for (size_t i = 0; i < sizeof(uint32_t); i++) {
+      encoding.push_back(nbins_bytes[i]);
+    }
+  }
+
+  // 3 * 8 bits for dims
+  {
     uint8_t *dim0_bytes = reinterpret_cast<uint8_t *>(&dim0);
     uint8_t *dim1_bytes = reinterpret_cast<uint8_t *>(&dim1);
     uint8_t *dim2_bytes = reinterpret_cast<uint8_t *>(&dim2);
@@ -192,21 +211,6 @@ vector<uint8_t> nnfc::NNFC1Encoder::forward(nn::Tensor<float, 3> input) {
     }
     for (size_t i = 0; i < sizeof(uint64_t); i++) {
       encoding.push_back(dim2_bytes[i]);
-    }
-  }
-
-  {
-    uint32_t nbins = quantizer_nbins_;
-    uint8_t *nbins_bytes = reinterpret_cast<uint8_t *>(&nbins);
-    for (size_t i = 0; i < sizeof(uint32_t); i++) {
-      encoding.push_back(nbins_bytes[i]);
-    }
-
-    for (int bin = 0; bin < quantizer_nbins_; bin++) {
-      uint8_t *bin_bytes = reinterpret_cast<uint8_t *>(&means[bin]);
-      for (size_t i = 0; i < sizeof(float); i++) {
-        encoding.push_back(bin_bytes[i]);
-      }
     }
   }
 
@@ -227,17 +231,16 @@ nn::Tensor<float, 3> nnfc::NNFC1Decoder::forward(vector<uint8_t> input) {
   uint64_t dim0;
   uint64_t dim1;
   uint64_t dim2;
+
   {
     uint8_t *dim0_bytes = reinterpret_cast<uint8_t *>(&dim0);
     uint8_t *dim1_bytes = reinterpret_cast<uint8_t *>(&dim1);
     uint8_t *dim2_bytes = reinterpret_cast<uint8_t *>(&dim2);
 
-    size_t dim0_offset = length - 3 * sizeof(uint64_t) - 4 * sizeof(float) -
-                         1 * sizeof(uint32_t);
-    size_t dim1_offset = length - 2 * sizeof(uint64_t) - 4 * sizeof(float) -
-                         1 * sizeof(uint32_t);
-    size_t dim2_offset = length - 1 * sizeof(uint64_t) - 4 * sizeof(float) -
-                         1 * sizeof(uint32_t);
+    size_t dim0_offset = length - 3 * sizeof(uint64_t);
+    size_t dim1_offset = length - 2 * sizeof(uint64_t);
+    size_t dim2_offset = length - 1 * sizeof(uint64_t);
+
     for (size_t i = 0; i < sizeof(uint64_t); i++) {
       dim0_bytes[i] = input[i + dim0_offset];
       dim1_bytes[i] = input[i + dim1_offset];
@@ -248,7 +251,8 @@ nn::Tensor<float, 3> nnfc::NNFC1Decoder::forward(vector<uint8_t> input) {
   uint32_t nbins;
   {
     uint8_t *nbins_bytes = reinterpret_cast<uint8_t *>(&nbins);
-    size_t nbins_offset = length - 4 * sizeof(float) - 1 * sizeof(uint32_t);
+    size_t nbins_offset = length - 3 * sizeof(uint64_t) /* dims[3] */
+                                 - 1 * sizeof(uint32_t) /* nbins */;
     for (size_t i = 0; i < sizeof(uint32_t); i++) {
       nbins_bytes[i] = input[i + nbins_offset];
     }
@@ -259,7 +263,9 @@ nn::Tensor<float, 3> nnfc::NNFC1Decoder::forward(vector<uint8_t> input) {
   means.resize(nbins);
   {
     for (uint32_t bin = 0; bin < nbins; bin++) {
-      size_t bin_offset = length - (nbins - bin) * sizeof(float);
+      size_t bin_offset = length - (nbins - bin) * sizeof(float)
+                                 - 3 * sizeof(uint64_t)
+                                 - 1 * sizeof(uint32_t);
 
       uint8_t *bin_bytes = reinterpret_cast<uint8_t *>(&means[bin]);
       for (size_t i = 0; i < sizeof(float); i++) {
