@@ -96,6 +96,10 @@ std::vector<float> kmeans(nn::Tensor<float, 3> input, int nbins,
     }
   }
 
+  for (int i = 0; i < nbins; i++) {
+      means[i] = means_sum[i] / means_count[i];
+  }
+  
   std::sort(means.begin(), means.end());
   return means;
 }
@@ -143,9 +147,6 @@ vector<uint8_t> nnfc::NNFC1Encoder::forward(nn::Tensor<float, 3> input) {
   assert(quantizer_nbins_ < 256);
   std::vector<float> means = kmeans(input, quantizer_nbins_);
 
-  // quantize the input data
-  // uint32_t count = 0;
-  // uint8_t byte = 0;
   std::vector<uint8_t> encoding;
 
   const uint64_t block_rows = dim1 / BLOCK_WIDTH;
@@ -158,11 +159,6 @@ vector<uint8_t> nnfc::NNFC1Encoder::forward(nn::Tensor<float, 3> input) {
           const size_t j = ZIGZAG_ORDER[zz][0];
           const size_t k = ZIGZAG_ORDER[zz][1];
 
-          // if (count % 4 == 0 and count != 0) {
-          //   encoding.push_back(byte);
-          //   byte = 0;
-          // }
-
           const float val =
               input(i, jj * BLOCK_WIDTH + j, kk * BLOCK_WIDTH + k);
 
@@ -170,15 +166,10 @@ vector<uint8_t> nnfc::NNFC1Encoder::forward(nn::Tensor<float, 3> input) {
           assert(qval <= 0xff);
           encoding.push_back(static_cast<uint8_t>(qval));
 
-          // assert(qval <= 0b11);
-          // const uint32_t shift = 2 * (count % 4);
-          // byte |= (static_cast<uint8_t>(qval) << shift);
-          // count++;
         }
       }
     }
   }
-  // encoding.push_back(byte);  // push the last byte
 
   {
     for (int bin = 0; bin < quantizer_nbins_; bin++) {
@@ -280,8 +271,6 @@ nn::Tensor<float, 3> nnfc::NNFC1Decoder::forward(vector<uint8_t> input) {
   const uint64_t block_cols = dim2 / BLOCK_WIDTH;
 
   uint32_t count = 0;
-  // uint8_t byte = 0;
-
   for (size_t i = 0; i < dim0; i++) { /* channels */
     for (size_t jj = 0; jj < block_rows; jj++) {
       for (size_t kk = 0; kk < block_cols; kk++) {
@@ -289,11 +278,6 @@ nn::Tensor<float, 3> nnfc::NNFC1Decoder::forward(vector<uint8_t> input) {
           const size_t j = ZIGZAG_ORDER[zz][0];
           const size_t k = ZIGZAG_ORDER[zz][1];
 
-          // if (count % 4 == 0) {
-          //   byte = input[count >> 2];
-          // }
-
-          // uint8_t qval = (byte >> 2 * (count % 4)) & 0b11;
           uint8_t qval = input[count];
           output(i, jj * BLOCK_WIDTH + j, kk * BLOCK_WIDTH + k) = means[qval];
           count++;
