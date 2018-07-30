@@ -13,7 +13,7 @@ pip install -r requirements.txt
 
 Use the model defined in `model.py` to run ImageNet example:
 ```bash
-python imagenet.py --dataroot "/path/to/imagenet/"
+python imagenet.py --dataroot /scr2/jestinm/imagenet2012 --gpus 0,1,2,3,4,5 --workers 24 --batch-size 768
 ```
 
 To run continue training from checkpoint
