@@ -30,7 +30,7 @@ def parse_args():
     parser.add_argument('-t', '--type', dest='type',
             help='the type of the demo file, could be "image", "video", "camera" or "time", default is "image"', default='image', type=str)
     parser.add_argument('-d', '--display', dest='display',
-            help='whether display the detection result, default is True', default=True, type=bool)
+            help='whether display the detection result, default is True', default=False, type=bool)
     parser.add_argument('-s', '--save', dest='save',
             help='whether write the detection result, default is False', default=False, type=bool)  
 
