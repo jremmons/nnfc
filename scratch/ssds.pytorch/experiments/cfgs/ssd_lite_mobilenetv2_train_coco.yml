@@ -11,7 +11,7 @@ MODEL:
 TRAIN:
   MAX_EPOCHS: 200
   CHECKPOINTS_EPOCHS: 1
-  BATCH_SIZE: 256
+  BATCH_SIZE: 32
   TRAINABLE_SCOPE: 'base,norm,extras,loc,conf'
   RESUME_SCOPE: 'base,norm,extras,loc,conf'
   OPTIMIZER:
@@ -24,7 +24,7 @@ TRAIN:
     WARM_UP_EPOCHS: 95
 
 TEST:
-  BATCH_SIZE: 256
+  BATCH_SIZE: 32
   TEST_SCOPE: [196, 200]
 
 MATCHER:
@@ -47,4 +47,4 @@ DATASET:
 EXP_DIR: './experiments/models/ssd_mobilenet_v2_coco'
 LOG_DIR: './experiments/models/ssd_mobilenet_v2_coco'
 RESUME_CHECKPOINT: './weights/ssd_lite/mobilenet_v2_ssd_lite_coco_18.5.pth'
-PHASE: ['train']
+PHASE: ['eval']
