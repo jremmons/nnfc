@@ -1,9 +1,12 @@
 import argparse
 import csv
 import os
+import h5py
 import random
 import sys
 from datetime import datetime
+
+import numpy as np
 
 import torch
 import torch.backends.cudnn as cudnn
@@ -30,9 +33,9 @@ parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
 parser.add_argument('--type', default='float32', help='Type of tensor: float32, float16, float64. Default: float32')
 
 # Optimization options
-parser.add_argument('--epochs', type=int, default=400, help='Number of epochs to train.')
+parser.add_argument('--epochs', type=int, default=500, help='Number of epochs to train.')
 parser.add_argument('-b', '--batch-size', default=64, type=int, metavar='N', help='mini-batch size (default: 64)')
-parser.add_argument('--learning_rate', '-lr', type=float, default=0.01, help='The learning rate.')
+parser.add_argument('--learning_rate', '-lr', type=float, default=0.001, help='The learning rate.')
 parser.add_argument('--momentum', '-m', type=float, default=0.9, help='Momentum.')
 parser.add_argument('--decay', '-d', type=float, default=4e-5, help='Weight decay (L2 penalty).')
 parser.add_argument('--gamma', type=float, default=0.1, help='LR is multiplied by gamma at scheduled epochs.')
@@ -134,6 +137,8 @@ def main():
 
     optimizer = torch.optim.SGD(model.parameters(), args.learning_rate, momentum=args.momentum, weight_decay=args.decay,
                                 nesterov=True)
+    # optimizer = torch.optim.SGD(model.module.compression_layer.parameters(), args.learning_rate, momentum=args.momentum, weight_decay=args.decay,
+    #                             nesterov=True)
     if args.find_clr:
         find_bounds_clr(model, train_loader, optimizer, criterion, device, dtype, min_lr=args.min_lr,
                         max_lr=args.max_lr, step_size=args.epochs_per_step * len(train_loader), mode=args.mode,
@@ -163,10 +168,23 @@ def main():
             #     c[new_k] = checkpoint['state_dict'][k]
             # model.load_state_dict(c)                
             model.load_state_dict(checkpoint['state_dict'])
+                
+            # with h5py.File('mobilenetv2_72_09.h5', 'w') as f:
+            #     for key in checkpoint['state_dict'].keys():
+            #         data = checkpoint['state_dict'][key].cpu().data.numpy()
+            #         print(key, data.shape)
+            #         f.create_dataset(key, data=data, dtype=np.float32)
             
-            optimizer.load_state_dict(checkpoint['optimizer'])
+            # with h5py.File('mobilenetv2_72_09.h5', 'r') as f:
+            #     model_params = model.state_dict()
+            #     for k in f.keys():
+            #         param = torch.from_numpy(np.asarray(f[k])).cuda()
+            #         model_params[k].data.copy_(param)
+                    
+            # optimizer.load_state_dict(checkpoint['optimizer'])
             print("=> loaded checkpoint '{}' (epoch {})"
                   .format(args.resume, checkpoint['epoch']))
+            
         elif os.path.isdir(args.resume):
             checkpoint_path = os.path.join(args.resume, 'checkpoint.pth.tar')
             csv_path = os.path.join(args.resume, 'results.csv')
