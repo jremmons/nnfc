@@ -1,5 +1,7 @@
 from collections import OrderedDict
 
+import numpy as np
+
 import torch; 
 import torch.nn as nn
 import torch.nn.functional as F
@@ -25,7 +27,6 @@ def _make_divisible(v, divisor, min_value=None):
     if new_v < 0.9 * v:
         new_v += divisor
     return new_v
-
 
 class LinearBottleneck(nn.Module):
     def __init__(self, inplanes, outplanes, stride=1, t=6, activation=nn.ReLU6):
@@ -62,6 +63,50 @@ class LinearBottleneck(nn.Module):
 
         return out
 
+    
+class Compressor(nn.Module):
+    def __init__(self, inplanes):
+        super(Compressor, self).__init__()
+        # self.compression_layer = CompressionLayer(encoder_name='jpeg_encoder',
+        #                                           encoder_params_dict={'quantizer' : 28},
+        #                                           decoder_name='jpeg_decoder',
+        #                                           decoder_params_dict={})
+
+        # self.compression_layer = CompressionLayer(encoder_name='avc_encoder',
+        #                                           encoder_params_dict={'quantizer' : 42},
+        #                                           decoder_name='avc_decoder',
+        #                                           decoder_params_dict={})
+        self.sizes = []
+        
+        # define the bottleneck layers
+        # expland to 6x the size with 3x3
+        # mix with 1x1
+        # bottleneck to same spatial dims, but less channels        
+        
+        planes = int(inplanes / 2)
+        
+        # encoder
+        self.encoder = LinearBottleneck(inplanes, planes, t=6)
+        
+        # decoder
+        self.decoder = LinearBottleneck(planes, inplanes, t=6)
+
+        print('inPlanes', inplanes)
+        print('compressPlanes', planes)
+        print('t =', 6)
+        
+    def forward(self, x):
+        x = self.encoder(x)
+
+        # x = self.compression_layer(x)
+        # self.sizes += self.compression_layer.get_compressed_sizes()
+
+        x = self.decoder(x)
+
+        # print(np.mean(np.asarray(self.sizes)))
+        # print(np.median(np.asarray(self.sizes)))
+        return x
+
 
 class MobileNet2(nn.Module):
     """MobileNet2 implementation.
@@ -91,15 +136,8 @@ class MobileNet2(nn.Module):
         self.num_of_channels = [32, 16, 24, 32, 64, 96, 160, 320]
         assert (input_size % 32 == 0)
 
-        # self.compression_layer = CompressionLayer(encoder_name='jpeg_image_encoder',
-        #                                           encoder_params_dict={'quantizer' : 89},
-        #                                           decoder_name='jpeg_image_decoder',
-        #                                           decoder_params_dict={})
-        # self.compression_layer = CompressionLayer(encoder_name='jpeg_encoder',
-        #                                           encoder_params_dict={'quantizer' : 38},
-        #                                           decoder_name='jpeg_decoder',
-        #                                           decoder_params_dict={})
-
+        self.compression_layer = Compressor(32)
+        
         self.c = [_make_divisible(ch * self.scale, 8) for ch in self.num_of_channels]
         self.n = [1, 1, 2, 3, 4, 3, 3, 1]
         self.s = [2, 1, 2, 2, 2, 1, 2, 1]
@@ -116,6 +154,15 @@ class MobileNet2(nn.Module):
         self.fc = nn.Linear(self.last_conv_out_ch, self.num_classes)
         self.init_params()
 
+        # freeze all parameters
+        # print('freezing all parameters')
+        # for param in self.parameters():
+        #     param.requires_grad = False
+
+        # # unfreeze the parameters 
+        # print('unfreezing compressor parameters')
+        # for param in self.compression_layer.parameters():
+        #     param.requires_grad = True               
         
     def init_params(self):
         for m in self.modules():
@@ -165,8 +212,8 @@ class MobileNet2(nn.Module):
                                       stride=self.s[i + 1],
                                       t=self.t, stage=i)
             modules[name] = module
-            # if i == 4:
-            #     modules['compressor'] = self.compression_layer
+            if i == 2:
+                modules['compressor'] = self.compression_layer
                 
         return nn.Sequential(modules)
 
