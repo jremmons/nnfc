@@ -20,7 +20,7 @@ class MyNetwork(nn.Module):
 
 model = MyNetwork()
 
-x = torch.arange(0, 4000).view(10, 4, 10, 10)
+x = torch.arange(0, 4000).view(10, 4, 10, 10).float()
 
 print('cpu only test')
 inp = Variable(x, requires_grad=True)
