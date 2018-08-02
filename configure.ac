@@ -70,7 +70,8 @@ AC_CONFIG_FILES([Makefile
          src/nn/Makefile
          src/codec/Makefile
          src/nnfc/Makefile
-         src/frontend/Makefile
+         src/frontend/simplenet9/Makefile
+         src/frontend/arithcode/Makefile
          python/Makefile
          tests/Makefile
 ])

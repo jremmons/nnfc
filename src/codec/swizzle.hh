@@ -1,5 +1,5 @@
-#ifndef _CODEC_SIWZZLE_HH
-#define _CODEC_SIWZZLE_HH
+#ifndef _CODEC_SWIZZLE_HH
+#define _CODEC_SWIZZLE_HH
 
 #include <memory>
 #include <vector>
@@ -63,4 +63,4 @@ class YUV422p_to_RGB24 {
 };
 }
 
-#endif  // _CODEC_SIWZZLE_HH
+#endif  // _CODEC_SWIZZLE_HH
