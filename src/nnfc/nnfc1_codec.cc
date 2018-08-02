@@ -97,9 +97,9 @@ std::vector<float> kmeans(nn::Tensor<float, 3> input, int nbins,
   }
 
   for (int i = 0; i < nbins; i++) {
-      means[i] = means_sum[i] / means_count[i];
+    means[i] = means_sum[i] / means_count[i];
   }
-  
+
   std::sort(means.begin(), means.end());
   return means;
 }
@@ -165,7 +165,6 @@ vector<uint8_t> nnfc::NNFC1Encoder::forward(nn::Tensor<float, 3> input) {
           const uint32_t qval = quantize(val, means);
           assert(qval <= 0xff);
           encoding.push_back(static_cast<uint8_t>(qval));
-
         }
       }
     }
@@ -243,7 +242,7 @@ nn::Tensor<float, 3> nnfc::NNFC1Decoder::forward(vector<uint8_t> input) {
   {
     uint8_t *nbins_bytes = reinterpret_cast<uint8_t *>(&nbins);
     size_t nbins_offset = length - 3 * sizeof(uint64_t) /* dims[3] */
-                                 - 1 * sizeof(uint32_t) /* nbins */;
+                          - 1 * sizeof(uint32_t) /* nbins */;
     for (size_t i = 0; i < sizeof(uint32_t); i++) {
       nbins_bytes[i] = input[i + nbins_offset];
     }
@@ -254,9 +253,8 @@ nn::Tensor<float, 3> nnfc::NNFC1Decoder::forward(vector<uint8_t> input) {
   means.resize(nbins);
   {
     for (uint32_t bin = 0; bin < nbins; bin++) {
-      size_t bin_offset = length - (nbins - bin) * sizeof(float)
-                                 - 3 * sizeof(uint64_t)
-                                 - 1 * sizeof(uint32_t);
+      size_t bin_offset = length - (nbins - bin) * sizeof(float) -
+                          3 * sizeof(uint64_t) - 1 * sizeof(uint32_t);
 
       uint8_t *bin_bytes = reinterpret_cast<uint8_t *>(&means[bin]);
       for (size_t i = 0; i < sizeof(float); i++) {
