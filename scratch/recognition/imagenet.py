@@ -167,19 +167,19 @@ def main():
             #     new_k = k.split('module.')[-1]
             #     c[new_k] = checkpoint['state_dict'][k]
             # model.load_state_dict(c)                
-            model.load_state_dict(checkpoint['state_dict'])
-                
+            # model.load_state_dict(checkpoint['state_dict'])
+            
             # with h5py.File('mobilenetv2_72_09.h5', 'w') as f:
             #     for key in checkpoint['state_dict'].keys():
             #         data = checkpoint['state_dict'][key].cpu().data.numpy()
             #         print(key, data.shape)
             #         f.create_dataset(key, data=data, dtype=np.float32)
             
-            # with h5py.File('mobilenetv2_72_09.h5', 'r') as f:
-            #     model_params = model.state_dict()
-            #     for k in f.keys():
-            #         param = torch.from_numpy(np.asarray(f[k])).cuda()
-            #         model_params[k].data.copy_(param)
+            with h5py.File('mobilenetv2_72_09.h5', 'r') as f:
+                model_params = model.state_dict()
+                for k in f.keys():
+                    param = torch.from_numpy(np.asarray(f[k])).cuda()
+                    model_params[k].data.copy_(param)
                     
             # optimizer.load_state_dict(checkpoint['optimizer'])
             print("=> loaded checkpoint '{}' (epoch {})"
