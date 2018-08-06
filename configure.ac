@@ -29,6 +29,19 @@ AC_SUBST([PYWRAPPER_EXTRA_LDFLAGS])
 AC_PROG_CXX
 AM_PROG_LIBTOOL
 
+# set the compiler version
+AC_CHECK_PROG(GCC7_CHECK, gcc-7, yes)
+if test x"$GCC7_CHECK" != x"yes" ; then
+    AC_MSG_ERROR([Please install gcc-7 before installing.])
+fi
+AC_SUBST([CC], [gcc-7])
+
+AC_CHECK_PROG(GPP7_CHECK, g++-7, yes)
+if test x"$GPP7_CHECK" != x"yes" ; then
+    AC_MSG_ERROR([Please install g++-7 before installing.])
+fi
+AC_SUBST([CXX], [g++-7])
+
 # Checks for libraries.
 PKG_CHECK_MODULES([JPEG], [libturbojpeg])
 AX_CHECK_HDF5_SERIAL()
