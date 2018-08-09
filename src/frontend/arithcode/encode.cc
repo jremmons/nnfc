@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
   std::string str((std::istreambuf_iterator<char>(t)),
                   std::istreambuf_iterator<char>());
 
-  std::cout << "input text: " << str << std::endl;
+  // std::cout << "input text: " << str << std::endl;
   std::vector<char> uncompressed_input(str.begin(), str.end());
   std::cout << "input size: " << uncompressed_input.size() << std::endl;
 

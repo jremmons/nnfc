@@ -11,9 +11,9 @@ print('binary digits of precision', mpmath.mp.prec)
 import sys
 
 model = {
-    'A' : (digits(0), digits(3)/digits(8)),
-    'B' : (digits(3)/digits(8), digits(7)/digits(8)),
-    '$' : (digits(7)/digits(8), digits(1)),
+    'A' : (digits(0), digits(1)/digits(4)),
+    'B' : (digits(1)/digits(4), digits(3)/digits(4)),
+    '$' : (digits(3)/digits(4), digits(1)),
 }
 
 with open('text.txt', 'r') as f:
