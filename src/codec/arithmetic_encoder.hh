@@ -5,9 +5,8 @@
 #include <vector>
 
 namespace codec {
-
-std::vector<char> arith_encode(const std::vector<char> input);
-    std::vector<char> arith_decode(const std::vector<char> input, const size_t num_bits);
+    std::vector<char> arith_encode(const std::vector<char> input);
+    std::vector<char> arith_decode(const std::vector<char> input);
 }
 
 #endif  // _CODEC_ARITHMETIC_ENCODER_HH
