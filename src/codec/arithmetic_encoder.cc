@@ -74,9 +74,9 @@ public:
 
 // my current implementation uses this hard-coded probability model
 const static std::vector<std::pair<uint64_t, uint64_t>> numerator = {
-    {0, 13},
-    {13, 31},
-    {31, 33},
+    {0, 11000},
+    {11000, 11999},
+    {11999, 12000},
 };
 const static uint64_t denominator = numerator[numerator.size() - 1].second;
 
