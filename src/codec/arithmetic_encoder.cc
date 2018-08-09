@@ -74,9 +74,9 @@ public:
 
 // my current implementation uses this hard-coded probability model
 const static std::vector<std::pair<uint64_t, uint64_t>> numerator = {
-    {0, 3},
-    {3, 7},
-    {7, 8},
+    {0, 13},
+    {13, 31},
+    {31, 33},
 };
 const static uint64_t denominator = numerator[numerator.size() - 1].second;
 
@@ -136,10 +136,10 @@ std::vector<char> codec::arith_encode(const std::vector<char> input_) {
         const uint64_t new_high = low + (sym_high * range) / denominator - 1;
         const uint64_t new_low = low + (sym_low * range) / denominator;
 
-        if(sym != 2){
-            std::cout << "next " << low + (numerator[sym+1].first * range) / denominator - 1 << std::endl;
-            std::cout << "curr " << new_high << std::endl;
-        }
+        // if(sym != 2){
+        //     std::cout << "next " << low + (numerator[sym+1].first * range) / denominator - 1 << std::endl;
+        //     std::cout << "curr " << new_high << std::endl;
+        // }
         
         assert(new_high <= max);
         assert(new_low <= max);
@@ -204,21 +204,128 @@ std::vector<char> codec::arith_encode(const std::vector<char> input_) {
 
     // finalize the bitvector but add `epsilon` to the end.
     bitvector.push_back_bit(0x1);
-    std::cout << "pending_bits " << pending_bits << std::endl;
-    
-    bitvector.print();
-
+    std::cout << "pending_bits " << pending_bits << std::endl;    
+    // bitvector.print();
     return bitvector.vector();
 
 }
 
 
 std::vector<char> codec::arith_decode(const std::vector<char> input_) {
-    std::vector<char> input(input_);
+    std::vector<char> output;
 
+    char syms[] = {'A', 'B', '$'};
     
+    size_t bit_idx = 0;
+    const InfiniteBitVector bitvector(input_);
 
-    return input;
+    uint64_t high = max;
+    uint64_t low = min;    
+    uint64_t value = 0;
+    
+    for(size_t i = 0; i < num_working_bits and i < bitvector.size(); i++) {
+        value |= (static_cast<uint64_t>(bitvector.get_bit(i)) << (num_working_bits - i - 1));
+        bit_idx++;
+    }
+    // std::cout << "value " << std::bitset<64>(value) << std::endl;
+    // std::cout << "value                                 " << std::bitset<32>(value) << std::endl;
+    assert(value <= max);
+
+    while(true) {
+        const uint64_t range = high - low + 1;
+        assert(range <= max_range);
+        assert(range >= min_range);
+
+        int sym = -1;
+        for(uint64_t sym_idx = 0; sym_idx < 3; sym_idx++) {
+
+            const uint64_t sym_high = low + (numerator[sym_idx].second * range) / denominator - 1; 
+            const uint64_t sym_low = low + (numerator[sym_idx].first * range) / denominator;
+
+            // std::cout << "sym_idx " << sym_idx << std::endl; 
+            // std::cout << "high  " << std::bitset<64>(sym_high) << std::endl;
+            // std::cout << "value " << std::bitset<64>(value) << std::endl;
+            // std::cout << "low   " << std::bitset<64>(sym_low) << std::endl;
+            
+            if (value < sym_high and value >= sym_low) {
+                sym = sym_idx;
+                high = sym_high;
+                low = sym_low;
+                // std::cout << "break" << std::endl;
+                break;
+            }
+        }
+
+        if (sym == -1) {
+            throw std::runtime_error("decoding error");
+        }
+        if (sym == 2) {
+            std::cout << "$ decoded! end!" << std::endl; 
+            break;
+        }
+
+        // std::cout << "decoded " << syms[sym] << std::endl;
+        output.push_back(syms[sym]);
+
+        while(true) {
+
+            // if the MSB of both numbers match, then shift out a bit
+            // into the vector and shift out all `pending bits`.
+            if (((high ^ low) & top_mask) == 0) {
+
+                // grab the MSB of `low` (will be the same as `high`)
+                const uint8_t bit = (low >> (num_working_bits - 1));
+                assert(bit <= 0x1);
+                assert(bit == (high >> (num_working_bits - 1)));
+                assert(!!(high & top_mask) == bit);
+
+                assert(((value & top_mask) >> (num_working_bits - 1)) == bit);
+                
+                uint8_t bitvector_bit = 0;
+                if (bit_idx < bitvector.size()) {
+                    bitvector_bit = static_cast<uint64_t>(bitvector.get_bit(bit_idx)) & 0x1;
+                }
+                value = ((value << 1) & mask) | bitvector_bit;
+                assert(value <= max);
+                bit_idx++;
+                
+                low = (low << 1) & mask;
+                high = ((high << 1) & mask) | 0x1;
+
+                assert(high <= max);
+                assert(low <= max);
+                assert(high > low);
+            }
+            // the second highest bit of `high` is a 1 and the second
+            // highest bit of `low` is 0, then the `low` and `high`
+            // are converging. To handle this, we increment
+            // `pending_bits` and shift `high` and `low`. The value
+            // true value of the shifted bits will be determined once
+            // the MSB bits match after consuming more symbols. 
+            else if ((low & ~high & second_mask) != 0) {
+                
+                uint64_t bitvector_bit = 0;
+                if (bit_idx < bitvector.size()) {
+                    bitvector_bit = static_cast<uint64_t>(bitvector.get_bit(bit_idx)) & 0x1;
+                }
+                value = (value & top_mask) | ((value << 1) & (mask >> 1)) | bitvector_bit;
+                bit_idx++;
+                assert(value <= max);
+
+                low = (low << 1) & (mask >> 1); 
+                high = ((high << 1) & (mask >> 1)) | top_mask | 1;
+
+                assert(high <= max);
+                assert(low <= max);
+                assert(high > low);
+            }
+            else {
+                break;
+            }
+        }                
+    }
+
+    return output;
 }
 
 
