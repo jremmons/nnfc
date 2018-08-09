@@ -3,8 +3,8 @@
 import random
 
 ALPHABET = 'AB'
-DISTRIBUTION = [4, 1]
-SEQUENCE_LENGTH = 30
+DISTRIBUTION = [1, 1]
+SEQUENCE_LENGTH = 2048
 
 assert len(ALPHABET) == len(DISTRIBUTION)
 pdf = list(map(lambda x: x/sum(DISTRIBUTION), DISTRIBUTION))

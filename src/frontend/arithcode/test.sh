@@ -2,6 +2,7 @@
 
 ./arith_encode example-text/text.txt compressed.bin
 
+rm -f output.txt
 ./arith_decode compressed.bin output.txt
 
 diff -q example-text/text.txt output.txt
@@ -10,3 +11,7 @@ if [ $? != 0 ]; then
 else
     echo "success!"
 fi
+
+# cat output.txt
+# echo
+# cat example-text/text.txt

@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
 
   const std::vector<char> compressed_output =
       codec::arith_encode(uncompressed_input);
-  std::cout << "compressed size: " << compressed_output.size() << std::endl;
+  std::cout << "compressed size (bytes): " << compressed_output.size() << std::endl;
 
   std::ofstream output_file(argv[2], std::ios::out | std::ios::binary);
   output_file.write(compressed_output.data(), compressed_output.size());
