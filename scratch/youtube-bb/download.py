@@ -1,13 +1,20 @@
 #!/usr/bin/python3
 
 import os
+import concurrent.futures
+import youtube_dl
+import contextlib
+import subprocess
 
 import utils
 
+DEBUG = True
 DATASET = "yt_bb_detection_validation.csv"
 VID_DIR = "./videos/yt_bb_detection_validation"
+out_template = os.path.join(VID_DIR, '%(id)s.%(ext)s')
+ydl_opts = {'format': 'best[ext=mp4]/best', 'quiet': not DEBUG,
+            'outtmpl': out_template, 'ignoreerrors': True}
 FNULL = open(os.devnull, 'w')
-DEBUG = True
 
 # Function to download clips of a video by downloading the entire video, then cutting it
 # This is faster for videos which have multiple clips.
@@ -15,13 +22,11 @@ def download_all_clips(video):
     video_path = os.path.join(VID_DIR, video.yt_id + '.mp4')
 
     if not os.path.exists(video_path):
-        url = os.path.join('youtu.be/', video.yt_id)
-        download_cmd = ['youtube-dl', '-f', 'best[ext=mp4]/best',
-                        '-o', video_path, url]
         if DEBUG:
             print('Downloading video {0}'.format(video_path))
 
-        subprocess.check_call(download_cmd, stdout=FNULL, stderr=subprocess.STDOUT)
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([os.path.join('youtu.be/', video.yt_id)])
 
     # ffmpeg the video
     for clip in video.clips:
@@ -35,7 +40,7 @@ def download_all_clips(video):
 
         cut_cmd = ['ffmpeg', '-i', video_path, '-ss', clip.readable_start(),
                    '-to', clip.readable_stop(), '-c', 'copy', clip_path]
-        subprocess.check_call(cut_cmd)
+        subprocess.check_call(cut_cmd, stdout=FNULL, stderr=subprocess.STDOUT)
 
     with contextlib.suppress(FileNotFoundError):
         os.remove(video_path)

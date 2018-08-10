@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import csv
 import os
 import time
 
@@ -97,3 +98,5 @@ def get_videos(dataset):
                 videos[-1].clips[-1].add_box_coords(tuple(row[6:]))
 
             prev_ts = row[1]
+
+    return videos
