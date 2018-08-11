@@ -82,9 +82,6 @@ const static uint64_t denominator = numerator[numerator.size() - 1].second;
 
 // some nice constants
 const int num_working_bits = 32;
-static_assert(num_working_bits <= 63);
-static_assert(num_working_bits >= 32);
-
 const uint64_t max_range = static_cast<uint64_t>(1) << num_working_bits;
 const uint64_t min_range = (max_range >> 2) + 2;
 const uint64_t max = max_range - 1; // 0xFFFFFFFF for 32 working bits
@@ -93,6 +90,8 @@ const uint64_t min = 0;
 const uint64_t top_mask = static_cast<uint64_t>(1) << (num_working_bits - 1);
 const uint64_t second_mask = static_cast<uint64_t>(1) << (num_working_bits - 2);
 const uint64_t mask = max; 
+
+// static_assert(/* max deminator */ < (std::numeric_limits<uint64_t>::max() / max_range));
 
 // the encoder
 std::vector<char> codec::arith_encode(const std::vector<char> input_) {
@@ -132,15 +131,13 @@ std::vector<char> codec::arith_encode(const std::vector<char> input_) {
         assert(sym_high > sym_low);
         assert(sym_high < max);
         assert(sym_low < max);
-        
+
+        // check if overflow is possible
+        assert((sym_high == 0) || (sym_high < (std::numeric_limits<uint64_t>::max() / range)));
+        assert((sym_low == 0) || (sym_low < (std::numeric_limits<uint64_t>::max() / range)));
         const uint64_t new_high = low + (sym_high * range) / denominator - 1;
         const uint64_t new_low = low + (sym_low * range) / denominator;
 
-        // if(sym != 2){
-        //     std::cout << "next " << low + (numerator[sym+1].first * range) / denominator - 1 << std::endl;
-        //     std::cout << "curr " << new_high << std::endl;
-        // }
-        
         assert(new_high <= max);
         assert(new_low <= max);
         assert(new_high == (mask & new_high));
@@ -204,10 +201,8 @@ std::vector<char> codec::arith_encode(const std::vector<char> input_) {
 
     // finalize the bitvector but add `epsilon` to the end.
     bitvector.push_back_bit(0x1);
-    std::cout << "pending_bits " << pending_bits << std::endl;    
-    // bitvector.print();
-    return bitvector.vector();
 
+    return bitvector.vector();
 }
 
 
@@ -227,8 +222,6 @@ std::vector<char> codec::arith_decode(const std::vector<char> input_) {
         value |= (static_cast<uint64_t>(bitvector.get_bit(i)) << (num_working_bits - i - 1));
         bit_idx++;
     }
-    // std::cout << "value " << std::bitset<64>(value) << std::endl;
-    // std::cout << "value                                 " << std::bitset<32>(value) << std::endl;
     assert(value <= max);
 
     while(true) {
