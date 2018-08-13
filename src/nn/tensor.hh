@@ -20,7 +20,7 @@ class Tensor {
   const std::shared_ptr<T> data_;
   Eigen::TensorMap<Eigen::Tensor<T, ndims, Eigen::RowMajor>> tensor_;
 
-  T* data() { return tensor_.data(); }
+  T* data() const { return tensor_.data(); }
 
  public:
   // Note: this constructor does not take ownership of the
@@ -72,9 +72,9 @@ class Tensor {
 
   Tensor<T, ndims> operator=(Tensor<T, ndims> rhs) = delete;
 
-  Tensor deepcopy() const {
+  Tensor<T, ndims> deepcopy() const {
     Tensor<T, ndims> new_tensor(size_);
-    std::memcpy(new_tensor.data(), tensor_.data(), size_.TotalSize());
+    std::memcpy(new_tensor.data(), tensor_.data(), sizeof(T)*size_.TotalSize());
     return new_tensor;
   }
 
