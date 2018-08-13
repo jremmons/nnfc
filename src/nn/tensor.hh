@@ -57,8 +57,11 @@ class Tensor {
   Tensor(const Tensor<T, ndims>& other) noexcept
       : Tensor(other.data_, other.size_) {}
 
-  // All other constructors call this constructor eventually. If
-  // possible, use this constructor directly though.
+  Tensor(const Eigen::Tensor<T, ndims, Eigen::RowMajor>& t) :
+      Tensor(t.dimensions()) {
+      std::memcpy(data_.get(), t.data(), sizeof(T)*t.size());
+  }
+    
   Tensor(std::shared_ptr<T> data, const Eigen::DSizes<Eigen::Index, ndims> size)
       : size_(size),
         data_(data),
@@ -102,6 +105,7 @@ class Tensor {
   inline const T& operator()(const Indices... indices) const {
     return tensor_(indices...);
   }
+    
 };
 }
 
