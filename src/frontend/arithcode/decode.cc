@@ -16,7 +16,32 @@ int main(int argc, char* argv[]) {
   std::vector<char> compressed_input(std::istreambuf_iterator<char>{input_file},
                                      {});
 
-  const std::vector<char> uncompressed_output = codec::arith_decode(compressed_input);
+  
+  
+  // const std::vector<char> uncompressed_output = codec::arith_decode<codec::SimpleModel>(compressed_input);
+
+  codec::ArithmeticDecoder<codec::SimpleModel> decoder(compressed_input);
+
+  std::vector<char> uncompressed_output;
+  while (not decoder.done()) {
+      uint32_t symbol = decoder.decode_symbol();
+
+      switch (symbol) {
+      case 0:
+          uncompressed_output.push_back('A');
+          break;
+      case 1:
+          uncompressed_output.push_back('B');          
+          break;
+      case 2:
+          std::cout << "decoded $. we are done decoding.\n";
+          break;
+      default:
+          throw std::runtime_error("unrecognized symbol");
+      }
+  }
+  
+
   std::cout << "uncompressed size: " << uncompressed_output.size() << std::endl;
 
   std::ofstream output_file(argv[2], std::ios::out | std::ios::binary);
