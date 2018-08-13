@@ -114,7 +114,6 @@ namespace codec {
             std::cout << std::endl;        
         }
     };
-
     
     template<class ProbabilityModel>
     class ArithmeticEncoder {
