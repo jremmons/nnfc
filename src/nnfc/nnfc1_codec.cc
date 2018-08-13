@@ -19,7 +19,7 @@ using namespace std;
 static constexpr int BLOCK_WIDTH = 4;
 
 static std::vector<float> kmeans(nn::Tensor<float, 3> input, int nbins,
-                          int max_iter = 10) {
+                                 int max_iter = 10) {
   const int dim0 = input.dimension(0);
   const int dim1 = input.dimension(1);
   const int dim2 = input.dimension(2);
