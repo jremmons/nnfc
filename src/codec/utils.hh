@@ -5,8 +5,8 @@
 
 namespace codec::utils {
 
-nn::Tensor<float, 3> dct(nn::Tensor<float, 3>& input, const int N = 8);
-nn::Tensor<float, 3> idct(nn::Tensor<float, 3>& input, const int N = 8);
+nn::Tensor<float, 3> dct(const nn::Tensor<float, 3>& input, const int N = 8);
+nn::Tensor<float, 3> idct(const nn::Tensor<float, 3>& input, const int N = 8);
 
 // nn::Tensor<uint8_t, 3> dct(nn::Tensor<uint8_t, 3>& input, const int N = 8);
 // nn::Tensor<uint8_t, 3> idct(nn::Tensor<uint8_t, 3>& input, const int N = 8);

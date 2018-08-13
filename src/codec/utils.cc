@@ -9,8 +9,12 @@ extern "C" {
 
 using namespace std;
 
-nn::Tensor<float, 3> _dct_idct_f32(nn::Tensor<float, 3>& input, const int N,
-                               bool inverse) {
+nn::Tensor<float, 3> _dct_idct_f32(const nn::Tensor<float, 3>& input_, const int N,
+                                   const bool inverse) {
+
+  // create non-const copy (deepcopy will memcpy data)
+  nn::Tensor<float, 3> input = input_.deepcopy();
+
   const int channels = input.dimension(0);
   const int rows = input.dimension(1);
   const int cols = input.dimension(2);
@@ -59,15 +63,15 @@ nn::Tensor<float, 3> _dct_idct_f32(nn::Tensor<float, 3>& input, const int N,
   return output;
 }
 
-// nn::Tensor<float, 3> codec::utils::dct(nn::Tensor<float, 3>& input,
-//                                        const int N) {
-//   return _dct_idct_f32(input, N, false);
-// }
+nn::Tensor<float, 3> codec::utils::dct(const nn::Tensor<float, 3>& input,
+                                       const int N) {
+  return _dct_idct_f32(input, N, false);
+}
 
-// nn::Tensor<float, 3> codec::utils::idct(nn::Tensor<float, 3>& input,
-//                                         const int N) {
-//   return _dct_idct_f32(input, N, true);
-// }
+nn::Tensor<float, 3> codec::utils::idct(const nn::Tensor<float, 3>& input,
+                                        const int N) {
+  return _dct_idct_f32(input, N, true);
+}
 
 
 // nn::Tensor<uint8_t, 3> _dct_idct_u8(nn::Tensor<uint8_t, 3>& input, const int N,
