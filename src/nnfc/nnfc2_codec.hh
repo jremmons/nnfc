@@ -1,7 +1,5 @@
-#ifndef _NNFC_NNFC1_H
-#define _NNFC_NNFC1_H
-
-#include <turbojpeg.h>
+#ifndef _NNFC_NNFC2_H
+#define _NNFC_NNFC2_H
 
 #include <cstdint>
 #include <vector>
@@ -11,13 +9,13 @@
 
 namespace nnfc {
 
-class NNFC1Encoder {
+class NNFC2Encoder {
  private:
   const int quantizer_nbins_;
 
  public:
-  NNFC1Encoder();
-  ~NNFC1Encoder();
+  NNFC2Encoder();
+  ~NNFC2Encoder();
 
   std::vector<uint8_t> forward(nn::Tensor<float, 3> input);
   nn::Tensor<float, 3> backward(nn::Tensor<float, 3> input);
@@ -27,11 +25,11 @@ class NNFC1Encoder {
   }
 };
 
-class NNFC1Decoder {
+class NNFC2Decoder {
  private:
  public:
-  NNFC1Decoder();
-  ~NNFC1Decoder();
+  NNFC2Decoder();
+  ~NNFC2Decoder();
 
   nn::Tensor<float, 3> forward(std::vector<uint8_t> input);
   nn::Tensor<float, 3> backward(nn::Tensor<float, 3> input);
@@ -42,4 +40,4 @@ class NNFC1Decoder {
 };
 }
 
-#endif  // _NNFC_NNFC1_H
+#endif  // _NNFC_NNFC2_H

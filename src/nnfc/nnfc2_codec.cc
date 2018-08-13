@@ -1,5 +1,3 @@
-#include <turbojpeg.h>
-
 #include <algorithm>
 #include <cassert>
 #include <cfloat>
@@ -11,12 +9,12 @@
 #include <vector>
 
 #include "codec/utils.hh"
-#include "nnfc1_codec.hh"
+#include "nnfc2_codec.hh"
 #include "tensor.hh"
 
 using namespace std;
 
-static constexpr int BLOCK_WIDTH = 4;
+static constexpr int BLOCK_WIDTH = 8;
 
 std::vector<float> kmeans(nn::Tensor<float, 3> input, int nbins,
                           int max_iter = 10) {
@@ -129,16 +127,16 @@ uint32_t quantize(float val, std::vector<float> &bins) {
   }
 }
 
-nnfc::NNFC1Encoder::NNFC1Encoder() : quantizer_nbins_(4) {}
+nnfc::NNFC2Encoder::NNFC2Encoder() : quantizer_nbins_(4) {}
 
-nnfc::NNFC1Encoder::~NNFC1Encoder() {}
+nnfc::NNFC2Encoder::~NNFC2Encoder() {}
 
 constexpr int ZIGZAG_ORDER[][2] = {
     {0, 0}, {0, 1}, {1, 0}, {2, 0}, {1, 1}, {0, 2}, {0, 3}, {1, 2},
     {2, 1}, {3, 0}, {3, 1}, {2, 2}, {1, 3}, {2, 3}, {3, 2}, {3, 3},
 };
 
-vector<uint8_t> nnfc::NNFC1Encoder::forward(nn::Tensor<float, 3> input) {
+vector<uint8_t> nnfc::NNFC2Encoder::forward(nn::Tensor<float, 3> input) {
   // nn::Tensor<float, 3> input(move(codec::utils::dct(t_input, BLOCK_WIDTH)));
 
   uint64_t dim0 = input.dimension(0);
@@ -209,15 +207,15 @@ vector<uint8_t> nnfc::NNFC1Encoder::forward(nn::Tensor<float, 3> input) {
   return encoding;
 }
 
-nn::Tensor<float, 3> nnfc::NNFC1Encoder::backward(nn::Tensor<float, 3> input) {
+nn::Tensor<float, 3> nnfc::NNFC2Encoder::backward(nn::Tensor<float, 3> input) {
   return input;
 }
 
-nnfc::NNFC1Decoder::NNFC1Decoder() {}
+nnfc::NNFC2Decoder::NNFC2Decoder() {}
 
-nnfc::NNFC1Decoder::~NNFC1Decoder() {}
+nnfc::NNFC2Decoder::~NNFC2Decoder() {}
 
-nn::Tensor<float, 3> nnfc::NNFC1Decoder::forward(vector<uint8_t> input) {
+nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(vector<uint8_t> input) {
   const size_t length = input.size();
 
   uint64_t dim0;
@@ -290,6 +288,6 @@ nn::Tensor<float, 3> nnfc::NNFC1Decoder::forward(vector<uint8_t> input) {
   // return codec::utils::idct(output, BLOCK_WIDTH);
 }
 
-nn::Tensor<float, 3> nnfc::NNFC1Decoder::backward(nn::Tensor<float, 3> input) {
+nn::Tensor<float, 3> nnfc::NNFC2Decoder::backward(nn::Tensor<float, 3> input) {
   return input;
 }
