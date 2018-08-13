@@ -28,8 +28,10 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(const nn::Tensor<float, 3> t_in
   // Eigen::Tensor<float, 3, Eigen::RowMajor> input_t =
   //     (q_input.cast<float>() * ((max - min) / 255)) + min;
   // nn::Tensor<float, 3> input(input_t);
-                                                      
+  
   nn::Tensor<float, 3> input(std::move(codec::utils::dct(t_input, BLOCK_WIDTH)));
+
+  
   
   // quantize
   // arithmetic encode
@@ -118,6 +120,7 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(const std::vector<uint8_t> inpu
     }
   }
 
+  
   nn::Tensor<float, 3> output(std::move(codec::utils::idct(f_output, BLOCK_WIDTH)));
 
   return output;
