@@ -127,7 +127,13 @@ namespace codec {
         uint64_t pending_bits_;
         bool finished_;
         
-        inline void shift (uint8_t bit) {
+        inline void shift () {
+            // grab the MSB of `low` (will be the same as `high`)
+            const uint8_t bit = (low_ >> (num_working_bits_ - 1));
+            assert(bit <= 0x1);
+            assert(bit == (high_ >> (num_working_bits_ - 1)));
+            assert((!!(high_ & top_mask_)) == bit);
+
             data_.push_back_bit(bit);
             
             // the pending bits will be the opposite of the
@@ -196,13 +202,7 @@ namespace codec {
                 // into the vector and shift out all `pending bits`.
                 if (((high_ ^ low_) & top_mask_) == 0) {
 
-                    // grab the MSB of `low` (will be the same as `high`)
-                    const uint8_t bit = (low_ >> (num_working_bits_ - 1));
-                    assert(bit <= 0x1);
-                    assert(bit == (high_ >> (num_working_bits_ - 1)));
-                    assert((!!(high_ & top_mask_)) == bit);
-
-                    shift(bit);
+                    shift();
                     
                     low_ = (low_ << 1) & mask_;
                     high_ = ((high_ << 1) & mask_) | 0x1;
@@ -219,9 +219,8 @@ namespace codec {
                 // the MSB bits match after consuming more symbols. 
                 else if ((low_ & ~high_ & second_mask_) != 0) {
 
-                    assert(pending_bits_ < std::numeric_limits<decltype(pending_bits_)>::max());
-                    pending_bits_ += 1;
-
+                    underflow();
+                    
                     low_ = (low_ << 1) & (mask_ >> 1); 
                     high_ = ((high_ << 1) & (mask_ >> 1)) | top_mask_ | 1;
 
@@ -263,10 +262,32 @@ namespace codec {
         size_t bit_idx_;
         bool done_;
         
-        inline void shift (uint8_t bit) {
+        inline void shift () {
+            // grab the MSB of `low` (will be the same as `high`)
+            const uint8_t bit = (low_ >> (num_working_bits_ - 1));
+            assert(bit <= 0x1);
+            assert(bit == (high_ >> (num_working_bits_ - 1)));
+            assert((!!(high_ & top_mask_)) == bit);
+            
+            assert(((value_ & top_mask_) >> (num_working_bits_ - 1)) == bit);
+
+            uint8_t bitvector_bit = 0;
+            if (bit_idx_ < data_.size()) {
+                bitvector_bit = static_cast<uint64_t>(data_.get_bit(bit_idx_)) & 0x1;
+            }
+            value_ = ((value_ << 1) & mask_) | bitvector_bit;
+            assert(value_ <= max_);
+            bit_idx_++;
         }
 
         inline void underflow () {
+            uint64_t bitvector_bit = 0;
+            if (bit_idx_ < data_.size()) {
+                bitvector_bit = static_cast<uint64_t>(data_.get_bit(bit_idx_)) & 0x1;
+            }
+            value_ = (value_ & top_mask_) | ((value_ << 1) & (mask_ >> 1)) | bitvector_bit;
+            bit_idx_++;
+            assert(value_ <= max_);
         }
         
     public:
@@ -345,22 +366,8 @@ namespace codec {
                 // into the vector and shift out all `pending bits`.
                 if (((high_ ^ low_) & top_mask_) == 0) {
 
-                    // grab the MSB of `low` (will be the same as `high`)
-                    const uint8_t bit = (low_ >> (num_working_bits_ - 1));
-                    assert(bit <= 0x1);
-                    assert(bit == (high_ >> (num_working_bits_ - 1)));
-                    assert((!!(high_ & top_mask_)) == bit);
-
-                    assert(((value_ & top_mask_) >> (num_working_bits_ - 1)) == bit);
-
-                    uint8_t bitvector_bit = 0;
-                    if (bit_idx_ < data_.size()) {
-                        bitvector_bit = static_cast<uint64_t>(data_.get_bit(bit_idx_)) & 0x1;
-                    }
-                    value_ = ((value_ << 1) & mask_) | bitvector_bit;
-                    assert(value_ <= max_);
-                    bit_idx_++;
-
+                    shift();
+                    
                     low_ = (low_ << 1) & mask_;
                     high_ = ((high_ << 1) & mask_) | 0x1;
 
@@ -376,13 +383,7 @@ namespace codec {
                 // the MSB bits match after consuming more symbols. 
                 else if ((low_ & ~high_ & second_mask_) != 0) {
 
-                    uint64_t bitvector_bit = 0;
-                    if (bit_idx_ < data_.size()) {
-                        bitvector_bit = static_cast<uint64_t>(data_.get_bit(bit_idx_)) & 0x1;
-                    }
-                    value_ = (value_ & top_mask_) | ((value_ << 1) & (mask_ >> 1)) | bitvector_bit;
-                    bit_idx_++;
-                    assert(value_ <= max_);
+                    underflow();
 
                     low_ = (low_ << 1) & (mask_ >> 1); 
                     high_ = ((high_ << 1) & (mask_ >> 1)) | top_mask_ | 1;
