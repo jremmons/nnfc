@@ -115,7 +115,7 @@ namespace codec {
         }
     };
 
-
+    
     template<class ProbabilityModel>
     class ArithmeticEncoder {
     private:
@@ -378,13 +378,13 @@ namespace codec {
                 // the second highest bit of `high` is a 1 and the second
                 // highest bit of `low` is 0, then the `low` and `high`
                 // are converging. To handle this, we increment
-                // `pending_bits` and shift `high` and `low`. The value_
-                // true value_ of the shifted bits will be determined once
+                // `pending_bits` and shift `high` and `low`. The value
+                // true value of the shifted bits will be determined once
                 // the MSB bits match after consuming more symbols. 
                 else if ((low_ & ~high_ & second_mask_) != 0) {
 
                     underflow();
-
+                    
                     low_ = (low_ << 1) & (mask_ >> 1); 
                     high_ = ((high_ << 1) & (mask_ >> 1)) | top_mask_ | 1;
 
