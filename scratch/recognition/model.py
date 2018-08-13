@@ -67,14 +67,9 @@ class LinearBottleneck(nn.Module):
 class Compressor(nn.Module):
     def __init__(self, inplanes):
         super(Compressor, self).__init__()
-        self.compression_layer = CompressionLayer(encoder_name='jpeg_encoder',
-                                                  encoder_params_dict={'quantizer' : 36},
-                                                  decoder_name='jpeg_decoder',
-                                                  decoder_params_dict={})
-
-        # self.compression_layer = CompressionLayer(encoder_name='nnfc2_encoder',
-        #                                           encoder_params_dict={},
-        #                                           decoder_name='nnfc2_decoder',
+        # self.compression_layer = CompressionLayer(encoder_name='jpeg_encoder',
+        #                                           encoder_params_dict={'quantizer' : 36},
+        #                                           decoder_name='jpeg_decoder',
         #                                           decoder_params_dict={})
 
         # self.compression_layer = CompressionLayer(encoder_name='avc_encoder',
@@ -82,29 +77,37 @@ class Compressor(nn.Module):
         #                                           decoder_name='avc_decoder',
         #                                           decoder_params_dict={})
 
+        self.compression_layer = CompressionLayer(encoder_name='nnfc2_encoder',
+                                                  encoder_params_dict={},
+                                                  decoder_name='nnfc2_decoder',
+                                                  decoder_params_dict={})
+
         self.sizes = []
+
+        self.pad = nn.ReplicationPad2d(1)
         
         # define the bottleneck layers
         # expland to 6x the size with 3x3
         # mix with 1x1
         # bottleneck to same spatial dims, but less channels        
 
-        planes = int(inplanes / 2)
+        #planes = int(inplanes / 2)
         
         # encoder
-        t = 12
-        self.encoder = LinearBottleneck(inplanes, planes, t=t)
+        #t = 12
+        #self.encoder = LinearBottleneck(inplanes, planes, t=t)
         
         # decoder
-        self.decoder = LinearBottleneck(planes, inplanes, t=t)
+        #self.decoder = LinearBottleneck(planes, inplanes, t=t)
 
         print('inPlanes', inplanes)
-        print('compressPlanes', planes)
-        print('t =', t)
+        # print('compressPlanes', planes)
+        # print('t =', t)
 
+        
     def forward(self, x):
         # x = self.encoder(x)
-
+        
         # x_min = float(x.min())
         # x_max = float(x.max())
         # print(x.max(), x.min())
@@ -121,8 +124,10 @@ class Compressor(nn.Module):
         # density = np.histogram(x.cpu().detach().numpy(), bins=10)
         # print(density)        
         # print(x.max(), x.min())
-        
-        # x = self.compression_layer(x)
+
+        x = self.pad(x)
+        x = self.compression_layer(x)
+        x = x[:,:,1:-1,1:-1]
         # self.sizes += self.compression_layer.get_compressed_sizes()
 
         # x = self.decoder(x)
