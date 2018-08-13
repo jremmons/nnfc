@@ -14,9 +14,9 @@
 
 using namespace std;
 
-static constexpr int BLOCK_WIDTH = 8;
+static constexpr int BLOCK_WIDTH = 4;
 
-std::vector<float> kmeans(nn::Tensor<float, 3> input, int nbins,
+static std::vector<float> kmeans(nn::Tensor<float, 3> input, int nbins,
                           int max_iter = 10) {
   const int dim0 = input.dimension(0);
   const int dim1 = input.dimension(1);
@@ -104,7 +104,7 @@ std::vector<float> kmeans(nn::Tensor<float, 3> input, int nbins,
   return means;
 }
 
-uint32_t quantize(float val, std::vector<float> &bins) {
+static uint32_t quantize(float val, std::vector<float> &bins) {
   int lower = 0;
   int upper = bins.size() - 1;
 
@@ -272,13 +272,13 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(vector<uint8_t> input) {
   for (size_t i = 0; i < dim0; i++) { /* channels */
     for (size_t jj = 0; jj < block_rows; jj++) {
       for (size_t kk = 0; kk < block_cols; kk++) {
-        for (size_t zz = 0; zz < BLOCK_WIDTH * BLOCK_WIDTH; zz++) {
-          const size_t j = ZIGZAG_ORDER[zz][0];
-          const size_t k = ZIGZAG_ORDER[zz][1];
-
-          uint8_t qval = input[count];
-          output(i, jj * BLOCK_WIDTH + j, kk * BLOCK_WIDTH + k) = means[qval];
-          count++;
+          for (size_t zz = 0; zz < BLOCK_WIDTH * BLOCK_WIDTH; zz++) {
+              const size_t j = ZIGZAG_ORDER[zz][0];
+              const size_t k = ZIGZAG_ORDER[zz][1];
+              
+              uint8_t qval = input[count];
+              output(i, jj * BLOCK_WIDTH + j, kk * BLOCK_WIDTH + k) = means[qval];
+              count++;
         }
       }
     }

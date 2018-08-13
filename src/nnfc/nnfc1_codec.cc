@@ -18,7 +18,7 @@ using namespace std;
 
 static constexpr int BLOCK_WIDTH = 4;
 
-std::vector<float> kmeans(nn::Tensor<float, 3> input, int nbins,
+static std::vector<float> kmeans(nn::Tensor<float, 3> input, int nbins,
                           int max_iter = 10) {
   const int dim0 = input.dimension(0);
   const int dim1 = input.dimension(1);
@@ -106,7 +106,7 @@ std::vector<float> kmeans(nn::Tensor<float, 3> input, int nbins,
   return means;
 }
 
-uint32_t quantize(float val, std::vector<float> &bins) {
+static uint32_t quantize(float val, std::vector<float> &bins) {
   int lower = 0;
   int upper = bins.size() - 1;
 
