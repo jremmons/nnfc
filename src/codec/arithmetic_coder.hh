@@ -1,5 +1,5 @@
-#ifndef _CODEC_ARITHMETIC_ENCODER_HH
-#define _CODEC_ARITHMETIC_ENCODER_HH
+#ifndef _CODEC_ARITHMETIC_CODER_HH
+#define _CODEC_ARITHMETIC_CODER_HH
 
 #include <cassert>
 #include <memory>
@@ -397,4 +397,4 @@ class ArithmeticDecoder {
 };
 }
 
-#endif  // _CODEC_ARITHMETIC_ENCODER_HH
+#endif  // _CODEC_ARITHMETIC_CODER_HH
