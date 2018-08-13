@@ -6,7 +6,7 @@ AM_CXXFLAGS = $(PICKY_CXXFLAGS) -fPIC
 
 noinst_LIBRARIES = libcodec.a
 
-libcodec_a_SOURCES = arithmetic_encoder.hh arithmetic_encoder.cc \
+libcodec_a_SOURCES = arithmetic_encoder.hh \
                      jpeg.hh jpeg.cc \
                      mpeg.hh mpeg.cc \
                      swizzle.hh swizzle.cc \
