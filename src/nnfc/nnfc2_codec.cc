@@ -30,8 +30,6 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(const nn::Tensor<float, 3> t_in
   // nn::Tensor<float, 3> input(input_t);
   
   nn::Tensor<float, 3> input(std::move(codec::utils::dct(t_input, BLOCK_WIDTH)));
-
-  
   
   // quantize
   // arithmetic encode
@@ -121,7 +119,8 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(const std::vector<uint8_t> inpu
   }
 
   
-  nn::Tensor<float, 3> output(std::move(codec::utils::idct(f_output, BLOCK_WIDTH)));
+  nn::Tensor<float, 3> output = f_output.deepcopy();
+  //nn::Tensor<float, 3> output(std::move(codec::utils::idct(f_output, BLOCK_WIDTH)));
 
   return output;
 }

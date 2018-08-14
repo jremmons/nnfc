@@ -3,6 +3,7 @@
 #define PY_ARRAY_UNIQUE_SYMBOL nnfc_codec_ARRAY_API
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
+#include <omp.h>
 
 #include <iostream>
 
@@ -140,7 +141,7 @@ PyObject* NNFCDecoderContext_forward(NNFCDecoderContext *self, PyObject *args){
         std::vector<std::vector<uint8_t>> input_buffers = pylist2buffers(input_pylist);
         const size_t input_buffers_size = input_buffers.size();
         std::vector<nn::Tensor<float, 3>> tensors(input_buffers_size);
-        
+
         #pragma omp parallel for
         for(size_t i = 0; i < input_buffers.size(); i++) {
             const nn::Tensor<float, 3> tensor = self->decoder->forward(input_buffers[i]);
