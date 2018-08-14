@@ -10,8 +10,10 @@
 namespace nnfc {
 
 class NNFC2Encoder {
- private:
- public:
+private:
+    const int quantizer_;
+    
+public:
   NNFC2Encoder();
   ~NNFC2Encoder();
 
