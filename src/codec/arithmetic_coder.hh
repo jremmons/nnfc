@@ -116,8 +116,9 @@ class ArithmeticEncoder {
   }
 
  public:
-  ArithmeticEncoder()
-      : model_(),
+  template<typename... ProbModelArgs>
+  ArithmeticEncoder(const ProbModelArgs... args)
+      : model_(args...),
         data_(),
         high_(arithmetic_coder::working_bits_max),
         low_(arithmetic_coder::working_bits_min),
@@ -140,8 +141,10 @@ class ArithmeticEncoder {
         model_.symbol_numerator(symbol);
     const uint64_t sym_high = sym_prob.second;
     const uint64_t sym_low = sym_prob.first;
-    const uint32_t denominator = model_.symbol_denominator();
+    const uint32_t denominator = model_.denominator();
     assert(sym_high > sym_low);
+
+    model_.consume_symbol(symbol);
 
     // check if overflow would happen
     assert((range >= 1) or
@@ -210,7 +213,7 @@ class ArithmeticEncoder {
           "`finished` already called, cannot encode more symbols.");
     }
 
-    encode_symbol(2);
+    encode_symbol(model_.finished_symbol());
     finished_ = true;
 
     data_.push_back_bit(0x1);
@@ -265,8 +268,9 @@ class ArithmeticDecoder {
   }
 
  public:
-  ArithmeticDecoder(std::vector<char> data)
-      : model_(),
+  template<typename... ProbModelArgs>
+  ArithmeticDecoder(std::vector<char> data, const ProbModelArgs... args)
+      : model_(args...),
         data_(data),
         high_(arithmetic_coder::working_bits_max),
         low_(arithmetic_coder::working_bits_min),
@@ -300,7 +304,7 @@ class ArithmeticDecoder {
     for (uint64_t sym_idx = 0; sym_idx < model_.size(); sym_idx++) {
       const std::pair<uint64_t, uint64_t> sym_prob =
           model_.symbol_numerator(sym_idx);
-      const uint32_t denominator = model_.symbol_denominator();
+      const uint32_t denominator = model_.denominator();
       assert(sym_prob.second > sym_prob.first);
 
       // check if overflow would happen
@@ -334,15 +338,18 @@ class ArithmeticDecoder {
         break;
       }
     }
+
     assert(sym_set);
     assert(sym < std::numeric_limits<uint64_t>::max());
     assert(high_ > low_);
     const uint32_t symbol = sym;
 
-    if (symbol == 2) {
+    if (symbol == model_.finished_symbol()) {
       done_ = true;
       return symbol;
     }
+
+    model_.consume_symbol(symbol);
 
     while (true) {
       // if the MSB of both numbers match, then shift out a bit
