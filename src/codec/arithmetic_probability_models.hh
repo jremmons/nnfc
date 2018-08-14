@@ -29,7 +29,6 @@ class SimpleModel {
 
   inline uint32_t size() { return 3; }
 };
-
 }
 
 #endif  // _CODEC_ARITHMETIC_PROBABILITY_MODELS_HH

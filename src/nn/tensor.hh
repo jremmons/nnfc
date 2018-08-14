@@ -57,11 +57,11 @@ class Tensor {
   Tensor(const Tensor<T, ndims>& other) noexcept
       : Tensor(other.data_, other.size_) {}
 
-  Tensor(const Eigen::Tensor<T, ndims, Eigen::RowMajor>& t) :
-      Tensor(t.dimensions()) {
-      std::memcpy(data_.get(), t.data(), sizeof(T)*t.size());
+  Tensor(const Eigen::Tensor<T, ndims, Eigen::RowMajor>& t)
+      : Tensor(t.dimensions()) {
+    std::memcpy(data_.get(), t.data(), sizeof(T) * t.size());
   }
-    
+
   Tensor(std::shared_ptr<T> data, const Eigen::DSizes<Eigen::Index, ndims> size)
       : size_(size),
         data_(data),
@@ -71,17 +71,18 @@ class Tensor {
   ~Tensor() {}
 
   Tensor<T, ndims>& operator=(const Tensor<T, ndims>&& rhs) {
-      // reconstruct the object because Eigen::TensorMap cannot be
-      // assigned to without a bus error?...
-      this->~Tensor<T, ndims>();
-      new(this) Tensor<T, ndims>(rhs);
+    // reconstruct the object because Eigen::TensorMap cannot be
+    // assigned to without a bus error?...
+    this->~Tensor<T, ndims>();
+    new (this) Tensor<T, ndims>(rhs);
 
-      return *this;
+    return *this;
   }
-    
+
   Tensor<T, ndims> deepcopy() const {
     Tensor<T, ndims> new_tensor(size_);
-    std::memcpy(new_tensor.data(), tensor_.data(), sizeof(T)*size_.TotalSize());
+    std::memcpy(new_tensor.data(), tensor_.data(),
+                sizeof(T) * size_.TotalSize());
     return new_tensor;
   }
 
@@ -112,7 +113,6 @@ class Tensor {
   inline const T& operator()(const Indices... indices) const {
     return tensor_(indices...);
   }
-    
 };
 }
 

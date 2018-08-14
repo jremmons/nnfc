@@ -14,16 +14,20 @@ namespace arithmetic_coder {
 static constexpr uint64_t num_working_bits = 31;
 static_assert(num_working_bits < 63);
 
-static constexpr uint64_t max_range = static_cast<uint64_t>(1) << num_working_bits;
+static constexpr uint64_t max_range = static_cast<uint64_t>(1)
+                                      << num_working_bits;
 static constexpr uint64_t min_range = (max_range >> 2) + 2;
-static constexpr uint64_t working_bits_max = max_range - 1; // 0x7FFFFFFF for 31 working bits
+static constexpr uint64_t working_bits_max =
+    max_range - 1;  // 0x7FFFFFFF for 31 working bits
 static constexpr uint64_t working_bits_min = 0;
 
-static constexpr uint64_t top_mask = static_cast<uint64_t>(1) << (num_working_bits - 1);
-static constexpr uint64_t second_mask = static_cast<uint64_t>(1) << (num_working_bits - 2);
+static constexpr uint64_t top_mask = static_cast<uint64_t>(1)
+                                     << (num_working_bits - 1);
+static constexpr uint64_t second_mask = static_cast<uint64_t>(1)
+                                        << (num_working_bits - 2);
 static constexpr uint64_t working_bits_mask = working_bits_max;
 }
-    
+
 // A helper class that gives you a std::vector like interface but
 // for individual bits.
 class InfiniteBitVector {
@@ -188,7 +192,8 @@ class ArithmeticEncoder {
         underflow();
 
         low_ = (low_ << 1) & (arithmetic_coder::working_bits_mask >> 1);
-        high_ = ((high_ << 1) & (arithmetic_coder::working_bits_mask >> 1)) | arithmetic_coder::top_mask | 1;
+        high_ = ((high_ << 1) & (arithmetic_coder::working_bits_mask >> 1)) |
+                arithmetic_coder::top_mask | 1;
 
         assert(high_ <= arithmetic_coder::working_bits_max);
         assert(low_ <= arithmetic_coder::working_bits_max);
@@ -234,13 +239,15 @@ class ArithmeticDecoder {
     assert(bit == (high_ >> (arithmetic_coder::num_working_bits - 1)));
     assert((!!(high_ & arithmetic_coder::top_mask)) == bit);
 
-    assert(((value_ & arithmetic_coder::top_mask) >> (arithmetic_coder::num_working_bits - 1)) == bit);
+    assert(((value_ & arithmetic_coder::top_mask) >>
+            (arithmetic_coder::num_working_bits - 1)) == bit);
 
     uint8_t bitvector_bit = 0;
     if (bit_idx_ < data_.size()) {
       bitvector_bit = static_cast<uint64_t>(data_.get_bit(bit_idx_)) & 0x1;
     }
-    value_ = ((value_ << 1) & arithmetic_coder::working_bits_mask) | bitvector_bit;
+    value_ =
+        ((value_ << 1) & arithmetic_coder::working_bits_mask) | bitvector_bit;
     assert(value_ <= arithmetic_coder::working_bits_max);
     bit_idx_++;
   }
@@ -250,8 +257,9 @@ class ArithmeticDecoder {
     if (bit_idx_ < data_.size()) {
       bitvector_bit = static_cast<uint64_t>(data_.get_bit(bit_idx_)) & 0x1;
     }
-    value_ =
-        (value_ & arithmetic_coder::top_mask) | ((value_ << 1) & (arithmetic_coder::working_bits_mask >> 1)) | bitvector_bit;
+    value_ = (value_ & arithmetic_coder::top_mask) |
+             ((value_ << 1) & (arithmetic_coder::working_bits_mask >> 1)) |
+             bitvector_bit;
     bit_idx_++;
     assert(value_ <= arithmetic_coder::working_bits_max);
   }
@@ -267,7 +275,8 @@ class ArithmeticDecoder {
         done_(false)
 
   {
-    for (size_t i = 0; i < arithmetic_coder::num_working_bits and i < data_.size(); i++) {
+    for (size_t i = 0;
+         i < arithmetic_coder::num_working_bits and i < data_.size(); i++) {
       value_ |= (static_cast<uint64_t>(data_.get_bit(i))
                  << (arithmetic_coder::num_working_bits - i - 1));
       bit_idx_++;
@@ -358,7 +367,8 @@ class ArithmeticDecoder {
         underflow();
 
         low_ = (low_ << 1) & (arithmetic_coder::working_bits_mask >> 1);
-        high_ = ((high_ << 1) & (arithmetic_coder::working_bits_mask >> 1)) | arithmetic_coder::top_mask | 1;
+        high_ = ((high_ << 1) & (arithmetic_coder::working_bits_mask >> 1)) |
+                arithmetic_coder::top_mask | 1;
 
         assert(high_ <= arithmetic_coder::working_bits_max);
         assert(low_ <= arithmetic_coder::working_bits_max);

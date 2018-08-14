@@ -1,8 +1,8 @@
 #include "utils.hh"
 
 #include <iostream>
-#include <stdexcept>
 #include <mutex>
+#include <stdexcept>
 
 extern "C" {
 #include <fftw3.h>
@@ -12,9 +12,8 @@ using namespace std;
 
 static std::mutex plan_lock;
 
-nn::Tensor<float, 3> _dct_idct_f32(const nn::Tensor<float, 3>& input_, const int N,
-                                   const bool inverse) {
-
+nn::Tensor<float, 3> _dct_idct_f32(const nn::Tensor<float, 3>& input_,
+                                   const int N, const bool inverse) {
   // create non-const copy to work with (deepcopy will memcpy data)
   nn::Tensor<float, 3> input = input_.deepcopy();
 
@@ -43,14 +42,14 @@ nn::Tensor<float, 3> _dct_idct_f32(const nn::Tensor<float, 3>& input_, const int
       const fftw_r2r_kind kinds[] = {inverse ? FFTW_REDFT01 : FFTW_REDFT10,
                                      inverse ? FFTW_REDFT01 : FFTW_REDFT10};
 
-      
       fftwf_plan plan;
       {
-          std::lock_guard<std::mutex> lg(plan_lock);
-          plan = fftwf_plan_many_r2r(2, ranks, howmany, input_start, nembed, stride, dist, output_start,
-                                     nembed, stride, dist, kinds, FFTW_ESTIMATE);
+        std::lock_guard<std::mutex> lg(plan_lock);
+        plan = fftwf_plan_many_r2r(2, ranks, howmany, input_start, nembed,
+                                   stride, dist, output_start, nembed, stride,
+                                   dist, kinds, FFTW_ESTIMATE);
       }
-      
+
       fftwf_execute(plan);
       fftwf_destroy_plan(plan);
     }
