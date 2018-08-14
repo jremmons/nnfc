@@ -67,7 +67,7 @@ static constexpr int ZIGZAG_LENGTH =
 // }
 
 // Goes in order of zigzag pattern.
-// Quantization value taken from https://github.com/libjpeg-turbo/ijg/blob/master/jcparam.c#L68.
+// Quantization value taken from https://github.com/libjpeg-turbo/ijg/blob/3040e5eaef76f270f58fba7ed87472d5c12c539f/jcparam.c#L68.
 // Gist: (https://gist.github.com/jremmons/245506018f5933bf344c2e37ec40a24e#file-jpeg_quantization-c-L1)
 // We use the luminance quantization values.
 static constexpr int JPEG_QUANTIZATION[] = {
