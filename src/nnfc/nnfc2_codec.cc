@@ -71,11 +71,11 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(const nn::Tensor<float, 3> t_in
   //     (q_input.cast<float>() * ((max - min) / 255)) + min;
   // nn::Tensor<float, 3> input(input_t);
 
-  // nn::Tensor<float, 3> dct_input(std::move(codec::utils::dct(t_input, BLOCK_WIDTH)));
-  nn::Tensor<float, 3> input(t_input);
+  nn::Tensor<float, 3> dct_input(std::move(codec::utils::dct(t_input, BLOCK_WIDTH)));
+  nn::Tensor<float, 3> input(dct_input);
 
-  const float dct_min = 1.f; // dct_input.minimum();
-  const float dct_max = 2.f; // dct_input.maximum();
+  const float dct_min = dct_input.minimum();
+  const float dct_max = dct_input.maximum();
   //Eigen::Tensor<uint8_t, 3, Eigen::RowMajor> input = ((255 * (dct_input.tensor() - dct_min)) / (quantizer_ * dct_max)).cast<uint8_t>();
 
   // add min and max
@@ -128,7 +128,7 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(const nn::Tensor<float, 3> t_in
   // for (size_t i = 0; i < dim0; i++) {
   //   for (size_t j = 0; j < dim1; j++) {
   //     for (size_t k = 0; k < dim2; k++) {
-  //       float element = input(i, j, k);
+h  //       float element = input(i, j, k);
   //       uint8_t *bytes = reinterpret_cast<uint8_t *>(&element);
 
   //       encoding.push_back(bytes[0]);
@@ -251,8 +251,7 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(const std::vector<uint8_t> inpu
   //   }
   // }
 
-  nn::Tensor<float, 3> output(f_output);
-  //nn::Tensor<float, 3> output(std::move(codec::utils::idct(f_output, BLOCK_WIDTH)));
+  nn::Tensor<float, 3> output(std::move(codec::utils::idct(f_output, BLOCK_WIDTH)));
   
   return output;
 }
