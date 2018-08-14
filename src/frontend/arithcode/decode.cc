@@ -19,7 +19,8 @@ int main(int argc, char* argv[]) {
   // const std::vector<char> uncompressed_output =
   // codec::arith_decode<codec::SimpleModel>(compressed_input);
 
-  codec::ArithmeticDecoder<codec::SimpleModel> decoder(compressed_input);
+  //codec::ArithmeticDecoder<codec::SimpleModel> decoder(compressed_input);
+  codec::ArithmeticDecoder<codec::SimpleAdaptiveModel> decoder(compressed_input, 10);
 
   std::vector<char> uncompressed_output;
   while (not decoder.done()) {
@@ -32,11 +33,9 @@ int main(int argc, char* argv[]) {
       case 1:
         uncompressed_output.push_back('B');
         break;
-      case 2:
+      default:
         std::cout << "decoded $. we are done decoding.\n";
         break;
-      default:
-        throw std::runtime_error("unrecognized symbol");
     }
   }
 
