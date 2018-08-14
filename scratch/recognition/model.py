@@ -82,6 +82,12 @@ class Compressor(nn.Module):
                                                   decoder_name='nnfc2_decoder',
                                                   decoder_params_dict={})
 
+        # a = torch.arange(0,128).reshape((1, 1, 16, 8)).float()
+        # print(a.shape, a)
+        # b = self.compression_layer(a)
+        # print(b.shape, b)
+        # print(a == b)
+        
         self.sizes = []
 
         self.pad = nn.ReplicationPad2d(1)
