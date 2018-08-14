@@ -138,16 +138,15 @@ PyObject* NNFCDecoderContext_forward(NNFCDecoderContext *self, PyObject *args){
     
     try {
         std::vector<std::vector<uint8_t>> input_buffers = pylist2buffers(input_pylist);
-
-        std::vector<nn::Tensor<float, 3>> tensors;
+        const size_t input_buffers_size = input_buffers.size();
+        std::vector<nn::Tensor<float, 3>> tensors(input_buffers_size);
         
+        #pragma omp parallel for
         for(size_t i = 0; i < input_buffers.size(); i++) {
-
-            nn::Tensor<float, 3> tensor = self->decoder->forward(input_buffers[i]);
-
-            tensors.push_back(tensor);
+            const nn::Tensor<float, 3> tensor = self->decoder->forward(input_buffers[i]);
+            tensors[i] = std::move(tensor);
         }
-
+        
         PyObject *array = tensors2blob(tensors);
         return array;
         
