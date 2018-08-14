@@ -4,7 +4,7 @@ import random
 
 ALPHABET = 'AB'
 DISTRIBUTION = [11000, 999]
-SEQUENCE_LENGTH = 2**10
+SEQUENCE_LENGTH = 2**20
 
 assert len(ALPHABET) == len(DISTRIBUTION)
 pdf = list(map(lambda x: x/sum(DISTRIBUTION), DISTRIBUTION))
