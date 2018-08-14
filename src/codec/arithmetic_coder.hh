@@ -7,6 +7,7 @@
 
 namespace codec {
 
+// constants
 static constexpr uint64_t num_working_bits_ = 31;
 static_assert(num_working_bits_ < 63);
 
@@ -23,6 +24,7 @@ static constexpr uint64_t second_mask_ = static_cast<uint64_t>(1)
                                          << (num_working_bits_ - 2);
 static constexpr uint64_t mask_ = max_;
 
+// probability models
 class SimpleModel {
  private:
   const std::vector<std::pair<uint32_t, uint32_t>> numerator;
@@ -46,6 +48,31 @@ class SimpleModel {
   inline uint32_t size() { return 3; }
 };
 
+    
+// class SimpleAdaptiveModel {
+//  private:
+//   std::vector<std::pair<uint32_t, uint32_t>> numerator;
+//   uint32_t denominator;
+
+//  public:
+//   SimpleModel()
+//       : numerator({
+//             {0, 11000}, {11000, 11999}, {11999, 12000},
+//         }),
+//         denominator(numerator[numerator.size() - 1].second) {}
+//   ~SimpleModel() {}
+
+//   inline std::pair<uint32_t, uint32_t> symbol_numerator(uint32_t symbol) const {
+//     assert(symbol <= 2);
+//     return numerator[symbol];
+//   }
+
+//   inline uint32_t symbol_denominator() const { return denominator; }
+
+//   inline uint32_t size() { return 3; }
+// };
+
+    
 // A helper class that gives you a std::vector like interface but
 // for individual bits.
 class InfiniteBitVector {
