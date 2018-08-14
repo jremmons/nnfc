@@ -5,73 +5,24 @@
 #include <memory>
 #include <vector>
 
+#include "arithmetic_probability_models.hh"
+
 namespace codec {
 
-// constants
-static constexpr uint64_t num_working_bits_ = 31;
+// constants (trying to avoid polluting the `codec` namespace)
+namespace arithmetic_coder {
+static constexpr uint64_t num_working_bits = 31;
 static_assert(num_working_bits_ < 63);
 
-static constexpr uint64_t max_range_ = static_cast<uint64_t>(1)
-                                       << num_working_bits_;
-static constexpr uint64_t min_range_ = (max_range_ >> 2) + 2;
-static constexpr uint64_t max_ =
-    max_range_ - 1;  // 0xFFFFFFFF for 32 working bits
-static constexpr uint64_t min_ = 0;
+static constexpr uint64_t max_range = static_cast<uint64_t>(1) << num_working_bits;
+static constexpr uint64_t min_range = (max_range >> 2) + 2;
+static constexpr uint64_t working_bits_max = max_range - 1; // 0x7FFFFFFF for 31 working bits
+static constexpr uint64_t working_bits_min = 0;
 
-static constexpr uint64_t top_mask_ = static_cast<uint64_t>(1)
-                                      << (num_working_bits_ - 1);
-static constexpr uint64_t second_mask_ = static_cast<uint64_t>(1)
-                                         << (num_working_bits_ - 2);
-static constexpr uint64_t mask_ = max_;
-
-// probability models
-class SimpleModel {
- private:
-  const std::vector<std::pair<uint32_t, uint32_t>> numerator;
-  const uint32_t denominator;
-
- public:
-  SimpleModel()
-      : numerator({
-            {0, 11000}, {11000, 11999}, {11999, 12000},
-        }),
-        denominator(numerator[numerator.size() - 1].second) {}
-  ~SimpleModel() {}
-
-  inline std::pair<uint32_t, uint32_t> symbol_numerator(uint32_t symbol) const {
-    assert(symbol <= 2);
-    return numerator[symbol];
-  }
-
-  inline uint32_t symbol_denominator() const { return denominator; }
-
-  inline uint32_t size() { return 3; }
-};
-
-    
-// class SimpleAdaptiveModel {
-//  private:
-//   std::vector<std::pair<uint32_t, uint32_t>> numerator;
-//   uint32_t denominator;
-
-//  public:
-//   SimpleModel()
-//       : numerator({
-//             {0, 11000}, {11000, 11999}, {11999, 12000},
-//         }),
-//         denominator(numerator[numerator.size() - 1].second) {}
-//   ~SimpleModel() {}
-
-//   inline std::pair<uint32_t, uint32_t> symbol_numerator(uint32_t symbol) const {
-//     assert(symbol <= 2);
-//     return numerator[symbol];
-//   }
-
-//   inline uint32_t symbol_denominator() const { return denominator; }
-
-//   inline uint32_t size() { return 3; }
-// };
-
+static constexpr uint64_t top_mask = static_cast<uint64_t>(1) << (num_working_bits - 1);
+static constexpr uint64_t second_mask = static_cast<uint64_t>(1) << (num_working_bits - 2);
+static constexpr uint64_t working_bits_mask = working_bits_max;
+}
     
 // A helper class that gives you a std::vector like interface but
 // for individual bits.
@@ -140,10 +91,10 @@ class ArithmeticEncoder {
 
   inline void shift() {
     // grab the MSB of `low` (will be the same as `high`)
-    const uint8_t bit = (low_ >> (num_working_bits_ - 1));
+    const uint8_t bit = (low_ >> (arithmetic_coder::num_working_bits - 1));
     assert(bit <= 0x1);
-    assert(bit == (high_ >> (num_working_bits_ - 1)));
-    assert((!!(high_ & top_mask_)) == bit);
+    assert(bit == (high_ >> (arithmetic_coder::num_working_bits - 1)));
+    assert((!!(high_ & arithmetic_coder::top_mask)) == bit);
 
     data_.push_back_bit(bit);
 
@@ -164,8 +115,8 @@ class ArithmeticEncoder {
   ArithmeticEncoder()
       : model_(),
         data_(),
-        high_(max_),
-        low_(min_),
+        high_(arithmetic_coder::working_bits_max),
+        low_(arithmetic_coder::working_bits_min),
         pending_bits_(0),
         finished_(false) {}
 
@@ -178,8 +129,8 @@ class ArithmeticEncoder {
     }
 
     const uint64_t range = high_ - low_ + 1;
-    assert(range <= max_range_);
-    assert(range >= min_range_);
+    assert(range <= arithmetic_coder::max_range);
+    assert(range >= arithmetic_coder::min_range);
 
     const std::pair<uint64_t, uint64_t> sym_prob =
         model_.symbol_numerator(symbol);
@@ -205,10 +156,10 @@ class ArithmeticEncoder {
     const uint64_t new_high = low_ + (sym_high * range) / denominator - 1;
     const uint64_t new_low = low_ + (sym_low * range) / denominator;
 
-    assert(new_high <= max_);
-    assert(new_low <= max_);
-    assert(new_high == (mask_ & new_high));
-    assert(new_low == (mask_ & new_low));
+    assert(new_high <= arithmetic_coder::working_bits_max);
+    assert(new_low <= arithmetic_coder::working_bits_max);
+    assert(new_high == (arithmetic_coder::working_bits_mask & new_high));
+    assert(new_low == (arithmetic_coder::working_bits_mask & new_low));
 
     high_ = new_high;
     low_ = new_low;
@@ -217,14 +168,14 @@ class ArithmeticEncoder {
     while (true) {
       // if the MSB of both numbers match, then shift out a bit
       // into the vector and shift out all `pending bits`.
-      if (((high_ ^ low_) & top_mask_) == 0) {
+      if (((high_ ^ low_) & arithmetic_coder::top_mask) == 0) {
         shift();
 
-        low_ = (low_ << 1) & mask_;
-        high_ = ((high_ << 1) & mask_) | 0x1;
+        low_ = (low_ << 1) & arithmetic_coder::working_bits_mask;
+        high_ = ((high_ << 1) & arithmetic_coder::working_bits_mask) | 0x1;
 
-        assert(high_ <= max_);
-        assert(low_ <= max_);
+        assert(high_ <= arithmetic_coder::working_bits_max);
+        assert(low_ <= arithmetic_coder::working_bits_max);
         assert(high_ > low_);
       }
       // the second highest bit of `high` is a 1 and the second
@@ -233,14 +184,14 @@ class ArithmeticEncoder {
       // `pending_bits` and shift `high` and `low`. The value
       // true value of the shifted bits will be determined once
       // the MSB bits match after consuming more symbols.
-      else if ((low_ & ~high_ & second_mask_) != 0) {
+      else if ((low_ & ~high_ & arithmetic_coder::second_mask) != 0) {
         underflow();
 
-        low_ = (low_ << 1) & (mask_ >> 1);
-        high_ = ((high_ << 1) & (mask_ >> 1)) | top_mask_ | 1;
+        low_ = (low_ << 1) & (arithmetic_coder::working_bits_mask >> 1);
+        high_ = ((high_ << 1) & (arithmetic_coder::working_bits_mask >> 1)) | arithmetic_coder::top_mask | 1;
 
-        assert(high_ <= max_);
-        assert(low_ <= max_);
+        assert(high_ <= arithmetic_coder::working_bits_max);
+        assert(low_ <= arithmetic_coder::working_bits_max);
         assert(high_ > low_);
       } else {
         break;
@@ -278,19 +229,19 @@ class ArithmeticDecoder {
 
   inline void shift() {
     // grab the MSB of `low` (will be the same as `high`)
-    const uint8_t bit = (low_ >> (num_working_bits_ - 1));
+    const uint8_t bit = (low_ >> (arithmetic_coder::num_working_bits - 1));
     assert(bit <= 0x1);
-    assert(bit == (high_ >> (num_working_bits_ - 1)));
-    assert((!!(high_ & top_mask_)) == bit);
+    assert(bit == (high_ >> (arithmetic_coder::num_working_bits - 1)));
+    assert((!!(high_ & arithmetic_coder::top_mask)) == bit);
 
-    assert(((value_ & top_mask_) >> (num_working_bits_ - 1)) == bit);
+    assert(((value_ & arithmetic_coder::top_mask) >> (arithmetic_coder::num_working_bits - 1)) == bit);
 
     uint8_t bitvector_bit = 0;
     if (bit_idx_ < data_.size()) {
       bitvector_bit = static_cast<uint64_t>(data_.get_bit(bit_idx_)) & 0x1;
     }
-    value_ = ((value_ << 1) & mask_) | bitvector_bit;
-    assert(value_ <= max_);
+    value_ = ((value_ << 1) & arithmetic_coder::working_bits_mask) | bitvector_bit;
+    assert(value_ <= arithmetic_coder::working_bits_max);
     bit_idx_++;
   }
 
@@ -300,28 +251,28 @@ class ArithmeticDecoder {
       bitvector_bit = static_cast<uint64_t>(data_.get_bit(bit_idx_)) & 0x1;
     }
     value_ =
-        (value_ & top_mask_) | ((value_ << 1) & (mask_ >> 1)) | bitvector_bit;
+        (value_ & arithmetic_coder::top_mask) | ((value_ << 1) & (arithmetic_coder::working_bits_mask >> 1)) | bitvector_bit;
     bit_idx_++;
-    assert(value_ <= max_);
+    assert(value_ <= arithmetic_coder::working_bits_max);
   }
 
  public:
   ArithmeticDecoder(std::vector<char> data)
       : model_(),
         data_(data),
-        high_(max_),
-        low_(min_),
+        high_(arithmetic_coder::working_bits_max),
+        low_(arithmetic_coder::working_bits_min),
         value_(0),
         bit_idx_(0),
         done_(false)
 
   {
-    for (size_t i = 0; i < num_working_bits_ and i < data_.size(); i++) {
+    for (size_t i = 0; i < arithmetic_coder::num_working_bits and i < data_.size(); i++) {
       value_ |= (static_cast<uint64_t>(data_.get_bit(i))
-                 << (num_working_bits_ - i - 1));
+                 << (arithmetic_coder::num_working_bits - i - 1));
       bit_idx_++;
     }
-    assert(value_ <= max_);
+    assert(value_ <= arithmetic_coder::working_bits_max);
   }
 
   ~ArithmeticDecoder() {}
@@ -332,8 +283,8 @@ class ArithmeticDecoder {
     }
 
     const uint64_t range = high_ - low_ + 1;
-    assert(range <= max_range_);
-    assert(range >= min_range_);
+    assert(range <= arithmetic_coder::max_range);
+    assert(range >= arithmetic_coder::min_range);
 
     bool sym_set = false;
     uint32_t sym = -1;
@@ -361,10 +312,10 @@ class ArithmeticDecoder {
           low_ + (sym_prob.second * range) / denominator - 1;
       const uint64_t sym_low = low_ + (sym_prob.first * range) / denominator;
 
-      assert(sym_high <= max_);
-      assert(sym_low <= max_);
-      assert(sym_high == (mask_ & sym_high));
-      assert(sym_low == (mask_ & sym_low));
+      assert(sym_high <= arithmetic_coder::working_bits_max);
+      assert(sym_low <= arithmetic_coder::working_bits_max);
+      assert(sym_high == (arithmetic_coder::working_bits_mask & sym_high));
+      assert(sym_low == (arithmetic_coder::working_bits_mask & sym_low));
 
       if (value_ < sym_high and value_ >= sym_low) {
         sym = sym_idx;
@@ -387,14 +338,14 @@ class ArithmeticDecoder {
     while (true) {
       // if the MSB of both numbers match, then shift out a bit
       // into the vector and shift out all `pending bits`.
-      if (((high_ ^ low_) & top_mask_) == 0) {
+      if (((high_ ^ low_) & arithmetic_coder::top_mask) == 0) {
         shift();
 
-        low_ = (low_ << 1) & mask_;
-        high_ = ((high_ << 1) & mask_) | 0x1;
+        low_ = (low_ << 1) & arithmetic_coder::working_bits_mask;
+        high_ = ((high_ << 1) & arithmetic_coder::working_bits_mask) | 0x1;
 
-        assert(high_ <= max_);
-        assert(low_ <= max_);
+        assert(high_ <= arithmetic_coder::working_bits_max);
+        assert(low_ <= arithmetic_coder::working_bits_max);
         assert(high_ > low_);
       }
       // the second highest bit of `high` is a 1 and the second
@@ -403,14 +354,14 @@ class ArithmeticDecoder {
       // `pending_bits` and shift `high` and `low`. The value
       // true value of the shifted bits will be determined once
       // the MSB bits match after consuming more symbols.
-      else if ((low_ & ~high_ & second_mask_) != 0) {
+      else if ((low_ & ~high_ & arithmetic_coder::second_mask) != 0) {
         underflow();
 
-        low_ = (low_ << 1) & (mask_ >> 1);
-        high_ = ((high_ << 1) & (mask_ >> 1)) | top_mask_ | 1;
+        low_ = (low_ << 1) & (arithmetic_coder::working_bits_mask >> 1);
+        high_ = ((high_ << 1) & (arithmetic_coder::working_bits_mask >> 1)) | arithmetic_coder::top_mask | 1;
 
-        assert(high_ <= max_);
-        assert(low_ <= max_);
+        assert(high_ <= arithmetic_coder::working_bits_max);
+        assert(low_ <= arithmetic_coder::working_bits_max);
         assert(high_ > low_);
       } else {
         break;
