@@ -128,7 +128,7 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(const nn::Tensor<float, 3> t_in
   // for (size_t i = 0; i < dim0; i++) {
   //   for (size_t j = 0; j < dim1; j++) {
   //     for (size_t k = 0; k < dim2; k++) {
-h  //       float element = input(i, j, k);
+  //       float element = input(i, j, k);
   //       uint8_t *bytes = reinterpret_cast<uint8_t *>(&element);
 
   //       encoding.push_back(bytes[0]);
