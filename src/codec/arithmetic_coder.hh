@@ -12,7 +12,7 @@ namespace codec {
 // constants (trying to avoid polluting the `codec` namespace)
 namespace arithmetic_coder {
 static constexpr uint64_t num_working_bits = 31;
-static_assert(num_working_bits_ < 63);
+static_assert(num_working_bits < 63);
 
 static constexpr uint64_t max_range = static_cast<uint64_t>(1) << num_working_bits;
 static constexpr uint64_t min_range = (max_range >> 2) + 2;
