@@ -70,8 +70,15 @@ class Tensor {
 
   ~Tensor() {}
 
-  Tensor<T, ndims> operator=(Tensor<T, ndims> rhs) = delete;
+  Tensor<T, ndims>& operator=(const Tensor<T, ndims>&& rhs) {
+      // reconstruct the object because Eigen::TensorMap cannot be
+      // assigned to without a bus error?...
+      this->~Tensor<T, ndims>();
+      new(this) Tensor<T, ndims>(rhs);
 
+      return *this;
+  }
+    
   Tensor<T, ndims> deepcopy() const {
     Tensor<T, ndims> new_tensor(size_);
     std::memcpy(new_tensor.data(), tensor_.data(), sizeof(T)*size_.TotalSize());
