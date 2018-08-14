@@ -40,6 +40,31 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(const nn::Tensor<float, 3> t_in
   const uint64_t dim1 = t_input.dimension(1);
   const uint64_t dim2 = t_input.dimension(2);
 
+  assert(dim1 % BLOCK_WIDTH == 0);
+  assert(dim2 % BLOCK_WIDTH == 0);
+  
+  // int check[8][8] = {{0}};  
+  // for(size_t i = 0; i < ZIGZAG_LENGTH; i++) {
+  //     int x = ZIGZAG_ORDER[i][0];
+  //     int y = ZIGZAG_ORDER[i][1];
+  //     check[y][x] += 1;      
+  //     for(size_t j = 0; j < ZIGZAG_LENGTH; j++) {
+  //         if (i != j and x == ZIGZAG_ORDER[j][0] and y == ZIGZAG_ORDER[j][1]) {
+  //             std::cout << "duplicate : " << x << " " << y  << std::endl;
+  //             throw std::runtime_error("duplicate entry");
+  //         }
+  //     }
+  // }
+  // for(size_t i = 0; i < 8; i++) {
+  //     for(size_t j = 0; j < 8; j++) {
+  //         if (check[i][j] != 1) {
+  //             std::cout << "count : " << check[i][j] << " "  << i << " " << j << std::endl;
+  //             throw std::runtime_error("error in entry");
+  //         }
+  //         std::cout << "count : " << check[i][j] << std::endl;
+  //     }
+  // }
+  
   std::vector<uint8_t> encoding;
 
   // add header
@@ -83,7 +108,7 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(const nn::Tensor<float, 3> t_in
               for (size_t i = 0; i < ZIGZAG_LENGTH; i++) {
                   const size_t row_offset = BLOCK_WIDTH*block_row + ZIGZAG_ORDER[i][0];
                   const size_t col_offset = BLOCK_WIDTH*block_col + ZIGZAG_ORDER[i][1];
-                  
+
                   // check if (value / quantizer) > 0, if not encode EOB and break
                   // otherwise encode the symbol as normal
                   float element = input(channel, row_offset, col_offset);
@@ -93,7 +118,6 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(const nn::Tensor<float, 3> t_in
                   encoding.push_back(bytes[1]);
                   encoding.push_back(bytes[2]);
                   encoding.push_back(bytes[3]);
-                  
               }
           }
       }
@@ -147,6 +171,9 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(const std::vector<uint8_t> inpu
     dim2_bytes[i] = input[i + dim2_offset];
   }
 
+  assert(dim1 % BLOCK_WIDTH == 0);
+  assert(dim2 % BLOCK_WIDTH == 0);
+
   nn::Tensor<float, 3> f_output(dim0, dim1, dim2);
 
   for (size_t channel = 0; channel < dim0; channel++) {
@@ -160,7 +187,9 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(const std::vector<uint8_t> inpu
                   float element;
                   uint8_t *bytes = reinterpret_cast<uint8_t *>(&element);
                   
-                  size_t offset = sizeof(float)*(dim1 * dim2 * channel + dim2 * row_offset + col_offset) + 3*sizeof(uint64_t);
+                  size_t offset = sizeof(float) * (dim1 * dim2 * channel +
+                                                   BLOCK_WIDTH * dim2 * block_row +
+                                                   BLOCK_WIDTH * BLOCK_WIDTH * block_col + i) + 3*sizeof(uint64_t);
                   bytes[0] = input[offset];
                   bytes[1] = input[offset + 1];
                   bytes[2] = input[offset + 2];
@@ -188,7 +217,6 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(const std::vector<uint8_t> inpu
   //     }
   //   }
   // }
-
   
   // nn::Tensor<float, 3> output(std::move(codec::utils::idct(f_output, BLOCK_WIDTH)));
   nn::Tensor<float, 3> output(f_output);
