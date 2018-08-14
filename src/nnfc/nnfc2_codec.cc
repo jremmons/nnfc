@@ -42,6 +42,7 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(const nn::Tensor<float, 3> t_in
 
   std::vector<uint8_t> encoding;
 
+  // add header
   {
       uint64_t dim0_ = dim0;
       uint64_t dim1_ = dim1;
@@ -91,7 +92,7 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(const nn::Tensor<float, 3> t_in
   // Eigen::Tensor<uint8_t, 3, Eigen::RowMajor> q_input = ((255 * (dct_input.tensor() - dct_min)) / (quantizer_ * dct_max)).cast<uint8_t>();
 
   // arithmetic encode
-  // add header and serialize data
+  //  and serialize data
   
   for (size_t i = 0; i < dim0; i++) {
     for (size_t j = 0; j < dim1; j++) {
@@ -132,10 +133,9 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(const std::vector<uint8_t> inpu
   uint8_t *dim1_bytes = reinterpret_cast<uint8_t *>(&dim1);
   uint8_t *dim2_bytes = reinterpret_cast<uint8_t *>(&dim2);
 
-  size_t length = input.size();
-  size_t dim0_offset = length - 3 * sizeof(uint64_t);
-  size_t dim1_offset = length - 2 * sizeof(uint64_t);
-  size_t dim2_offset = length - 1 * sizeof(uint64_t);
+  size_t dim0_offset = 0 * sizeof(uint64_t);
+  size_t dim1_offset = 1 * sizeof(uint64_t);
+  size_t dim2_offset = 2 * sizeof(uint64_t);
   for (size_t i = 0; i < sizeof(uint64_t); i++) {
     dim0_bytes[i] = input[i + dim0_offset];
     dim1_bytes[i] = input[i + dim1_offset];
@@ -150,7 +150,7 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(const std::vector<uint8_t> inpu
         float element;
         uint8_t *bytes = reinterpret_cast<uint8_t *>(&element);
 
-        size_t offset = sizeof(float) * (dim1 * dim2 * i + dim2 * j + k);
+        size_t offset = sizeof(float)*(dim1 * dim2 * i + dim2 * j + k) + 3*sizeof(uint64_t);
         bytes[0] = input[offset];
         bytes[1] = input[offset + 1];
         bytes[2] = input[offset + 2];
