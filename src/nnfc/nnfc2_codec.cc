@@ -30,7 +30,7 @@ static constexpr int ZIGZAG_LENGTH = sizeof(ZIGZAG_ORDER) / sizeof(ZIGZAG_ORDER[
 
 
 nnfc::NNFC2Encoder::NNFC2Encoder() :
-    quantizer_(1) {}
+    quantizer_(2) {}
 
 nnfc::NNFC2Encoder::~NNFC2Encoder() {}
 
@@ -64,13 +64,6 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(const nn::Tensor<float, 3> t_in
       }
   }
   
-  // code block for doing 8-bit linear quantization. DCT for integers does not exist yet.
-  // Eigen::Tensor<uint8_t, 3, Eigen::RowMajor> q_input =
-  //     ((t_input.tensor() - min) * (255 / (max - min))).cast<uint8_t>();
-  // Eigen::Tensor<float, 3, Eigen::RowMajor> input_t =
-  //     (q_input.cast<float>() * ((max - min) / 255)) + min;
-  // nn::Tensor<float, 3> input(input_t);
-
   //nn::Tensor<float, 3> dct_input(t_input);
 
   // do the dct
@@ -106,7 +99,7 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(const nn::Tensor<float, 3> t_in
           encoding.push_back(quantizer_bytes[i]);
       }
   }
-  
+
   // arithmetic encode and serialize data
   for (size_t channel = 0; channel < dim0; channel++) {
       for (size_t block_row = 0; block_row < dim1 / BLOCK_WIDTH; block_row++) {
