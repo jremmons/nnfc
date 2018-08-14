@@ -9,17 +9,49 @@
 
 static constexpr int BLOCK_WIDTH = 8;
 
+// TODO need to fix the ordering of the zigzag
 static constexpr int ZIGZAG_ORDER[][2] = {
-    {0, 0}, {1, 0}, {0, 1}, {0, 2}, {1, 1}, {2, 0}, {3, 0}, {2, 1},
-    {1, 2}, {0, 3}, {0, 4}, {1, 3}, {2, 2}, {3, 1}, {4, 0}, {5, 0},
-    {4, 1}, {3, 2}, {2, 3}, {1, 4}, {0, 5}, {0, 6}, {1, 5}, {2, 4},
-    {3, 3}, {4, 2}, {5, 1}, {6, 0}, {7, 0}, {6, 1}, {5, 2}, {4, 3},
-    {3, 4}, {2, 5}, {1, 6}, {0, 7}, {1, 7}, {2, 6}, {3, 5}, {4, 4},
-    {5, 3}, {6, 2}, {7, 1}, {7, 2}, {6, 3}, {5, 4}, {4, 5}, {3, 6},
-    {2, 7}, {3, 7}, {4, 6}, {5, 5}, {6, 4}, {7, 3}, {7, 4}, {6, 5},
-    {5, 6}, {4, 7}, {5, 7}, {6, 6}, {7, 5}, {7, 6}, {6, 7}, {7, 7}};
+    {0, 0}, //
+    {0, 1}, {1, 0}, //
+    {2, 0}, {1, 1}, {0, 2}, //
+    {3, 0}, {1, 2}, {2, 1}, {3, 0}, //
+    {4, 0}, {3, 1}, {2, 2}, {1, 3}, {0, 4}, //
+    {0, 5}, {1, 4}, {2, 3}, {3, 2}, {4, 1}, {5, 0}, //
+    {6, 0}, {5, 1}, {4, 2}, {3, 3}, {2, 4}, {1, 5}, {0, 6}, //
+    {0, 7}, {1, 6}, {2, 5}, {3, 4}, {4, 3}, {5, 2}, {6, 1}, {7, 0}, //
+    {7, 1}, {6, 2}, {5, 3}, {4, 4}, {3, 5}, {2, 6}, {1, 7}, //
+    {2, 7}, {3, 6}, {4, 5}, {5, 4}, {6, 3}, {7, 2}, //
+    {7, 3}, {6, 4}, {5, 5}, {4, 6}, {3, 7}, //
+    {4, 7}, {5, 6}, {6, 5}, {7, 4}, //
+    {7, 5}, {6, 6}, {5, 7}, //
+    {6, 7}, {7, 6}, //
+    {7, 7} //
+};
+
 static constexpr int ZIGZAG_LENGTH =
     sizeof(ZIGZAG_ORDER) / sizeof(ZIGZAG_ORDER[0]);
+
+static constexpr int JPEG_QUANTIZATION[] = {
+    16, //
+    11, 12, //
+    14, 12, 10, //
+    16, 14, 13, 14, //
+    18, 17, 16, 19, 24, //
+    40, 26, 24, 22, 22, 24, //
+    49, 35, 37, 29, 40, 58, 51, //
+    61, 60, 57, 51, 56, 55, 64, 72, //
+    92, 78, 64, 68, 87, 69, 55, //
+    56, 80,109, 81, 87, 95, //
+    98,103,104,103, 62, //
+    77, 113,121,112, //
+    100,120, 92, //
+    101,103, //
+    99 //
+};
+static constexpr int JPEG_QUANTIZATION_LENGTH =
+    sizeof(JPEG_QUANTIZATION) / sizeof(JPEG_QUANTIZATION[0]);
+
+static_assert(ZIGZAG_LENGTH == JPEG_QUANTIZATION_LENGTH);
 
 nnfc::NNFC2Encoder::NNFC2Encoder() : quantizer_(2) {}
 
@@ -56,7 +88,12 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
   }
 
   // nn::Tensor<float, 3> dct_input(t_input);
-
+  // perform quantization first,
+  // then DCT
+  // when further quantize using DCT table
+  // then encode in zigzag order
+  // then arithmetic encode
+  
   // do the dct
   nn::Tensor<float, 3> dct_input(
       std::move(codec::utils::dct(t_input, BLOCK_WIDTH)));
