@@ -9,12 +9,27 @@
 
 static constexpr int BLOCK_WIDTH = 8;
 
-// TODO need to fix the ordering of the zigzag
+// zigzag traversal order
+// 0   1   5   6  14  15  27  28
+// 
+// 2   4   7  13  16  26  29  42
+//
+// 3   8  12  17  25  30  41  43
+//
+// 9  11  18  24  31  40  44  53
+//
+// 10  19  23  32  39  45  52  54
+//
+// 20  22  33  38  46  51  55  60
+//
+// 21  34  37  47  50  56  59  61
+//
+// 35  36  48  49  57  58  62  63
 static constexpr int ZIGZAG_ORDER[][2] = {
     {0, 0},                                                          //
     {0, 1}, {1, 0},                                                  //
     {2, 0}, {1, 1}, {0, 2},                                          //
-    {3, 0}, {1, 2}, {2, 1}, {3, 0},                                  //
+    {0, 3}, {1, 2}, {2, 1}, {3, 0},                                  //
     {4, 0}, {3, 1}, {2, 2}, {1, 3}, {0, 4},                          //
     {0, 5}, {1, 4}, {2, 3}, {3, 2}, {4, 1}, {5, 0},                  //
     {6, 0}, {5, 1}, {4, 2}, {3, 3}, {2, 4}, {1, 5}, {0, 6},          //
@@ -27,10 +42,34 @@ static constexpr int ZIGZAG_ORDER[][2] = {
     {6, 7}, {7, 6},                                                  //
     {7, 7}                                                           //
 };
-
 static constexpr int ZIGZAG_LENGTH =
     sizeof(ZIGZAG_ORDER) / sizeof(ZIGZAG_ORDER[0]);
 
+// check if zigzag hits all elements
+// static void check_zigzag() {
+//   int check[8][8] = {{0}};
+//   for (int i = 0; i < ZIGZAG_LENGTH; i++) {
+//       int x = ZIGZAG_ORDER[i][0];
+//       int y = ZIGZAG_ORDER[i][1];
+
+//       check[x][y] += 1;
+//   }
+//   for (int i = 0; i < 8; i++) {
+//       for (int j = 0; j < 8; j++) {
+//           std::cout << check[i][j] << std::endl;
+//           if (check[i][j] != 1) {
+//               std::cout << "" << i << " " << j << " " << check[i][j] << std::endl;
+//               throw std::runtime_error("check failed");
+//           }
+//       }
+//   }
+//   std::cout << "check passed" << std::endl;
+// }
+
+// Goes in order of zigzag pattern.
+// Quantization value taken from https://github.com/libjpeg-turbo/ijg/blob/master/jcparam.c#L68.
+// Gist: (https://gist.github.com/jremmons/245506018f5933bf344c2e37ec40a24e#file-jpeg_quantization-c-L1)
+// We use the luminance quantization values.
 static constexpr int JPEG_QUANTIZATION[] = {
     16,                                  //
     11,  12,                             //
@@ -50,22 +89,22 @@ static constexpr int JPEG_QUANTIZATION[] = {
 };
 static constexpr int JPEG_QUANTIZATION_LENGTH =
     sizeof(JPEG_QUANTIZATION) / sizeof(JPEG_QUANTIZATION[0]);
-
 static_assert(ZIGZAG_LENGTH == JPEG_QUANTIZATION_LENGTH);
+
 
 nnfc::NNFC2Encoder::NNFC2Encoder() : quantizer_(2) {}
 
 nnfc::NNFC2Encoder::~NNFC2Encoder() {}
 
 std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
-    const nn::Tensor<float, 3> t_input) const {
+  const nn::Tensor<float, 3> t_input) const {
   const uint64_t dim0 = t_input.dimension(0);
   const uint64_t dim1 = t_input.dimension(1);
   const uint64_t dim2 = t_input.dimension(2);
 
   assert(dim1 % BLOCK_WIDTH == 0);
   assert(dim2 % BLOCK_WIDTH == 0);
-
+  
   std::vector<uint8_t> encoding;
 
   // add header
@@ -95,8 +134,9 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
   // then arithmetic encode
 
   // do the dct
-  nn::Tensor<float, 3> dct_input(
-      std::move(codec::utils::dct(t_input, BLOCK_WIDTH)));
+  nn::Tensor<float, 3> dct_input(t_input);
+  // nn::Tensor<float, 3> dct_input(
+  //     std::move(codec::utils::dct(t_input, BLOCK_WIDTH)));
 
   const float dct_min = dct_input.minimum();
   const float dct_max = dct_input.maximum();
@@ -249,11 +289,11 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
   Eigen::Tensor<float, 3, Eigen::RowMajor> dq2_output =
       ((1 / 255.f) * dq1_output) + min;
 
-  // nn::Tensor<float, 3> output(dq2_output);
+  nn::Tensor<float, 3> output(dq2_output);
 
   // undo the dct
-  nn::Tensor<float, 3> output(
-      std::move(codec::utils::idct(dq2_output, BLOCK_WIDTH)));
+  // nn::Tensor<float, 3> output(
+  //     std::move(codec::utils::idct(dq2_output, BLOCK_WIDTH)));
 
   return output;
 }
