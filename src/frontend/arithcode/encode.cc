@@ -20,10 +20,10 @@ int main(int argc, char* argv[]) {
   std::vector<char> uncompressed_input(str.begin(), str.end());
   std::cout << "input size: " << uncompressed_input.size() << std::endl;
 
-  //codec::ArithmeticEncoder<codec::SimpleModel> encoder;
+  // codec::ArithmeticEncoder<codec::SimpleModel> encoder;
   codec::ArithmeticEncoder<codec::SimpleAdaptiveModel> encoder(10);
   for (auto c : uncompressed_input) {
-    //std::cout << c << "\n";
+    // std::cout << c << "\n";
     uint32_t sym = 0;
     switch (c) {
       case 'A':

@@ -116,7 +116,7 @@ class ArithmeticEncoder {
   }
 
  public:
-  template<typename... ProbModelArgs>
+  template <typename... ProbModelArgs>
   ArithmeticEncoder(const ProbModelArgs... args)
       : model_(args...),
         data_(),
@@ -268,7 +268,7 @@ class ArithmeticDecoder {
   }
 
  public:
-  template<typename... ProbModelArgs>
+  template <typename... ProbModelArgs>
   ArithmeticDecoder(std::vector<char> data, const ProbModelArgs... args)
       : model_(args...),
         data_(data),
