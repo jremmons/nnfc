@@ -23,22 +23,21 @@ class Clip(object):
         self.yt_id = yt_id
         self.class_id = class_id
         self.object_id = object_id
-        self.start_ms = None
-        self.stop_ms = None
-        self.absences = []
+        self.times_ms = []
+        self.absences = set()
         self.box_coords = []
 
     def name(self):
         return '{0}_{1}_{2}'.format(self.yt_id, self.class_id, self.object_id)
 
     def readable_start(self):
-        return time.strftime('%H:%M:%S', time.gmtime(self.start_ms/1000.0))
+        return time.strftime('%H:%M:%S', time.gmtime(self.times_ms[0]/1000.0))
 
     def readable_stop(self):
-        return time.strftime('%H:%M:%S', time.gmtime(self.stop_ms/1000.0))
+        return time.strftime('%H:%M:%S', time.gmtime(self.times_ms[-1]/1000.0))
 
     def add_absence(self, ts_ms):
-        self.absences.append(ts_ms)
+        self.absences.add(ts_ms)
 
     def add_box_coords(self, coords_tuple):
         self.box_coords.append(coords_tuple)
@@ -57,9 +56,9 @@ def clip_name(clip, yt_id=None, class_id=None, object_id=None):
 
 def make_new_clip(row):
     clip = Clip(row[0], row[2], row[4])
-    clip.start_ms = int(row[1])
+    clip.times_ms.append(int(row[1]))
     if row[5] == 'absent':
-        clip.add_absence(row[1])
+        clip.add_absence(int(row[1]))
     clip.add_box_coords(tuple(row[6:]))
     return clip
 
@@ -77,10 +76,11 @@ def get_videos(dataset):
         curr_yt_id = None
         prev_ts = None
         for row in rows:
+            timestamp = int(row[1])
             # new video - finish previous video+clip and make a new video+clip
             if row[0] != curr_yt_id:
                 if videos:
-                    videos[-1].clips[-1].stop_ms = int(prev_ts)
+                    videos[-1].clips[-1].times_ms.append(prev_ts)
 
                 curr_yt_id = row[0]
                 videos.append(Video(curr_yt_id))
@@ -88,15 +88,16 @@ def get_videos(dataset):
 
             # new clip - finish previous clip and make a new clip
             elif clip_name(None, row[0], row[2], row[4]) != clip_name(videos[-1].clips[-1]):
-                videos[-1].clips[-1].stop_ms = int(prev_ts)
+                videos[-1].clips[-1].times_ms.append(prev_ts)
                 videos[-1].add_clip(make_new_clip(row))
 
-            # same clip - just add absences and bounding boxes
+            # same clip - just add absences, timestamp, and bounding boxes
             else:
                 if row[5] == 'absent':
-                    videos[-1].clips[-1].add_absence(row[1])
+                    videos[-1].clips[-1].add_absence(timestamp)
+                videos[-1].clips[-1].times_ms.append(timestamp)
                 videos[-1].clips[-1].add_box_coords(tuple(row[6:]))
 
-            prev_ts = row[1]
+            prev_ts = timestamp
 
     return videos
