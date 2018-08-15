@@ -4,8 +4,10 @@
 #include <vector>
 
 #include "codec/utils.hh"
-#include "nnfc2_codec.hh"
+#include "codec/arithmetic_coder.hh"
 #include "tensor.hh"
+
+#include "nnfc2_codec.hh"
 
 static constexpr int BLOCK_WIDTH = 8;
 
@@ -174,18 +176,21 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
     }
   }
 
-  size_t count = 0;
-  size_t zero_count = 0;
-
   assert(quality_ > 0);
   assert(quality_ <= 100);
   const float scale = quality_ < 50 ? 50.f / quality_ : (100.f - quality_) / 50;
+  
+  // int32_t qmin = input(0, 0, 0) / (scale * JPEG_QUANTIZATION[0]);
+  // int32_t qmax = input(0, 0, 0) / (scale * JPEG_QUANTIZATION[0]);
 
   // arithmetic encode and serialize data
   for (size_t channel = 0; channel < dim0; channel++) {
     for (size_t block_row = 0; block_row < dim1 / BLOCK_WIDTH; block_row++) {
       for (size_t block_col = 0; block_col < dim2 / BLOCK_WIDTH; block_col++) {
-        for (size_t i = 0; i < ZIGZAG_LENGTH; i++) {
+
+          // bool zero_flag = false;
+          
+          for (size_t i = 0; i < ZIGZAG_LENGTH; i++) {
           const size_t row_offset =
               BLOCK_WIDTH * block_row + ZIGZAG_ORDER[i][0];
           const size_t col_offset =
@@ -193,15 +198,22 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
 
           int32_t element = input(channel, row_offset, col_offset) / (scale * JPEG_QUANTIZATION[i]);
 
-          if (element == 0) {
-              zero_count += 1;
-          }
-          count += 1;
-          
-          // apply JPEG quantizer
-          // check if (value / quantizer) > 0, if not encode 0 (or EOB and break)
-          // otherwise encode the symbol as normal
+          // if (element < qmin) {
+          //     qmin = element;
+          // }
 
+          // if (element > qmax) {
+          //     qmax = element;
+          // }
+          
+          // if (i > 10 and element == 0) {
+          //     zero_flag = true;
+          // }
+
+          // if (zero_flag) {
+          //     element = 0;
+          // }
+          
           const uint8_t* bytes = reinterpret_cast<const uint8_t*>(&element);
           
           encoding.push_back(bytes[0]);
@@ -212,8 +224,8 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
       }
     }
   }
-
-  //std::cout << "zero_count " << zero_count << " count "  << count << std::endl;
+  
+  //std::cout << qmin << " " << qmax << std::endl;
   
   return encoding;
 }
