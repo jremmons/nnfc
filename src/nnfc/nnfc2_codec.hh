@@ -11,7 +11,7 @@ namespace nnfc {
 
 class NNFC2Encoder {
  private:
-  const int quantizer_;
+  const int32_t quality_;
 
  public:
   NNFC2Encoder();
