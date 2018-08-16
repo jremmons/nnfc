@@ -11,13 +11,13 @@ import subprocess
 from pascal_voc_writer import Writer
 import utils
 
-DATASET = "yt_bb_detection_validation.csv"
+DATASET = "yt_bb_detection_train.csv"
 VID_DIR = os.path.join("./videos", DATASET.split('.')[0])
 IMAGE_DIR = os.path.join("./images", DATASET.split('.')[0])
 XML_DIR = os.path.join("./xml", DATASET.split('.')[0])
 
 DEBUG = True
-DOWNLOAD_VIDS = True
+DOWNLOAD_VIDS = False
 FFMPEG_DIR = "/sailhome/jestinm/bin"
 
 out_template = os.path.join(VID_DIR, '%(id)s.%(ext)s')
@@ -63,18 +63,23 @@ def download_all_clips(video):
 
 # Extracts all frames from a given clip to a class-based folder.
 def decode_frames(clip, keep_absent=False):
+    idx = -1
     for timestamp in clip.times_ms:
         if not keep_absent and timestamp in clip.absences:
             continue
 
+        idx += 1
+
         clip_path = os.path.join(VID_DIR, '{0}.mp4'.format(clip.name()))
         class_name = utils.classes[int(clip.class_id)]
         frame_path = os.path.join(IMAGE_DIR, class_name, clip.name() + '.jpg')
-        if os.path.exists(frame_path):
+
+        # If the video failed to download.
+        if not os.path.exists(clip_path):
             continue
 
         decode_time = timestamp - clip.times_ms[0]
-        decode_cmd = ['ffmpeg', '-ss', str(float(decode_time)/1000.0),
+        decode_cmd = ['ffmpeg', '-y', '-ss', str(float(decode_time)/1000.0),
                       '-i', clip_path, '-qscale:v', '1', '-vframes', '1',
                       '-threads', '1', frame_path]
         if DEBUG:
@@ -84,7 +89,7 @@ def decode_frames(clip, keep_absent=False):
 
         with Image.open(frame_path) as img:
             width, height = img.size
-        relative_coords = list(map(lambda frac: float(frac), clip.box_coords))
+        relative_coords = list(map(lambda frac: float(frac), clip.box_coords[idx]))
         xmin = int(width * relative_coords[0])
         xmax = int(width * relative_coords[1])
         ymin = int(height * relative_coords[2])

@@ -74,21 +74,16 @@ def get_videos(dataset):
         rows.sort(key=lambda row: (row[0], int(row[2]), int(row[4]), int(row[1])))
 
         curr_yt_id = None
-        prev_ts = None
         for row in rows:
             timestamp = int(row[1])
             # new video - finish previous video+clip and make a new video+clip
             if row[0] != curr_yt_id:
-                if videos:
-                    videos[-1].clips[-1].times_ms.append(prev_ts)
-
                 curr_yt_id = row[0]
                 videos.append(Video(curr_yt_id))
                 videos[-1].add_clip(make_new_clip(row))
 
             # new clip - finish previous clip and make a new clip
             elif clip_name(None, row[0], row[2], row[4]) != clip_name(videos[-1].clips[-1]):
-                videos[-1].clips[-1].times_ms.append(prev_ts)
                 videos[-1].add_clip(make_new_clip(row))
 
             # same clip - just add absences, timestamp, and bounding boxes
@@ -97,7 +92,5 @@ def get_videos(dataset):
                     videos[-1].clips[-1].add_absence(timestamp)
                 videos[-1].clips[-1].times_ms.append(timestamp)
                 videos[-1].clips[-1].add_box_coords(tuple(row[6:]))
-
-            prev_ts = timestamp
 
     return videos
