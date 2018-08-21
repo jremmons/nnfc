@@ -136,17 +136,12 @@ PyObject* NNFCEncoderContext_forward(NNFCEncoderContext *self, PyObject *args){
         const size_t input_tensors_size = input_tensors.size();
         std::vector<std::vector<uint8_t>> buffers(input_tensors_size);
 
-        // #pragma omp parallel for
-        // for(size_t i = 0; i < input_tensors_size; i++) {
-        //     const std::vector<uint8_t> buffer = self->encoder->forward(input_tensors[i]);
-        //     buffers[i] = buffer;
-        // }
-
+        #pragma omp parallel for
         for(size_t i = 0; i < input_tensors_size; i++) {
             const std::vector<uint8_t> buffer = self->encoder->forward(input_tensors[i]);
             buffers[i] = buffer;
         }
-
+        
         PyObject *pylist_of_buffer = buffers2pylist(buffers);
         return pylist_of_buffer;
 
