@@ -89,6 +89,67 @@ class InfiniteBitVector {
   }
 };
 
+    
+//////////////////////////////////////////////////////////////////////
+// Dummy Arithmetic Encoder
+//////////////////////////////////////////////////////////////////////
+class DummyArithmeticEncoder {
+private:
+    std::vector<char> data_;
+
+public:
+    DummyArithmeticEncoder() :
+        data_() {}
+
+    ~DummyArithmeticEncoder() {}
+
+    void encode_symbol(const uint32_t symbol) {
+        const char* bytes = reinterpret_cast<const char*>(&symbol);
+        
+        data_.push_back(bytes[0]);
+        data_.push_back(bytes[1]);
+        data_.push_back(bytes[2]);
+        data_.push_back(bytes[3]);
+    }
+    
+    std::vector<char> finish() const {
+        return data_;
+    }
+};
+    
+//////////////////////////////////////////////////////////////////////
+// Dummy Arithmetic Decoder
+//////////////////////////////////////////////////////////////////////
+class DummyArithmeticDecoder {
+private:
+    const std::vector<char>& data_;
+    size_t index_;
+    
+public:
+    DummyArithmeticDecoder(const std::vector<char>& data) :
+        data_(data),
+        index_(0) {}
+    
+    ~DummyArithmeticDecoder() {}
+
+    uint32_t decode_symbol() {
+        uint32_t symbol;
+        char* bytes = reinterpret_cast<char*>(&symbol);
+
+        bytes[0] = data_[index_ + 0];
+        bytes[1] = data_[index_ + 1];
+        bytes[2] = data_[index_ + 2];
+        bytes[3] = data_[index_ + 3];
+
+        index_ += sizeof(uint32_t);
+        return symbol;
+    }    
+
+    bool done() const {
+        return index_ >= data_.size();
+    }
+};
+    
 //////////////////////////////////////////////////////////////////////
 // Arithmetic Encoder
 //////////////////////////////////////////////////////////////////////
