@@ -28,8 +28,12 @@ static constexpr uint64_t second_mask = static_cast<uint64_t>(1)
 static constexpr uint64_t working_bits_mask = working_bits_max;
 }
 
+//////////////////////////////////////////////////////////////////////
+// Infinite Bit Vector 
+//
 // A helper class that gives you a std::vector like interface but
 // for individual bits.
+//////////////////////////////////////////////////////////////////////
 class InfiniteBitVector {
  private:
   std::vector<char> bitvector_;
@@ -82,6 +86,9 @@ class InfiniteBitVector {
   }
 };
 
+//////////////////////////////////////////////////////////////////////
+// Arithmetic Encoder
+//////////////////////////////////////////////////////////////////////
 template <class ProbabilityModel>
 class ArithmeticEncoder {
  private:
@@ -222,6 +229,10 @@ class ArithmeticEncoder {
   }
 };
 
+    
+//////////////////////////////////////////////////////////////////////
+// Arithmetic Decoder
+//////////////////////////////////////////////////////////////////////
 template <class ProbabilityModel>
 class ArithmeticDecoder {
  private:
