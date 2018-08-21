@@ -147,7 +147,8 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
   const float scale = quality_ < 50 ? 50.f / quality_ : (100.f - quality_) / 50;
   
   codec::ArithmeticEncoder<codec::SimpleAdaptiveModel> encoder(DCT_MAX - DCT_MIN + 1);
-
+  // codec::DummyArithmeticEncoder encoder;
+  
   // arithmetic encode and serialize data
   for (size_t channel = 0; channel < dim0; channel++) {
     for (size_t block_row = 0; block_row < dim1 / BLOCK_WIDTH; block_row++) {
@@ -302,8 +303,10 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
   
   std::vector<char> encoding_(reinterpret_cast<const char*>(input.data()),
                               reinterpret_cast<const char*>(input.data()) + input_size - 3 * sizeof(uint64_t) - 2*sizeof(float) - 1*sizeof(int32_t));
+
   codec::ArithmeticDecoder<codec::SimpleAdaptiveModel> decoder(encoding_, DCT_MAX - DCT_MIN + 1);
-  
+  // codec::DummyArithmeticDecoder decoder(encoding_);
+
   // undo arithmetic encoding and deserialize
   for (size_t channel = 0; channel < dim0; channel++) {
     for (size_t block_row = 0; block_row < dim1 / BLOCK_WIDTH; block_row++) {
@@ -329,7 +332,6 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
           assert(value < DCT_MAX);
           
           fp_output(channel, row_offset, col_offset) = value;
-          
         }
       }
     }
