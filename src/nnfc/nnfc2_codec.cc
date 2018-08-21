@@ -112,25 +112,6 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
   
   std::vector<uint8_t> encoding;
 
-  // add header
-  {
-    uint64_t dim0_ = dim0;
-    uint64_t dim1_ = dim1;
-    uint64_t dim2_ = dim2;
-    uint8_t *dim0_bytes = reinterpret_cast<uint8_t *>(&dim0_);
-    uint8_t *dim1_bytes = reinterpret_cast<uint8_t *>(&dim1_);
-    uint8_t *dim2_bytes = reinterpret_cast<uint8_t *>(&dim2_);
-    for (size_t i = 0; i < sizeof(uint64_t); i++) {
-      encoding.push_back(dim0_bytes[i]);
-    }
-    for (size_t i = 0; i < sizeof(uint64_t); i++) {
-      encoding.push_back(dim1_bytes[i]);
-    }
-    for (size_t i = 0; i < sizeof(uint64_t); i++) {
-      encoding.push_back(dim2_bytes[i]);
-    }
-  }
-
   // perform quantization first,
   // then DCT
   // then further quantize using DCT table
@@ -146,8 +127,8 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
   nn::Tensor<float, 3> q_input(q1_input); 
 
   // do the dct
-  // nn::Tensor<float, 3> dct_input(q_input);
-  nn::Tensor<float, 3> dct_input(std::move(codec::utils::dct(q_input, BLOCK_WIDTH)));
+  nn::Tensor<float, 3> dct_input(q_input);
+  // nn::Tensor<float, 3> dct_input(std::move(codec::utils::dct(q_input, BLOCK_WIDTH)));
   //std::cout << dct_input.maximum() << " " << dct_input.minimum() << std::endl;
 
   // round to nearest
@@ -163,35 +144,10 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
   // discretize to int32
   Eigen::Tensor<int32_t, 3, Eigen::RowMajor> q3_input = dct_input.tensor().cast<int32_t>();
   nn::Tensor<int32_t, 3> input(q3_input);
-  // Eigen::Tensor<float, 3, Eigen::RowMajor> q2_input = dct_input.tensor().cast<float>();
-  // nn::Tensor<float, 3> input(q2_input);
-
-  // add min and max to header
-  {
-    float min_ = min;
-    float max_ = max;
-    uint8_t *min_bytes = reinterpret_cast<uint8_t *>(&min_);
-    uint8_t *max_bytes = reinterpret_cast<uint8_t *>(&max_);
-    for (size_t i = 0; i < sizeof(float); i++) {
-      encoding.push_back(min_bytes[i]);
-    }
-    for (size_t i = 0; i < sizeof(float); i++) {
-      encoding.push_back(max_bytes[i]);
-    }
-  }
-
-  // add quality to header
-  {
-    int32_t quality = quality_;
-    uint8_t *quality_bytes = reinterpret_cast<uint8_t *>(&quality);
-    for (size_t i = 0; i < sizeof(int32_t); i++) {
-      encoding.push_back(quality_bytes[i]);
-    }
-  }
 
   assert(quality_ > 0);
   assert(quality_ <= 100);
-  const float scale = quality_ < 50 ? 50.f / quality_ : (100.f - quality_) / 50;
+  // const float scale = quality_ < 50 ? 50.f / quality_ : (100.f - quality_) / 50;
 
   // codec::ArithmeticEncoder<codec::SimpleAdapativeModel> encoder(DCT_MAX - DCT_MIN + 1);
   
@@ -206,7 +162,7 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
           const size_t col_offset =
               BLOCK_WIDTH * block_col + ZIGZAG_ORDER[i][1];
 
-          float scalef = scale * JPEG_QUANTIZATION[i];
+          float scalef = 1; //scale * JPEG_QUANTIZATION[i];
           if (scalef < 1) {
               scalef = 1;
           }
@@ -227,6 +183,48 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
     }
   }
   
+  // add footer
+  {
+    uint64_t dim0_ = dim0;
+    uint64_t dim1_ = dim1;
+    uint64_t dim2_ = dim2;
+    uint8_t *dim0_bytes = reinterpret_cast<uint8_t *>(&dim0_);
+    uint8_t *dim1_bytes = reinterpret_cast<uint8_t *>(&dim1_);
+    uint8_t *dim2_bytes = reinterpret_cast<uint8_t *>(&dim2_);
+    for (size_t i = 0; i < sizeof(uint64_t); i++) {
+      encoding.push_back(dim0_bytes[i]);
+    }
+    for (size_t i = 0; i < sizeof(uint64_t); i++) {
+      encoding.push_back(dim1_bytes[i]);
+    }
+    for (size_t i = 0; i < sizeof(uint64_t); i++) {
+      encoding.push_back(dim2_bytes[i]);
+    }
+  }
+
+  // add min and max to footer
+  {
+    float min_ = min;
+    float max_ = max;
+    uint8_t *min_bytes = reinterpret_cast<uint8_t *>(&min_);
+    uint8_t *max_bytes = reinterpret_cast<uint8_t *>(&max_);
+    for (size_t i = 0; i < sizeof(float); i++) {
+      encoding.push_back(min_bytes[i]);
+    }
+    for (size_t i = 0; i < sizeof(float); i++) {
+      encoding.push_back(max_bytes[i]);
+    }
+  }
+
+  // add quality to footer
+  {
+    int32_t quality = quality_;
+    uint8_t *quality_bytes = reinterpret_cast<uint8_t *>(&quality);
+    for (size_t i = 0; i < sizeof(int32_t); i++) {
+      encoding.push_back(quality_bytes[i]);
+    }
+  }
+
   return encoding;
 }
 
@@ -241,7 +239,11 @@ nnfc::NNFC2Decoder::~NNFC2Decoder() {}
 
 nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
     const std::vector<uint8_t> input) const {
-  // read dims from header
+
+  const size_t input_size = input.size();
+    
+
+  // read dims from footer
   uint64_t dim0;
   uint64_t dim1;
   uint64_t dim2;
@@ -250,9 +252,9 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
     uint8_t *dim1_bytes = reinterpret_cast<uint8_t *>(&dim1);
     uint8_t *dim2_bytes = reinterpret_cast<uint8_t *>(&dim2);
 
-    constexpr size_t dim0_offset = 0 * sizeof(uint64_t);
-    constexpr size_t dim1_offset = 1 * sizeof(uint64_t);
-    constexpr size_t dim2_offset = 2 * sizeof(uint64_t);
+    const size_t dim0_offset = input_size - 3 * sizeof(uint64_t) - 2*sizeof(float) - 1*sizeof(int32_t);
+    const size_t dim1_offset = input_size - 2 * sizeof(uint64_t) - 2*sizeof(float) - 1*sizeof(int32_t);
+    const size_t dim2_offset = input_size - 1 * sizeof(uint64_t) - 2*sizeof(float) - 1*sizeof(int32_t);
     for (size_t i = 0; i < sizeof(uint64_t); i++) {
       dim0_bytes[i] = input[i + dim0_offset];
       dim1_bytes[i] = input[i + dim1_offset];
@@ -267,8 +269,8 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
     uint8_t *min_bytes = reinterpret_cast<uint8_t *>(&min);
     uint8_t *max_bytes = reinterpret_cast<uint8_t *>(&max);
 
-    constexpr size_t min_offset = 3 * sizeof(uint64_t);
-    constexpr size_t max_offset = sizeof(float) + 3 * sizeof(uint64_t);
+    const size_t min_offset = input_size - 2*sizeof(float) - 1*sizeof(int32_t);
+    const size_t max_offset = input_size - 1*sizeof(float) - 1*sizeof(int32_t);
     for (size_t i = 0; i < sizeof(float); i++) {
       min_bytes[i] = input[i + min_offset];
     }
@@ -283,8 +285,8 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
   {
     uint8_t *quality_bytes = reinterpret_cast<uint8_t *>(&quality);
 
-    constexpr size_t quality_offset =
-        2 * sizeof(float) + 3 * sizeof(uint64_t);
+    const size_t quality_offset = input_size - 1*sizeof(int32_t);
+
     for (size_t i = 0; i < sizeof(int32_t); i++) {
       quality_bytes[i] = input[i + quality_offset];
     }
@@ -293,15 +295,15 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
   assert(dim1 % BLOCK_WIDTH == 0);
   assert(dim2 % BLOCK_WIDTH == 0);
 
-  constexpr size_t header_offset =
-      sizeof(int32_t) + 2 * sizeof(float) + 3 * sizeof(uint64_t);
+  // constexpr size_t header_offset =
+  //     sizeof(int32_t) + 2 * sizeof(float) + 3 * sizeof(uint64_t);
 
   // nn::Tensor<int32_t, 3> f_output(dim0, dim1, dim2);
   nn::Tensor<float, 3> fp_output(dim0, dim1, dim2);
 
   assert(quality > 0);
   assert(quality <= 100);
-  const float scale = quality < 50 ? 50.f / quality : (100.f - quality) / 50;
+  //const float scale = quality < 50 ? 50.f / quality : (100.f - quality) / 50;
 
   // undo arithmetic encoding and deserialize
   for (size_t channel = 0; channel < dim0; channel++) {
@@ -316,7 +318,7 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
           const size_t offset =
               sizeof(int32_t) *
               (dim1 * dim2 * channel + BLOCK_WIDTH * dim2 * block_row +
-               BLOCK_WIDTH * BLOCK_WIDTH * block_col + i) + header_offset;
+               BLOCK_WIDTH * BLOCK_WIDTH * block_col + i);
 
           int32_t element;
           uint8_t* bytes = reinterpret_cast<uint8_t*>(&element);
@@ -326,7 +328,7 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
           bytes[2] = input[offset + 2];
           bytes[3] = input[offset + 3];
           
-          float scalef = scale * JPEG_QUANTIZATION[i];
+          float scalef = 1; //scale * JPEG_QUANTIZATION[i];
           if (scalef < 1) {
               scalef = 1;
           }
@@ -344,9 +346,9 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
   }
 
   // undo the dct
-  // nn::Tensor<float, 3> idct_output(fp_output);
-  nn::Tensor<float, 3> idct_output(
-      std::move(codec::utils::idct(fp_output, BLOCK_WIDTH)));
+  nn::Tensor<float, 3> idct_output(fp_output);
+  // nn::Tensor<float, 3> idct_output(
+  //     std::move(codec::utils::idct(fp_output, BLOCK_WIDTH)));
   
   // dequantize from 8-bits
   Eigen::Tensor<float, 3, Eigen::RowMajor> dq1_output =

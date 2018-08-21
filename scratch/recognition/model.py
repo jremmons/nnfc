@@ -89,7 +89,6 @@ class Compressor(nn.Module):
         # print(a == b)
         
         self.sizes = []
-
         self.pad = nn.ReplicationPad2d(1)
         
         # define the bottleneck layers
@@ -134,7 +133,7 @@ class Compressor(nn.Module):
         x = self.pad(x)
         x = self.compression_layer(x)
         x = x[:,:,1:-1,1:-1]
-        # self.sizes += self.compression_layer.get_compressed_sizes()
+        self.sizes += self.compression_layer.get_compressed_sizes()
 
         # x = self.decoder(x)
 
