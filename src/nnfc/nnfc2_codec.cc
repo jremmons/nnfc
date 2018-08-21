@@ -125,7 +125,7 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
   nn::Tensor<float, 3> q_input(q1_input); 
 
   // do the dct
-  //nn::Tensor<float, 3> dct_input(q_input);
+  // nn::Tensor<float, 3> dct_input(q_input);
   nn::Tensor<float, 3> dct_input(std::move(codec::utils::dct(q_input, BLOCK_WIDTH)));
 
   // round to nearest
