@@ -1,3 +1,5 @@
+SUBDIRS = arithcode
+
 AM_CPPFLAGS = $(CXX14_FLAGS) $(JPEG_INCLUDE) \
               $(EIGEN3_CFLAGS) $(EIGEN3_UNSUPPORTED_CFLAGS) \
               $(HDF5_CFLAGS) $(HDF5_CPPFLAGS) \
@@ -60,9 +62,8 @@ dist_check_SCRIPTS = pythonpath_python.test \
                      relu_cpp.test \
                      relu_hl_cpp.test \
                      composed_hl_cpp.test \
-                     simplecnn_hl_cpp.test
-
-#gpu2cpu_python.test
+                     simplecnn_hl_cpp.test \
+                     arithcode/test_arithmetic_coder.test
 
 AM_TESTS_ENVIRONMENT = ./test-environment.sh
 

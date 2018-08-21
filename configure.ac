@@ -88,6 +88,7 @@ AC_CONFIG_FILES([Makefile
          src/frontend/arithcode/Makefile
          python/Makefile
          tests/Makefile
+         tests/arithcode/Makefile
 ])
 
 AC_OUTPUT
