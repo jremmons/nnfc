@@ -74,20 +74,22 @@ def test(model, loader, criterion, device, dtype):
     # print(np.median(np.asarray(times)))
                 
     sizes = []
-    
+
     for batch_idx, (data, target) in enumerate(tqdm(loader)):
         data, target = data.to(device=device, dtype=dtype), target.to(device=device)
         with torch.no_grad():
             output = model(data)
 
-            # sizes += model.module.compression_layer.get_compressed_sizes()
-            # print(sizes[-1])
+            sizes += model.module.compression_layer.get_compressed_sizes()
+            print(sizes[-1])
             
             test_loss += criterion(output, target).item()  # sum up batch loss
             corr = correct(output, target, topk=(1, 5))
         correct1 += corr[0]
         correct5 += corr[1]
 
+        print('top-1', correct1, batch_idx+1, loader.batch_size, correct1 / ((batch_idx+1) * loader.batch_size))
+        
     print(len(sizes))
     print(np.mean(np.asarray(sizes)))
     print(np.median(np.asarray(sizes)))

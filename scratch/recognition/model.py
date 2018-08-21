@@ -109,6 +109,8 @@ class Compressor(nn.Module):
         # print('compressPlanes', planes)
         # print('t =', t)
 
+    def get_compressed_sizes(self):
+        return self.compression_layer.get_compressed_sizes()        
         
     def forward(self, x):
         # x = self.encoder(x)
