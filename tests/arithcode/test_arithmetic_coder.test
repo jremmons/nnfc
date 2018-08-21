@@ -1,0 +1,24 @@
+#!/bin/bash
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+cd $DIR
+
+python generate.py
+
+./arith_encode text.txt compressed.bin
+
+./arith_decode compressed.bin output.txt
+
+
+diff -q text.txt output.txt
+EXIT_CODE=$?
+
+if [ $EXIT_CODE != 0 ]; then
+    echo "failure!"
+else
+    echo "success!"
+fi
+
+
+rm -f compressed.bin output.txt text.txt
+exit $EXIT_CODE
