@@ -54,7 +54,7 @@ def test(model, loader, criterion, device, dtype):
     test_loss = 0
     correct1, correct5 = 0, 0
 
-    torch.set_num_threads(1)
+    #torch.set_num_threads(1)
     data = np.random.randn(1,3,224,224).astype(np.float32)
     data = torch.autograd.Variable(torch.from_numpy(data)).cpu()
     output = model(data)
