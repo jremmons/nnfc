@@ -94,8 +94,8 @@ static constexpr int JPEG_QUANTIZATION_LENGTH =
 static_assert(ZIGZAG_LENGTH == JPEG_QUANTIZATION_LENGTH);
 
 // inclusive range of values the DCT coefficients can take on
-static constexpr int32_t DCT_MIN = -1024;
-static constexpr int32_t DCT_MAX = 1023;
+static constexpr int32_t DCT_MIN = -256;
+static constexpr int32_t DCT_MAX = 255;
 
 nnfc::NNFC2Encoder::NNFC2Encoder() : quality_(98) {}
 
@@ -121,7 +121,9 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
   const float range = max - min;
 
   // quantize to 8-bits
-  Eigen::Tensor<float, 3, Eigen::RowMajor> q1_input = (255.f * (t_input.tensor() - min)) / range - 128.f;
+  //Eigen::Tensor<float, 3, Eigen::RowMajor> q1_input = (255.f * (t_input.tensor() - min)) / range - 128.f;
+  Eigen::Tensor<float, 3, Eigen::RowMajor> q1_input = (127.f * (t_input.tensor() - min)) / range - 64.f;
+  //Eigen::Tensor<float, 3, Eigen::RowMajor> q1_input = (63.f * (t_input.tensor() - min)) / range - 32.f;
   nn::Tensor<float, 3> q_input(q1_input); 
 
   // do the dct
@@ -147,7 +149,7 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
   const float scale = quality_ < 50 ? 50.f / quality_ : (100.f - quality_) / 50;
   
   codec::ArithmeticEncoder<codec::SimpleAdaptiveModel> encoder(DCT_MAX - DCT_MIN + 1);
-  // codec::DummyArithmeticEncoder encoder;
+  //codec::DummyArithmeticEncoder encoder;
   
   // arithmetic encode and serialize data
   for (size_t channel = 0; channel < dim0; channel++) {
@@ -299,7 +301,6 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
   assert(quality > 0);
   assert(quality <= 100);
   const float scale = quality < 50 ? 50.f / quality : (100.f - quality) / 50;
-
   
   std::vector<char> encoding_(reinterpret_cast<const char*>(input.data()),
                               reinterpret_cast<const char*>(input.data()) + input_size - 3 * sizeof(uint64_t) - 2*sizeof(float) - 1*sizeof(int32_t));
@@ -343,11 +344,21 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
       std::move(codec::utils::idct(fp_output, BLOCK_WIDTH)));
   
   // dequantize from 8-bits
-  Eigen::Tensor<float, 3, Eigen::RowMajor> dq1_output =
-      range * (idct_output.tensor() + 128.f);
-  Eigen::Tensor<float, 3, Eigen::RowMajor> dq2_output =
-      ((1 / 255.f) * dq1_output) + min;
+  // Eigen::Tensor<float, 3, Eigen::RowMajor> dq1_output =
+  //     range * (idct_output.tensor() + 128.f);
+  // Eigen::Tensor<float, 3, Eigen::RowMajor> dq2_output =
+  //     ((1 / 255.f) * dq1_output) + min;
 
+  Eigen::Tensor<float, 3, Eigen::RowMajor> dq1_output =
+      range * (idct_output.tensor() + 64.f);
+  Eigen::Tensor<float, 3, Eigen::RowMajor> dq2_output =
+      ((1 / 127.f) * dq1_output) + min;
+
+  // Eigen::Tensor<float, 3, Eigen::RowMajor> dq1_output =
+  //     range * (idct_output.tensor() + 32.f);
+  // Eigen::Tensor<float, 3, Eigen::RowMajor> dq2_output =
+  //     ((1 / 63.f) * dq1_output) + min;
+  
   // convert into nn::Tensor
   nn::Tensor<float, 3> output(dq2_output);
 

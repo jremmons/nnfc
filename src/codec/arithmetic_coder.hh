@@ -459,11 +459,11 @@ class ArithmeticDecoder {
         assert(high_ > low_);
       }
       // the second highest bit of `high` is a 1 and the second
-      // highest bit of `low` is 0, then the `low` and `high`
-      // are converging. To handle this, we increment
-      // `pending_bits` and shift `high` and `low`. The value
-      // true value of the shifted bits will be determined once
-      // the MSB bits match after consuming more symbols.
+      // highest bit of `low` is 0, then the `low` and `high` are
+      // converging. To handle this, we `underflow` and shift `high`
+      // and `low`. The value true value of the shifted bits will be
+      // determined once the MSB bits match after consuming more
+      // symbols.
       else if ((low_ & ~high_ & arithmetic_coder::second_mask) != 0) {
         underflow();
 
