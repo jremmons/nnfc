@@ -148,8 +148,6 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
   
   codec::ArithmeticEncoder<codec::SimpleAdaptiveModel> encoder(DCT_MAX - DCT_MIN + 1);
 
-  // std::vector<char> encoding;
-  
   // arithmetic encode and serialize data
   for (size_t channel = 0; channel < dim0; channel++) {
     for (size_t block_row = 0; block_row < dim1 / BLOCK_WIDTH; block_row++) {
@@ -175,13 +173,6 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
           assert(symbol >= 0);
           assert(symbol < (DCT_MAX - DCT_MIN + 1));              
           encoder.encode_symbol(static_cast<uint32_t>(symbol));
-
-          // const uint8_t* bytes = reinterpret_cast<const uint8_t*>(&element);
-          
-          // encoding.push_back(bytes[0]);
-          // encoding.push_back(bytes[1]);
-          // encoding.push_back(bytes[2]);
-          // encoding.push_back(bytes[3]);
         }
       }
     }
@@ -323,21 +314,7 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
           const size_t col_offset =
               BLOCK_WIDTH * block_col + ZIGZAG_ORDER[i][1];
 
-          // const size_t offset =
-          //     sizeof(int32_t) *
-          //     (dim1 * dim2 * channel + BLOCK_WIDTH * dim2 * block_row +
-          //      BLOCK_WIDTH * BLOCK_WIDTH * block_col + i);
-
-          // int32_t element;
-          // uint8_t* bytes = reinterpret_cast<uint8_t*>(&element);
-          
-          // bytes[0] = input[offset];
-          // bytes[1] = input[offset + 1];
-          // bytes[2] = input[offset + 2];
-          // bytes[3] = input[offset + 3];
-
           uint32_t symbol = decoder.decode_symbol();
-          // assert(symbol >= 0);
           assert(symbol < (DCT_MAX - DCT_MIN + 1));          
           int32_t element = symbol + DCT_MIN;
 
