@@ -5,6 +5,9 @@
 #include <memory>
 #include <vector>
 
+#include <bitset>
+#include <iostream>
+
 #include "arithmetic_probability_models.hh"
 
 namespace codec {
@@ -341,7 +344,7 @@ class ArithmeticDecoder {
       assert(sym_high == (arithmetic_coder::working_bits_mask & sym_high));
       assert(sym_low == (arithmetic_coder::working_bits_mask & sym_low));
 
-      if (value_ < sym_high and value_ >= sym_low) {
+      if (value_ <= sym_high and value_ >= sym_low) {
         sym = sym_idx;
         high_ = sym_high;
         low_ = sym_low;
@@ -350,6 +353,25 @@ class ArithmeticDecoder {
       }
     }
 
+    // debugging
+    // if (not sym_set) {
+    //     std::cerr << std::bitset<64>(low_) << std::endl;
+    //     std::cerr << std::bitset<64>(value_) << std::endl;
+    //     std::cerr << std::bitset<64>(high_) << std::endl;
+
+    //     for (uint64_t sym_idx = 0; sym_idx < model_.size(); sym_idx++) {
+    //         const std::pair<uint64_t, uint64_t> sym_prob =
+    //             model_.symbol_numerator(sym_idx);
+    //         const uint32_t denominator = model_.denominator();
+
+    //         const uint64_t sym_high =
+    //             low_ + (sym_prob.second * range) / denominator - 1;
+    //         const uint64_t sym_low = low_ + (sym_prob.first * range) / denominator;
+
+    //         std::cerr << sym_low << " " << value_ << " " << sym_high << std::endl;
+    //     }
+
+    // }
     assert(sym_set);
     assert(sym < std::numeric_limits<uint64_t>::max());
     assert(high_ > low_);
