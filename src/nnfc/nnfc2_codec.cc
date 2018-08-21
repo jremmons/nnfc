@@ -93,8 +93,11 @@ static constexpr int JPEG_QUANTIZATION_LENGTH =
     sizeof(JPEG_QUANTIZATION) / sizeof(JPEG_QUANTIZATION[0]);
 static_assert(ZIGZAG_LENGTH == JPEG_QUANTIZATION_LENGTH);
 
+// inclusive range of values the DCT coefficients can take on
+static constexpr int32_t DCT_MIN = -1024;
+static constexpr int32_t DCT_MAX = 1023;
 
-nnfc::NNFC2Encoder::NNFC2Encoder() : quality_(10) {}
+nnfc::NNFC2Encoder::NNFC2Encoder() : quality_(98) {}
 
 nnfc::NNFC2Encoder::~NNFC2Encoder() {}
 
@@ -138,18 +141,28 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
   const float max = t_input.maximum();
   const float range = max - min;
 
-  // quantize to 16-bits
-  Eigen::Tensor<float, 3, Eigen::RowMajor> q1_input = (65535 * (t_input.tensor() - min))  / (range);
+  // quantize to 8-bits
+  Eigen::Tensor<float, 3, Eigen::RowMajor> q1_input = (255.f * (t_input.tensor() - min)) / range - 128.f;
   nn::Tensor<float, 3> q_input(q1_input); 
 
   // do the dct
   // nn::Tensor<float, 3> dct_input(q_input);
   nn::Tensor<float, 3> dct_input(std::move(codec::utils::dct(q_input, BLOCK_WIDTH)));
   //std::cout << dct_input.maximum() << " " << dct_input.minimum() << std::endl;
+
+  // round to nearest
+  for(size_t channel = 0; channel < dim0; channel++) {
+      for(size_t row = 0; row < dim1; row++) {
+          for(size_t col = 0; col < dim2; col++) {
+              const float value = dct_input(channel, row, col);
+              dct_input(channel, row, col) = std::round(value);
+          }
+      }
+  }     
   
   // discretize to int32
-  Eigen::Tensor<int32_t, 3, Eigen::RowMajor> q2_input = dct_input.tensor().cast<int32_t>();
-  nn::Tensor<int32_t, 3> input(q2_input);
+  Eigen::Tensor<int32_t, 3, Eigen::RowMajor> q3_input = dct_input.tensor().cast<int32_t>();
+  nn::Tensor<int32_t, 3> input(q3_input);
   // Eigen::Tensor<float, 3, Eigen::RowMajor> q2_input = dct_input.tensor().cast<float>();
   // nn::Tensor<float, 3> input(q2_input);
 
@@ -179,41 +192,30 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
   assert(quality_ > 0);
   assert(quality_ <= 100);
   const float scale = quality_ < 50 ? 50.f / quality_ : (100.f - quality_) / 50;
-  
-  // int32_t qmin = input(0, 0, 0) / (scale * JPEG_QUANTIZATION[0]);
-  // int32_t qmax = input(0, 0, 0) / (scale * JPEG_QUANTIZATION[0]);
 
+  // codec::ArithmeticEncoder<codec::SimpleAdapativeModel> encoder(DCT_MAX - DCT_MIN + 1);
+  
   // arithmetic encode and serialize data
   for (size_t channel = 0; channel < dim0; channel++) {
     for (size_t block_row = 0; block_row < dim1 / BLOCK_WIDTH; block_row++) {
       for (size_t block_col = 0; block_col < dim2 / BLOCK_WIDTH; block_col++) {
 
-          // bool zero_flag = false;
-          
           for (size_t i = 0; i < ZIGZAG_LENGTH; i++) {
           const size_t row_offset =
               BLOCK_WIDTH * block_row + ZIGZAG_ORDER[i][0];
           const size_t col_offset =
               BLOCK_WIDTH * block_col + ZIGZAG_ORDER[i][1];
 
-          int32_t element = input(channel, row_offset, col_offset) / (scale * JPEG_QUANTIZATION[i]);
+          float scalef = scale * JPEG_QUANTIZATION[i];
+          if (scalef < 1) {
+              scalef = 1;
+          }
+          const float valf = static_cast<float>(input(channel, row_offset, col_offset));
+          const int32_t element = static_cast<int32_t>(std::round(valf / scalef));
 
-          // if (element < qmin) {
-          //     qmin = element;
-          // }
+          assert(element >= DCT_MIN);
+          assert(element < DCT_MAX);
 
-          // if (element > qmax) {
-          //     qmax = element;
-          // }
-          
-          // if (i > 10 and element == 0) {
-          //     zero_flag = true;
-          // }
-
-          // if (zero_flag) {
-          //     element = 0;
-          // }
-          
           const uint8_t* bytes = reinterpret_cast<const uint8_t*>(&element);
           
           encoding.push_back(bytes[0]);
@@ -224,8 +226,6 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
       }
     }
   }
-  
-  //std::cout << qmin << " " << qmax << std::endl;
   
   return encoding;
 }
@@ -296,7 +296,8 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
   constexpr size_t header_offset =
       sizeof(int32_t) + 2 * sizeof(float) + 3 * sizeof(uint64_t);
 
-  nn::Tensor<int32_t, 3> f_output(dim0, dim1, dim2);
+  // nn::Tensor<int32_t, 3> f_output(dim0, dim1, dim2);
+  nn::Tensor<float, 3> fp_output(dim0, dim1, dim2);
 
   assert(quality > 0);
   assert(quality <= 100);
@@ -325,15 +326,23 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
           bytes[2] = input[offset + 2];
           bytes[3] = input[offset + 3];
           
-          f_output(channel, row_offset, col_offset) = (scale * JPEG_QUANTIZATION[i]) * element;
+          float scalef = scale * JPEG_QUANTIZATION[i];
+          if (scalef < 1) {
+              scalef = 1;
+          }
+
+          const float value = scalef * element;
+          
+          assert(value >= DCT_MIN);
+          assert(value < DCT_MAX);
+          
+          fp_output(channel, row_offset, col_offset) = value;
           
         }
       }
     }
   }
 
-  Eigen::Tensor<float, 3, Eigen::RowMajor> fp_output = f_output.tensor().cast<float>();
-  
   // undo the dct
   // nn::Tensor<float, 3> idct_output(fp_output);
   nn::Tensor<float, 3> idct_output(
@@ -341,9 +350,9 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
   
   // dequantize from 8-bits
   Eigen::Tensor<float, 3, Eigen::RowMajor> dq1_output =
-      range * idct_output.tensor();
+      range * (idct_output.tensor() + 128.f);
   Eigen::Tensor<float, 3, Eigen::RowMajor> dq2_output =
-      ((1 / 65535.f) * dq1_output) + min;
+      ((1 / 255.f) * dq1_output) + min;
 
   // convert into nn::Tensor
   nn::Tensor<float, 3> output(dq2_output);
