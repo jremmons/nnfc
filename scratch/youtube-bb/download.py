@@ -2,6 +2,7 @@
 
 import os
 import sys
+import argparse
 import concurrent.futures
 import youtube_dl
 import contextlib
@@ -11,24 +12,12 @@ import subprocess
 from pascal_voc_writer import Writer
 import utils
 
-DATASET = "yt_bb_detection_train.csv"
-VID_DIR = os.path.join("./videos", DATASET.split('.')[0])
-IMAGE_DIR = os.path.join("./images", DATASET.split('.')[0])
-XML_DIR = os.path.join("./xml", DATASET.split('.')[0])
-
-DEBUG = True
-DOWNLOAD_VIDS = False
-FFMPEG_DIR = "/sailhome/jestinm/bin"
-
-out_template = os.path.join(VID_DIR, '%(id)s.%(ext)s')
-ydl_opts = {'format': 'best[ext=mp4]/best', 'quiet': not DEBUG,
-            'outtmpl': out_template, 'ignoreerrors': True}
-
+DEBUG = False
 FNULL = open(os.devnull, 'w')
 
 # Function to download clips of a video by downloading the entire video, then cutting it
 # This is faster for videos which have multiple clips.
-def download_all_clips(video):
+def download_all_clips(video, vid_dir, ydl_opts):
     video_path = os.path.join(VID_DIR, video.yt_id + '.mp4')
 
     if not os.path.exists(video_path):
@@ -62,21 +51,15 @@ def download_all_clips(video):
         os.remove(video_path)
 
 # Extracts all frames from a given clip to a class-based folder.
-def decode_frames(clip, keep_absent=False):
-    idx = -1
-    for timestamp in clip.times_ms:
+def decode_frames(clip, clip_path, image_dir, xml_dir, keep_absent=False):
+    for idx, timestamp in enumerate(clip.times_ms):
+
         if not keep_absent and timestamp in clip.absences:
             continue
 
-        idx += 1
-
-        clip_path = os.path.join(VID_DIR, '{0}.mp4'.format(clip.name()))
         class_name = utils.classes[int(clip.class_id)]
-        frame_path = os.path.join(IMAGE_DIR, class_name, clip.name() + '.jpg')
-
-        # If the video failed to download.
-        if not os.path.exists(clip_path):
-            continue
+        frame_name = clip.name() + "_" + str(timestamp) + '.jpg'
+        frame_path = os.path.join(image_dir, class_name, frame_name)
 
         decode_time = timestamp - clip.times_ms[0]
         decode_cmd = ['ffmpeg', '-y', '-ss', str(float(decode_time)/1000.0),
@@ -98,34 +81,55 @@ def decode_frames(clip, keep_absent=False):
         if ymin == 0: ymin = 1
 
         # Write the VOC annotations.
-        xml_path = os.path.join(XML_DIR, class_name, clip.name() + '.xml')
+        xml_name = clip.name() + "_" + str(timestamp) + '.xml'
+        xml_path = os.path.join(xml_dir, class_name, xml_name)
         xml_writer = Writer(frame_path, width, height)
         xml_writer.addObject(class_name, xmin, ymin, xmax, ymax)
         xml_writer.save(xml_path)
 
 if __name__ == '__main__':
-    sys.path.append(FFMPEG_DIR)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dataset', required=True, help='dataset csv')
+    parser.add_argument('--image-dir', default='./images', help='image directory')
+    parser.add_argument('--xml-dir', default='./xml', help='xml directory')
+    parser.add_argument('--vid-dir', default='./videos', help='video directory')
+    parser.add_argument('--download-vids', action='store_true')
+    parser.add_argument('--ffmpeg-dir', default='/sailhome/jestinm/bin',
+                        help='optional ffmpeg location')
+    parser.add_argument('--debug', action='store_true', help='debug flag')
+    args = parser.parse_args()
+
+    sys.path.append(args.ffmpeg_dir)
+    DEBUG = args.debug
+    dataset_name = os.path.splitext(args.dataset)[0]
 
     # Make the directory and download all the clips
-    os.makedirs(VID_DIR, exist_ok=True)
-    videos = utils.get_videos(DATASET)
+    vid_dir = os.path.join(args.vid_dir, dataset_name)
+    os.makedirs(vid_dir, exist_ok=True)
+    videos = utils.get_videos(args.dataset)
 
-    if DOWNLOAD_VIDS:
+    if args.download_vids:
+        out_template = os.path.join(vid_dir, '%(id)s.%(ext)s')
+        ydl_opts = {'format': 'best[ext=mp4]/best', 'quiet': not DEBUG,
+                'outtmpl': out_template, 'ignoreerrors': True}
+
         with concurrent.futures.ProcessPoolExecutor() as executor:
             for video in videos:
-                executor.submit(download_all_clips, video)
+                executor.submit(download_all_clips, video, vid_dir, ydl_opts)
 
     # Extract all images from the clips into folders by class
-    os.makedirs(IMAGE_DIR, exist_ok=True)
-    os.makedirs(XML_DIR, exist_ok=True)
+    image_dir = os.path.join(args.image_dir, dataset_name)
+    xml_dir = os.path.join(args.xml_dir, dataset_name)
+    os.makedirs(image_dir, exist_ok=True)
+    os.makedirs(xml_dir, exist_ok=True)
     for clazz in utils.classes:
-        os.makedirs(os.path.join(IMAGE_DIR, clazz), exist_ok=True)
-        os.makedirs(os.path.join(XML_DIR, clazz), exist_ok=True)
+        os.makedirs(os.path.join(image_dir, clazz), exist_ok=True)
+        os.makedirs(os.path.join(xml_dir, clazz), exist_ok=True)
 
     with concurrent.futures.ProcessPoolExecutor() as executor:
         for video in videos:
             for clip in video.clips:
-                clip_path = os.path.join(VID_DIR, '{0}.mp4'.format(clip.name()))
+                clip_path = os.path.join(vid_dir, '{0}.mp4'.format(clip.name()))
                 if not os.path.exists(clip_path):
                     continue
-                executor.submit(decode_frames, clip)
+                executor.submit(decode_frames, clip, clip_path, image_dir, xml_dir)

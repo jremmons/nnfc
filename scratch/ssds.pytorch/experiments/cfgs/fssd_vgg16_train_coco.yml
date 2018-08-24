@@ -48,4 +48,4 @@ DATASET:
 EXP_DIR: './experiments/models/fssd_vgg16_coco'
 LOG_DIR: './experiments/models/fssd_vgg16_coco'
 RESUME_CHECKPOINT: './weights/fssd/vgg16_fssd_coco_24.5.pth'
-PHASE: ['train']
+PHASE: ['test']

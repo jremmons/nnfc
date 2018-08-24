@@ -13,7 +13,7 @@ MODEL:
 TRAIN:
   MAX_EPOCHS: 100
   CHECKPOINTS_EPOCHS: 1
-  BATCH_SIZE: 16
+  BATCH_SIZE: 32
   TRAINABLE_SCOPE: 'base,extras,loc,conf'
   RESUME_SCOPE: 'base,extras,loc,conf'
   OPTIMIZER:
@@ -26,7 +26,7 @@ TRAIN:
     WARM_UP_EPOCHS: 20
 
 TEST:
-  BATCH_SIZE: 16
+  BATCH_SIZE: 64
   TEST_SCOPE: [90, 100]
 
 MATCHER:
@@ -48,5 +48,5 @@ DATASET:
 
 EXP_DIR: './experiments/models/yolo_v3_mobilenetv2_voc'
 LOG_DIR: './experiments/models/yolo_v3_mobilenetv2_voc'
-#RESUME_CHECKPOINT: './weights/yolo/mobilenet_v2_yolo_v3_voc_75.8.pth'
-PHASE: ['train']
+RESUME_CHECKPOINT: './weights/yolo/mobilenet_v2_yolo_v3_voc_75.8.pth'
+PHASE: ['test']

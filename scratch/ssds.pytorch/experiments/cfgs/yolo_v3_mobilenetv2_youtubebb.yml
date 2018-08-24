@@ -11,9 +11,9 @@ MODEL:
                   [[0.024,0.031], [0.038,0.072], [0.079,0.055]], ]
 
 TRAIN:
-  MAX_EPOCHS: 101
+  MAX_EPOCHS: 100
   CHECKPOINTS_EPOCHS: 1
-  BATCH_SIZE: 16
+  BATCH_SIZE: 32
   TRAINABLE_SCOPE: 'base,extras,loc,conf'
   RESUME_SCOPE: 'base,extras,loc,conf'
   OPTIMIZER:
@@ -26,7 +26,7 @@ TRAIN:
     WARM_UP_EPOCHS: 20
 
 TEST:
-  BATCH_SIZE: 16
+  BATCH_SIZE: 64
   TEST_SCOPE: [90, 100]
 
 MATCHER:
@@ -40,12 +40,13 @@ POST_PROCESS:
   MAX_DETECTIONS: 100
 
 DATASET:
-  DATASET: 'voc'
-  DATASET_DIR: './data/VOCdevkit'
-  TRAIN_SETS: [['2007', 'trainval'], ['2012', 'trainval']]
-  TEST_SETS:  [['2007', 'test']]
+  DATASET: 'youtubebb'
+  DATASET_DIR: './data/youtubebb'
+  TRAIN_SETS: []
+  TEST_SETS:  [[2007, 'test']]
   PROB: 0.6
 
-EXP_DIR: './experiments/models/yolo_v3_mobilenetv2_voc'
-LOG_DIR: './experiments/models/yolo_v3_mobilenetv2_voc'
+EXP_DIR: './experiments/models/yolo_v3_mobilenetv2_youtubebb'
+LOG_DIR: './experiments/models/yolo_v3_mobilenetv2_youtubebb'
+RESUME_CHECKPOINT: './weights/yolo/mobilenet_v2_yolo_v3_voc_75.8.pth'
 PHASE: ['test']

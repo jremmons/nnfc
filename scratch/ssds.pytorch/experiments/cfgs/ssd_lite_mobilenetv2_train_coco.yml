@@ -24,7 +24,7 @@ TRAIN:
     WARM_UP_EPOCHS: 95
 
 TEST:
-  BATCH_SIZE: 32
+  BATCH_SIZE: 64
   TEST_SCOPE: [196, 200]
 
 MATCHER:
@@ -47,4 +47,4 @@ DATASET:
 EXP_DIR: './experiments/models/ssd_mobilenet_v2_coco'
 LOG_DIR: './experiments/models/ssd_mobilenet_v2_coco'
 RESUME_CHECKPOINT: './weights/ssd_lite/mobilenet_v2_ssd_lite_coco_18.5.pth'
-PHASE: ['eval']
+PHASE: ['test']

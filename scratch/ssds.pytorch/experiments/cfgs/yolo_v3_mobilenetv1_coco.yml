@@ -26,7 +26,7 @@ TRAIN:
     WARM_UP_EPOCHS: 60
 
 TEST:
-  BATCH_SIZE: 16
+  BATCH_SIZE: 64
   TEST_SCOPE: [90, 100]
 
 MATCHER:
@@ -49,4 +49,4 @@ DATASET:
 EXP_DIR: './experiments/models/yolo_v3_mobilenetv1_coco'
 LOG_DIR: './experiments/models/yolo_v3_mobilenetv1_coco'
 RESUME_CHECKPOINT: './weights/yolo/mobilenet_v1_yolo_v3_coco_25.7.pth'
-PHASE: ['eval', 'test']
+PHASE: ['test']
