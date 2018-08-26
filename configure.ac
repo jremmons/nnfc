@@ -14,7 +14,8 @@ m4_include(m4/hdf5.m4)
 #m4_include(m4/boost.m4)
 
 # Add picky CXXFLAGS
-CXX14_FLAGS="-std=c++17"
+# CXX14_FLAGS="-std=c++17 -mtune=generic -g -O0"
+CXX14_FLAGS="-std=c++17 -mtune=native -O2"
 PICKY_CXXFLAGS="-Wall -Wextra -Weffc++ -Wno-non-virtual-dtor -Werror"
 AC_SUBST([CXX14_FLAGS])
 AC_SUBST([PICKY_CXXFLAGS])
@@ -42,8 +43,7 @@ if test x"$GPP7_CHECK" != x"yes" ; then
 fi
 AC_SUBST([CXX], [g++-7])
 
-# Checks for assemblers
-# TODO only check this when arch is x86*
+# Checks for assembler
 AC_CHECK_PROGS([AS], [nasm], [none])
 AS_IF([test x$AS == xnone], [
   AC_MSG_ERROR([nasm required for assembly. Install one of those to use SSE2.])
