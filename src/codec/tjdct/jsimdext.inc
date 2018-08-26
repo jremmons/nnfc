@@ -471,6 +471,6 @@ const_base:
 ; --------------------------------------------------------------------------
 ;  Defines picked up from the C headers
 ;
-%include "fastdct/jsimdcfg.inc"
+%include "tjdct/jsimdcfg.inc"
 
 ; --------------------------------------------------------------------------

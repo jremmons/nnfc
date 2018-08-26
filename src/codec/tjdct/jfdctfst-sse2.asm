@@ -21,8 +21,8 @@
 ;
 ; [TAB8]
 
-%include "fastdct/jsimdext.inc"
-%include "fastdct/jdct.inc"
+%include "tjdct/jsimdext.inc"
+%include "tjdct/jdct.inc"
 
 ; --------------------------------------------------------------------------
 
