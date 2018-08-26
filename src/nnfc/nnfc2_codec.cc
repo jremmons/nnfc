@@ -3,8 +3,8 @@
 #include <iostream>
 #include <vector>
 
-#include "codec/utils.hh"
 #include "codec/arithmetic_coder.hh"
+#include "codec/utils.hh"
 #include "tensor.hh"
 
 #include "nnfc2_codec.hh"
@@ -13,7 +13,7 @@ static constexpr int BLOCK_WIDTH = 8;
 
 // zigzag traversal order
 // 0   1   5   6  14  15  27  28
-// 
+//
 // 2   4   7  13  16  26  29  42
 //
 // 3   8  12  17  25  30  41  43
@@ -60,7 +60,8 @@ static constexpr int ZIGZAG_LENGTH =
 //       for (int j = 0; j < 8; j++) {
 //           std::cout << check[i][j] << std::endl;
 //           if (check[i][j] != 1) {
-//               std::cout << "" << i << " " << j << " " << check[i][j] << std::endl;
+//               std::cout << "" << i << " " << j << " " << check[i][j] <<
+//               std::endl;
 //               throw std::runtime_error("check failed");
 //           }
 //       }
@@ -69,8 +70,10 @@ static constexpr int ZIGZAG_LENGTH =
 // }
 
 // Goes in order of zigzag pattern.
-// Quantization value taken from https://github.com/libjpeg-turbo/ijg/blob/3040e5eaef76f270f58fba7ed87472d5c12c539f/jcparam.c#L68.
-// Gist: (https://gist.github.com/jremmons/245506018f5933bf344c2e37ec40a24e#file-jpeg_quantization-c-L1)
+// Quantization value taken from
+// https://github.com/libjpeg-turbo/ijg/blob/3040e5eaef76f270f58fba7ed87472d5c12c539f/jcparam.c#L68.
+// Gist:
+// (https://gist.github.com/jremmons/245506018f5933bf344c2e37ec40a24e#file-jpeg_quantization-c-L1)
 // We use the luminance quantization values.
 static constexpr int JPEG_QUANTIZATION[] = {
     16,                                  //
@@ -102,14 +105,14 @@ nnfc::NNFC2Encoder::NNFC2Encoder() : quality_(98) {}
 nnfc::NNFC2Encoder::~NNFC2Encoder() {}
 
 std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
-  const nn::Tensor<float, 3> t_input) const {
+    const nn::Tensor<float, 3> t_input) const {
   const uint64_t dim0 = t_input.dimension(0);
   const uint64_t dim1 = t_input.dimension(1);
   const uint64_t dim2 = t_input.dimension(2);
 
   assert(dim1 % BLOCK_WIDTH == 0);
   assert(dim2 % BLOCK_WIDTH == 0);
-  
+
   // perform quantization first,
   // then DCT
   // then further quantize using DCT table
@@ -121,42 +124,47 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
   const float range = max - min;
 
   // quantize to 8-bits
-  //Eigen::Tensor<float, 3, Eigen::RowMajor> q1_input = (255.f * (t_input.tensor() - min)) / range - 128.f;
-  Eigen::Tensor<float, 3, Eigen::RowMajor> q1_input = (127.f * (t_input.tensor() - min)) / range - 64.f;
-  //Eigen::Tensor<float, 3, Eigen::RowMajor> q1_input = (63.f * (t_input.tensor() - min)) / range - 32.f;
-  nn::Tensor<float, 3> q_input(q1_input); 
+  // Eigen::Tensor<float, 3, Eigen::RowMajor> q1_input = (255.f *
+  // (t_input.tensor() - min)) / range - 128.f;
+  Eigen::Tensor<float, 3, Eigen::RowMajor> q1_input =
+      (127.f * (t_input.tensor() - min)) / range - 64.f;
+  // Eigen::Tensor<float, 3, Eigen::RowMajor> q1_input = (63.f *
+  // (t_input.tensor() - min)) / range - 32.f;
+  nn::Tensor<float, 3> q_input(q1_input);
 
   // do the dct
   // nn::Tensor<float, 3> dct_input(q_input);
-  nn::Tensor<float, 3> dct_input(std::move(codec::utils::dct(q_input, BLOCK_WIDTH)));
+  nn::Tensor<float, 3> dct_input(
+      std::move(codec::utils::dct(q_input, BLOCK_WIDTH)));
 
   // round to nearest
-  for(size_t channel = 0; channel < dim0; channel++) {
-      for(size_t row = 0; row < dim1; row++) {
-          for(size_t col = 0; col < dim2; col++) {
-              const float value = dct_input(channel, row, col);
-              dct_input(channel, row, col) = std::round(value);
-          }
+  for (size_t channel = 0; channel < dim0; channel++) {
+    for (size_t row = 0; row < dim1; row++) {
+      for (size_t col = 0; col < dim2; col++) {
+        const float value = dct_input(channel, row, col);
+        dct_input(channel, row, col) = std::round(value);
       }
-  }     
-  
+    }
+  }
+
   // discretize to int32
-  Eigen::Tensor<int32_t, 3, Eigen::RowMajor> q3_input = dct_input.tensor().cast<int32_t>();
+  Eigen::Tensor<int32_t, 3, Eigen::RowMajor> q3_input =
+      dct_input.tensor().cast<int32_t>();
   nn::Tensor<int32_t, 3> input(q3_input);
 
   assert(quality_ > 0);
   assert(quality_ <= 100);
   const float scale = quality_ < 50 ? 50.f / quality_ : (100.f - quality_) / 50;
-  
-  codec::ArithmeticEncoder<codec::SimpleAdaptiveModel> encoder(DCT_MAX - DCT_MIN + 1);
-  //codec::DummyArithmeticEncoder encoder;
-  
+
+  codec::ArithmeticEncoder<codec::SimpleAdaptiveModel> encoder(DCT_MAX -
+                                                               DCT_MIN + 1);
+  // codec::DummyArithmeticEncoder encoder;
+
   // arithmetic encode and serialize data
   for (size_t channel = 0; channel < dim0; channel++) {
     for (size_t block_row = 0; block_row < dim1 / BLOCK_WIDTH; block_row++) {
       for (size_t block_col = 0; block_col < dim2 / BLOCK_WIDTH; block_col++) {
-
-          for (size_t i = 0; i < ZIGZAG_LENGTH; i++) {
+        for (size_t i = 0; i < ZIGZAG_LENGTH; i++) {
           const size_t row_offset =
               BLOCK_WIDTH * block_row + ZIGZAG_ORDER[i][0];
           const size_t col_offset =
@@ -164,17 +172,19 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
 
           float scalef = scale * JPEG_QUANTIZATION[i];
           if (scalef < 1) {
-              scalef = 1;
+            scalef = 1;
           }
-          const float valf = static_cast<float>(input(channel, row_offset, col_offset));
-          const int32_t element = static_cast<int32_t>(std::round(valf / scalef));
+          const float valf =
+              static_cast<float>(input(channel, row_offset, col_offset));
+          const int32_t element =
+              static_cast<int32_t>(std::round(valf / scalef));
 
           assert(element >= DCT_MIN);
           assert(element < DCT_MAX);
 
           const int symbol = element - DCT_MIN;
           assert(symbol >= 0);
-          assert(symbol < (DCT_MAX - DCT_MIN + 1));              
+          assert(symbol < (DCT_MAX - DCT_MIN + 1));
           encoder.encode_symbol(static_cast<uint32_t>(symbol));
         }
       }
@@ -225,8 +235,9 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
     }
   }
 
-  std::vector<uint8_t> encoding_(reinterpret_cast<uint8_t*>(encoding.data()),
-                                 reinterpret_cast<uint8_t*>(encoding.data()) + encoding.size());
+  std::vector<uint8_t> encoding_(
+      reinterpret_cast<uint8_t *>(encoding.data()),
+      reinterpret_cast<uint8_t *>(encoding.data()) + encoding.size());
   return encoding_;
 }
 
@@ -241,9 +252,8 @@ nnfc::NNFC2Decoder::~NNFC2Decoder() {}
 
 nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
     const std::vector<uint8_t> input) const {
-
   const size_t input_size = input.size();
-    
+
   // read dims from footer
   uint64_t dim0;
   uint64_t dim1;
@@ -253,9 +263,12 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
     uint8_t *dim1_bytes = reinterpret_cast<uint8_t *>(&dim1);
     uint8_t *dim2_bytes = reinterpret_cast<uint8_t *>(&dim2);
 
-    const size_t dim0_offset = input_size - 3 * sizeof(uint64_t) - 2*sizeof(float) - 1*sizeof(int32_t);
-    const size_t dim1_offset = input_size - 2 * sizeof(uint64_t) - 2*sizeof(float) - 1*sizeof(int32_t);
-    const size_t dim2_offset = input_size - 1 * sizeof(uint64_t) - 2*sizeof(float) - 1*sizeof(int32_t);
+    const size_t dim0_offset = input_size - 3 * sizeof(uint64_t) -
+                               2 * sizeof(float) - 1 * sizeof(int32_t);
+    const size_t dim1_offset = input_size - 2 * sizeof(uint64_t) -
+                               2 * sizeof(float) - 1 * sizeof(int32_t);
+    const size_t dim2_offset = input_size - 1 * sizeof(uint64_t) -
+                               2 * sizeof(float) - 1 * sizeof(int32_t);
     for (size_t i = 0; i < sizeof(uint64_t); i++) {
       dim0_bytes[i] = input[i + dim0_offset];
       dim1_bytes[i] = input[i + dim1_offset];
@@ -270,8 +283,10 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
     uint8_t *min_bytes = reinterpret_cast<uint8_t *>(&min);
     uint8_t *max_bytes = reinterpret_cast<uint8_t *>(&max);
 
-    const size_t min_offset = input_size - 2*sizeof(float) - 1*sizeof(int32_t);
-    const size_t max_offset = input_size - 1*sizeof(float) - 1*sizeof(int32_t);
+    const size_t min_offset =
+        input_size - 2 * sizeof(float) - 1 * sizeof(int32_t);
+    const size_t max_offset =
+        input_size - 1 * sizeof(float) - 1 * sizeof(int32_t);
     for (size_t i = 0; i < sizeof(float); i++) {
       min_bytes[i] = input[i + min_offset];
     }
@@ -286,7 +301,7 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
   {
     uint8_t *quality_bytes = reinterpret_cast<uint8_t *>(&quality);
 
-    const size_t quality_offset = input_size - 1*sizeof(int32_t);
+    const size_t quality_offset = input_size - 1 * sizeof(int32_t);
 
     for (size_t i = 0; i < sizeof(int32_t); i++) {
       quality_bytes[i] = input[i + quality_offset];
@@ -301,11 +316,14 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
   assert(quality > 0);
   assert(quality <= 100);
   const float scale = quality < 50 ? 50.f / quality : (100.f - quality) / 50;
-  
-  std::vector<char> encoding_(reinterpret_cast<const char*>(input.data()),
-                              reinterpret_cast<const char*>(input.data()) + input_size - 3 * sizeof(uint64_t) - 2*sizeof(float) - 1*sizeof(int32_t));
 
-  codec::ArithmeticDecoder<codec::SimpleAdaptiveModel> decoder(encoding_, DCT_MAX - DCT_MIN + 1);
+  std::vector<char> encoding_(reinterpret_cast<const char *>(input.data()),
+                              reinterpret_cast<const char *>(input.data()) +
+                                  input_size - 3 * sizeof(uint64_t) -
+                                  2 * sizeof(float) - 1 * sizeof(int32_t));
+
+  codec::ArithmeticDecoder<codec::SimpleAdaptiveModel> decoder(
+      encoding_, DCT_MAX - DCT_MIN + 1);
   // codec::DummyArithmeticDecoder decoder(encoding_);
 
   // undo arithmetic encoding and deserialize
@@ -319,19 +337,19 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
               BLOCK_WIDTH * block_col + ZIGZAG_ORDER[i][1];
 
           uint32_t symbol = decoder.decode_symbol();
-          assert(symbol < (DCT_MAX - DCT_MIN + 1));          
+          assert(symbol < (DCT_MAX - DCT_MIN + 1));
           int32_t element = symbol + DCT_MIN;
 
           float scalef = scale * JPEG_QUANTIZATION[i];
           if (scalef < 1) {
-              scalef = 1;
+            scalef = 1;
           }
 
           const float value = scalef * element;
 
           assert(value >= DCT_MIN);
           assert(value < DCT_MAX);
-          
+
           fp_output(channel, row_offset, col_offset) = value;
         }
       }
@@ -342,7 +360,7 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
   // nn::Tensor<float, 3> idct_output(fp_output);
   nn::Tensor<float, 3> idct_output(
       std::move(codec::utils::idct(fp_output, BLOCK_WIDTH)));
-  
+
   // dequantize from 8-bits
   // Eigen::Tensor<float, 3, Eigen::RowMajor> dq1_output =
   //     range * (idct_output.tensor() + 128.f);
@@ -358,7 +376,7 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
   //     range * (idct_output.tensor() + 32.f);
   // Eigen::Tensor<float, 3, Eigen::RowMajor> dq2_output =
   //     ((1 / 63.f) * dq1_output) + min;
-  
+
   // convert into nn::Tensor
   nn::Tensor<float, 3> output(dq2_output);
 
