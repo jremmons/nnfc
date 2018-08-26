@@ -90,7 +90,7 @@ class Compressor(nn.Module):
         # print(a == b)
         
         self.sizes = []
-        self.pad = nn.ReplicationPad2d(1)
+        self.pad = nn.ReplicationPad2d(2)
         
         # define the bottleneck layers
         # expland to 6x the size with 3x3
@@ -150,6 +150,7 @@ class Compressor(nn.Module):
         #     img = Image.fromarray(img)
         #     img.save('/home/jemmons/intermediates/intermediate{}.png'.format(i))
             
+        # print(x.shape)
         x = self.pad(x)
         x = self.compression_layer(x)
         x = x[:,:,1:-1,1:-1]
