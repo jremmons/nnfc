@@ -42,6 +42,21 @@ if test x"$GPP7_CHECK" != x"yes" ; then
 fi
 AC_SUBST([CXX], [g++-7])
 
+# Checks for assemblers
+# TODO only check this when arch is x86*
+AC_CHECK_PROGS([AS], [nasm], [none])
+AS_IF([test x$AS == xnone], [
+  AC_MSG_ERROR([nasm required for assembly. Install one of those to use SSE2.])
+], [
+  ASFLAGS="-DELF -D__x86_64__ -DPIC -f elf64"
+
+AC_DEFINE([HAVE_SSE2], [1], [CPU supports SSE2])
+  AC_DEFINE([ARCH_X86_64], [1], [64bit CPU])
+])
+
+AC_SUBST([AS])
+AC_SUBST([ASFLAGS])
+
 # Checks for libraries.
 PKG_CHECK_MODULES([JPEG], [libturbojpeg])
 AX_CHECK_HDF5_SERIAL()
@@ -86,6 +101,7 @@ AC_CONFIG_FILES([Makefile
          src/frontend/Makefile
          src/frontend/simplenet9/Makefile
          src/frontend/arithcode/Makefile
+         src/frontend/asmdct/Makefile
          python/Makefile
          tests/Makefile
          tests/arithcode/Makefile
