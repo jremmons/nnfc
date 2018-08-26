@@ -1,1 +1,1 @@
-SUBDIRS = arithcode simplenet9
+SUBDIRS = arithcode asmdct simplenet9
