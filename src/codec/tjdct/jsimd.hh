@@ -2,12 +2,11 @@
 #define _JSMID_HH
 
 constexpr int16_t dct_table[] = {
-    36,  50,  63,  113, 200, 157, 108, 55,  50,  85,  94,
-    215, 277, 218, 150, 77,  63,  94,  191, 307, 261, 205,
-    141, 72,  113, 215, 307, 277, 235, 185, 127, 65,  200,
-    277, 261, 235, 200, 157, 108, 55,  157, 218, 205, 185,
-    157, 123, 85,  43,  108, 150, 141, 127, 108, 85,  59,
-    30,  55,  77,  72,  65,  55,  43,  30,  15};
+    36,  50,  63,  113, 200, 157, 108, 55,  50,  85,  94,  215, 277,
+    218, 150, 77,  63,  94,  191, 307, 261, 205, 141, 72,  113, 215,
+    307, 277, 235, 185, 127, 65,  200, 277, 261, 235, 200, 157, 108,
+    55,  157, 218, 205, 185, 157, 123, 85,  43,  108, 150, 141, 127,
+    108, 85,  59,  30,  55,  77,  72,  65,  55,  43,  30,  15};
 
 constexpr int16_t divisors[] = {
     -7282,  -23593, -31982, -28418, -23593, -12105, -26700, -27406, -23593,
@@ -51,13 +50,16 @@ extern "C" const int jconst_fdct_ifast_sse2[];
 extern "C" void jsimd_fdct_ifast_sse2(short *data);
 extern "C" void jsimd_fdct_islow_sse2(short *data);
 
-extern "C" void jsimd_quantize_sse2(short *coefs, const short *divisors, const short *data);
+extern "C" void jsimd_quantize_sse2(short *coefs, const short *divisors,
+                                    const short *data);
 
 extern "C" const int jconst_idct_ifast_sse2[];
-extern "C" void jsimd_idct_ifast_sse2(const void *dct_table, const short *coef_block,
+extern "C" void jsimd_idct_ifast_sse2(const void *dct_table,
+                                      const short *coef_block,
                                       uint8_t **output_buf,
                                       unsigned int output_col);
-extern "C" void jsimd_idct_islow_sse2(const void *dct_table, const short *coef_block,
+extern "C" void jsimd_idct_islow_sse2(const void *dct_table,
+                                      const short *coef_block,
                                       uint8_t **output_buf,
                                       unsigned int output_col);
 
