@@ -21,6 +21,7 @@ from clr import CyclicLR
 from data import get_loaders
 from logger import CsvLogger
 from model import MobileNet2
+#from run_demo import train, test, save_checkpoint, find_bounds_clr
 from run import train, test, save_checkpoint, find_bounds_clr
 
 parser = argparse.ArgumentParser(description='MobileNetv2 training with PyTorch')

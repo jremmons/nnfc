@@ -8,6 +8,7 @@ import torch.nn.functional as F
 from torch.nn import init
 
 from nnfc.modules.nnfc import CompressionLayer
+from PIL import Image
 
 def _make_divisible(v, divisor, min_value=None):
     """
@@ -132,6 +133,23 @@ class Compressor(nn.Module):
         # print(density)        
         # print(x.max(), x.min())
 
+        # visualization code
+        # print(x.shape)
+        # d = x[0,:,:,:].cpu().detach().numpy()
+        # dmin = np.min(d)
+        # dmax = np.max(d)
+        # for i in range(x.shape[1]):
+        #     d = x[0,i,:,:].cpu().detach().numpy()
+        #     print(d.shape)
+        #     print(dmin, dmax)
+            
+        #     img = ((255 * (d - dmin)) / (dmax - dmin)).astype(np.uint8)
+        #     imgmin = np.min(img)
+        #     imgmax = np.max(img)
+            
+        #     img = Image.fromarray(img)
+        #     img.save('/home/jemmons/intermediates/intermediate{}.png'.format(i))
+            
         x = self.pad(x)
         x = self.compression_layer(x)
         x = x[:,:,1:-1,1:-1]
@@ -249,7 +267,7 @@ class MobileNet2(nn.Module):
                                       stride=self.s[i + 1],
                                       t=self.t, stage=i)
             modules[name] = module
-            if i == 3:
+            if i == 2:
                 modules['compressor'] = self.compression_layer
                 
         return nn.Sequential(modules)
