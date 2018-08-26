@@ -79,7 +79,6 @@ class SimpleAdaptiveModel {
 
   inline uint32_t finished_symbol() const { return num_symbols_ - 1; }
 };
-   
 }
 
 #endif  // _CODEC_ARITHMETIC_PROBABILITY_MODELS_HH

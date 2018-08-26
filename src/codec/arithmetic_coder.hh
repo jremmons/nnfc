@@ -32,7 +32,7 @@ static constexpr uint64_t working_bits_mask = working_bits_max;
 }
 
 //////////////////////////////////////////////////////////////////////
-// Infinite Bit Vector 
+// Infinite Bit Vector
 //
 // A helper class that gives you a std::vector like interface but
 // for individual bits.
@@ -89,67 +89,60 @@ class InfiniteBitVector {
   }
 };
 
-    
 //////////////////////////////////////////////////////////////////////
 // Dummy Arithmetic Encoder
 //////////////////////////////////////////////////////////////////////
 class DummyArithmeticEncoder {
-private:
-    std::vector<char> data_;
+ private:
+  std::vector<char> data_;
 
-public:
-    DummyArithmeticEncoder() :
-        data_() {}
+ public:
+  DummyArithmeticEncoder() : data_() {}
 
-    ~DummyArithmeticEncoder() {}
+  ~DummyArithmeticEncoder() {}
 
-    void encode_symbol(const uint32_t symbol) {
-        const char* bytes = reinterpret_cast<const char*>(&symbol);
-        
-        data_.push_back(bytes[0]);
-        data_.push_back(bytes[1]);
-        data_.push_back(bytes[2]);
-        data_.push_back(bytes[3]);
-    }
-    
-    std::vector<char> finish() const {
-        return data_;
-    }
+  void encode_symbol(const uint32_t symbol) {
+    const char* bytes = reinterpret_cast<const char*>(&symbol);
+
+    data_.push_back(bytes[0]);
+    data_.push_back(bytes[1]);
+    data_.push_back(bytes[2]);
+    data_.push_back(bytes[3]);
+  }
+
+  std::vector<char> finish() const { return data_; }
 };
-    
+
 //////////////////////////////////////////////////////////////////////
 // Dummy Arithmetic Decoder
 //////////////////////////////////////////////////////////////////////
 class DummyArithmeticDecoder {
-private:
-    const std::vector<char>& data_;
-    size_t index_;
-    
-public:
-    DummyArithmeticDecoder(const std::vector<char>& data) :
-        data_(data),
-        index_(0) {}
-    
-    ~DummyArithmeticDecoder() {}
+ private:
+  const std::vector<char>& data_;
+  size_t index_;
 
-    uint32_t decode_symbol() {
-        uint32_t symbol;
-        char* bytes = reinterpret_cast<char*>(&symbol);
+ public:
+  DummyArithmeticDecoder(const std::vector<char>& data)
+      : data_(data), index_(0) {}
 
-        bytes[0] = data_[index_ + 0];
-        bytes[1] = data_[index_ + 1];
-        bytes[2] = data_[index_ + 2];
-        bytes[3] = data_[index_ + 3];
+  ~DummyArithmeticDecoder() {}
 
-        index_ += sizeof(uint32_t);
-        return symbol;
-    }    
+  uint32_t decode_symbol() {
+    uint32_t symbol;
+    char* bytes = reinterpret_cast<char*>(&symbol);
 
-    bool done() const {
-        return index_ >= data_.size();
-    }
+    bytes[0] = data_[index_ + 0];
+    bytes[1] = data_[index_ + 1];
+    bytes[2] = data_[index_ + 2];
+    bytes[3] = data_[index_ + 3];
+
+    index_ += sizeof(uint32_t);
+    return symbol;
+  }
+
+  bool done() const { return index_ >= data_.size(); }
 };
-    
+
 //////////////////////////////////////////////////////////////////////
 // Arithmetic Encoder
 //////////////////////////////////////////////////////////////////////
@@ -293,7 +286,6 @@ class ArithmeticEncoder {
   }
 };
 
-    
 //////////////////////////////////////////////////////////////////////
 // Arithmetic Decoder
 //////////////////////////////////////////////////////////////////////
@@ -427,9 +419,11 @@ class ArithmeticDecoder {
 
     //         const uint64_t sym_high =
     //             low_ + (sym_prob.second * range) / denominator - 1;
-    //         const uint64_t sym_low = low_ + (sym_prob.first * range) / denominator;
+    //         const uint64_t sym_low = low_ + (sym_prob.first * range) /
+    //         denominator;
 
-    //         std::cerr << sym_low << " " << value_ << " " << sym_high << std::endl;
+    //         std::cerr << sym_low << " " << value_ << " " << sym_high <<
+    //         std::endl;
     //     }
 
     // }
