@@ -16,7 +16,7 @@ libcodec_a_SOURCES = arithmetic_encoder.hh \
                      mpeg.hh mpeg.cc \
                      swizzle.hh swizzle.cc \
                      utils.hh utils.cc \
-                     tjdct/jfdctint-sse2.asm \ 
+                     tjdct/jfdctint-sse2.asm \
                      tjdct/jidctint-sse2.asm \
                      tjdct/jfdctfst-sse2.asm \
                      tjdct/jidctfst-sse2.asm \
