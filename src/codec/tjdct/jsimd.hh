@@ -47,19 +47,19 @@ constexpr int16_t divisors[] = {
     0,      0,      0,      0,      0};
 
 extern "C" const int jconst_fdct_ifast_sse2[];
-extern "C" void jsimd_fdct_ifast_sse2(short *data);
-extern "C" void jsimd_fdct_islow_sse2(short *data);
+extern "C" void jsimd_fdct_ifast_sse2(int16_t *data);
+extern "C" void jsimd_fdct_islow_sse2(int16_t *data);
 
-extern "C" void jsimd_quantize_sse2(short *coefs, const short *divisors,
-                                    const short *data);
+extern "C" void jsimd_quantize_sse2(int16_t *coefs, const int16_t *divisors,
+                                    const int16_t *data);
 
 extern "C" const int jconst_idct_ifast_sse2[];
-extern "C" void jsimd_idct_ifast_sse2(const void *dct_table,
-                                      const short *coef_block,
+extern "C" void jsimd_idct_ifast_sse2(const int16_t *dct_table,
+                                      const int16_t *coef_block,
                                       uint8_t **output_buf,
                                       unsigned int output_col);
-extern "C" void jsimd_idct_islow_sse2(const void *dct_table,
-                                      const short *coef_block,
+extern "C" void jsimd_idct_islow_sse2(const int16_t *dct_table,
+                                      const int16_t *coef_block,
                                       uint8_t **output_buf,
                                       unsigned int output_col);
 

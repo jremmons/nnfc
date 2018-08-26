@@ -52,11 +52,13 @@ int main() {
     }
   }
 
-  jsimd_quantize_sse2(coef, divisors, buffer);
+  //jsimd_quantize_sse2(coef, divisors, buffer);
+  jsimd_quantize_sse2(buffer, divisors, buffer);
 
   for (int i = 0; i < 8; i++) {
     for (int j = 0; j < 8; j++) {
-      std::cout << std::setfill(' ') << std::setw(4) << coef[8 * i + j] << " ";
+      //std::cout << std::setfill(' ') << std::setw(4) << coef[8 * i + j] << " ";
+      std::cout << std::setfill(' ') << std::setw(4) << buffer[8 * i + j] << " ";
     }
     std::cout << "\n";
   }
@@ -68,7 +70,7 @@ int main() {
   // }
   // std::cout << "\n";
 
-  jsimd_idct_ifast_sse2(dct_table, coef,
+  jsimd_idct_ifast_sse2(dct_table, buffer,
                         reinterpret_cast<unsigned char **>(out_buffer), 0);
 
   for (int i = 0; i < 8; i++) {

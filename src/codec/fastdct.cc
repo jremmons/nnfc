@@ -23,6 +23,9 @@ codec::FastDCT::~FastDCT() {}
 
 void codec::FastDCT::dct_inplace(nn::Tensor<int16_t, 3>) const {
   // apply the dct and quantization to each element in each channel.
+
+  //jsimd_fdct_ifast_sse2(short* data);
+  //jsimd_quantize_sse2(short *out, const short *divisors_, const short *data); // out can be data.    
 }
 
 nn::Tensor<int16_t, 3> codec::FastDCT::dct(
@@ -40,6 +43,8 @@ codec::FastIDCT::~FastIDCT() {}
 
 void codec::FastIDCT::idct_inplace(nn::Tensor<int16_t, 3>) const {
   // apply the idct to each element in each channel.
+    
+  //jsimd_idct_ifast_sse2(const void *dct_table_, const int16_t *data, uint8_t **output_buf, unsigned int output_col);
 }
 
 nn::Tensor<int16_t, 3> codec::FastIDCT::idct(
