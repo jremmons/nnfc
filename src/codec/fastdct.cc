@@ -44,7 +44,8 @@ void codec::FastDCT::dct_inplace(nn::Tensor<int16_t, 3> input) const {
               }
 
               // perform dct and scale
-              jsimd_fdct_ifast_sse2(data);
+              //jsimd_fdct_ifast_sse2(data);
+              jsimd_fdct_islow_sse2(data);
               jsimd_quantize_sse2(data, divisors_.get(), data);
 
               // put data back into tensor
@@ -62,7 +63,7 @@ void codec::FastDCT::dct_inplace(nn::Tensor<int16_t, 3> input) const {
 nn::Tensor<int16_t, 3> codec::FastDCT::operator()(
     const nn::Tensor<int16_t, 3> input) const {
 
-  nn::Tensor<int16_t, 3> output(input);
+  nn::Tensor<int16_t, 3> output(input.deepcopy());
   dct_inplace(output);
 
   return std::move(output);
@@ -93,9 +94,9 @@ nn::Tensor<uint8_t, 3> codec::FastIDCT::operator()(
           for (int col_offset = 0; col_offset < cols; col_offset +=8) {
 
               // fill buffer
-              for (int row = row_offset; row < 8; row++) {
-                  for (int col = col_offset; col < 8; col++) {
-                      data[8*row + col] = input(channel, row, col);
+              for (int row = 0; row < 8; row++) {
+                  for (int col = 0; col < 8; col++) {
+                      data[8*row + col] = input(channel, row_offset+row, col_offset+col);
                   }
               }
 
@@ -109,7 +110,8 @@ nn::Tensor<uint8_t, 3> codec::FastIDCT::operator()(
               outdata[7] = &output(channel, row_offset+7, col_offset);
               
               // perform idct and descale
-              jsimd_idct_ifast_sse2(dct_table_.get(), data, outdata, 0);
+              //jsimd_idct_ifast_sse2(dct_table_.get(), data, outdata, 0);
+              jsimd_idct_islow_sse2(dct_table_.get(), data, outdata, 0);
           }
       }
   }
