@@ -8,9 +8,10 @@ namespace codec {
 
 class FastDCT {
  private:
-  const std::unique_ptr<int16_t> divisors_;
+    const std::unique_ptr<int16_t, void(*)(void*)> divisors_;
+    std::unique_ptr<int16_t, void(*)(void*)> work_buffer_;
 
- public:
+public:
   FastDCT();
   ~FastDCT();
 
@@ -20,14 +21,14 @@ class FastDCT {
 
 class FastIDCT {
  private:
-  const std::unique_ptr<int16_t> dct_table_;
+    const std::unique_ptr<int16_t, void(*)(void*)> dct_table_;
+    std::unique_ptr<int16_t, void(*)(void*)> work_buffer_;
 
  public:
   FastIDCT();
   ~FastIDCT();
 
-  nn::Tensor<int16_t, 3> idct(const nn::Tensor<int16_t, 3> input) const;
-  void idct_inplace(nn::Tensor<int16_t, 3> input) const;
+  nn::Tensor<uint8_t, 3> idct(const nn::Tensor<int16_t, 3> input) const;
 };
 }
 
