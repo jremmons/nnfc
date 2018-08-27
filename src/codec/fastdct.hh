@@ -16,7 +16,7 @@ public:
   ~FastDCT();
 
   void dct_inplace(nn::Tensor<int16_t, 3> input) const;
-  nn::Tensor<int16_t, 3> dct(const nn::Tensor<int16_t, 3> input) const;
+  nn::Tensor<int16_t, 3> operator()(const nn::Tensor<int16_t, 3> input) const;
 };
 
 class FastIDCT {
@@ -28,7 +28,7 @@ class FastIDCT {
   FastIDCT();
   ~FastIDCT();
 
-  nn::Tensor<uint8_t, 3> idct(const nn::Tensor<int16_t, 3> input) const;
+  nn::Tensor<uint8_t, 3> operator()(const nn::Tensor<int16_t, 3> input) const;
 };
 }
 

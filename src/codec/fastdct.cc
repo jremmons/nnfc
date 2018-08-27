@@ -5,7 +5,7 @@
 #include "nn/tensor.hh"
 #include "tjdct/jsimd.hh"
 
-static constexpr int alignment = 16;  
+static constexpr int alignment = 16;
 
 inline std::unique_ptr<int16_t, void(*)(void*)> tj_data(const int size_, const int16_t* data_) {
     std::unique_ptr<int16_t, void(*)(void*)> data(
@@ -18,7 +18,7 @@ inline std::unique_ptr<int16_t, void(*)(void*)> tj_data(const int size_, const i
 
 codec::FastDCT::FastDCT() :
     divisors_(std::move(tj_data(sizeof(divisors), divisors))),
-    work_buffer_(static_cast<int16_t*>(std::aligned_alloc(alignment, 8*8)),
+    work_buffer_(static_cast<int16_t*>(std::aligned_alloc(alignment, 128)),
                  [](void *ptr){ std::free(ptr); })
 {}
 
@@ -39,14 +39,14 @@ void codec::FastDCT::dct_inplace(nn::Tensor<int16_t, 3> input) const {
               // fill buffer
               for (int row = 0; row < 8; row++) {
                   for (int col = 0; col < 8; col++) {
-                      data[8*row + col] = input(channel, row_offset+row, col_offset+col);
+                      data[8*row + col] = input(channel, row_offset+row, col_offset+col) - 128;
                   }
               }
 
               // perform dct and scale
               jsimd_fdct_ifast_sse2(data);
               jsimd_quantize_sse2(data, divisors_.get(), data);
-              
+
               // put data back into tensor
               for (int row = 0; row < 8; row++) {
                   for (int col = 0; col < 8; col++) {
@@ -58,7 +58,8 @@ void codec::FastDCT::dct_inplace(nn::Tensor<int16_t, 3> input) const {
   }
 }
 
-nn::Tensor<int16_t, 3> codec::FastDCT::dct(
+// expects inputs between [0, 255]
+nn::Tensor<int16_t, 3> codec::FastDCT::operator()(
     const nn::Tensor<int16_t, 3> input) const {
 
   nn::Tensor<int16_t, 3> output(input);
@@ -68,14 +69,14 @@ nn::Tensor<int16_t, 3> codec::FastDCT::dct(
 }
 
 codec::FastIDCT::FastIDCT() :
-    dct_table_(std::move(tj_data(sizeof(dct_table), dct_table))),
-    work_buffer_(static_cast<int16_t*>(std::aligned_alloc(alignment, 8*8)),
+   dct_table_(std::move(tj_data(sizeof(dct_table), dct_table))),
+   work_buffer_(static_cast<int16_t*>(std::aligned_alloc(alignment, 128)),
                  [](void *ptr){ std::free(ptr); })
 {}
 
 codec::FastIDCT::~FastIDCT() {}
 
-nn::Tensor<uint8_t, 3> codec::FastIDCT::idct(
+nn::Tensor<uint8_t, 3> codec::FastIDCT::operator()(
     const nn::Tensor<int16_t, 3> input) const {
 
   const int channels = input.dimension(0);
