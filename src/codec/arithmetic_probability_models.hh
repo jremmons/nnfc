@@ -3,7 +3,10 @@
 
 #include <cassert>
 #include <memory>
+#include <string>
 #include <vector>
+
+#include <json.hh>
 
 namespace codec {
 
@@ -49,6 +52,11 @@ class SimpleAdaptiveModel {
       numerator_[i].first = i;
       numerator_[i].second = i + 1;
     }
+  }
+
+  SimpleAdaptiveModel(const std::string probabilities_json)
+      : num_symbols_(), numerator_(), denominator_() {
+    nlohmann::json model_json = nlohmann::json::parse(probabilities_json);
   }
 
   ~SimpleAdaptiveModel() {}

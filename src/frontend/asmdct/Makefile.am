@@ -1,7 +1,8 @@
-AM_CPPFLAGS = -I$(srcdir)/../../codec -I$(srcdir)/../../ \
-              $(EIGEN3_CFLAGS) $(EIGEN3_UNSUPPORTED_CFLAGS) 
+AM_CPPFLAGS = $(CXX14_FLAGS) $(THIRD_PARTY_CFLAGS) \
+              $(EIGEN3_CFLAGS) $(EIGEN3_UNSUPPORTED_CFLAGS)  \
+              -I$(srcdir)/../../
 
-AM_CXXFLAGS = $(PICKY_CXXFLAGS) $(CXX14_FLAGS)
+AM_CXXFLAGS = $(PICKY_CXXFLAGS) 
 
 bin_PROGRAMS = do_dct
 

@@ -8,7 +8,7 @@
 #include <iostream>
 #include <vector>
 
-#include "tensor.hh"
+#include "nn/tensor.hh"
 using namespace std;
 
 nnfc::JPEGEncoder::JPEGEncoder(int quality) : encoder_(quality) {}

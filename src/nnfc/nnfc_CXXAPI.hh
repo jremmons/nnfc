@@ -4,7 +4,7 @@
 #include <any>
 #include <vector>
 
-#include "tensor.hh"
+#include "nn/tensor.hh"
 
 namespace nnfc {
 namespace cxxapi {

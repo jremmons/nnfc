@@ -3,8 +3,8 @@
 #include <iostream>
 #include <vector>
 
+#include "nn/tensor.hh"
 #include "noop_codec.hh"
-#include "tensor.hh"
 
 nnfc::NoopEncoder::NoopEncoder() {}
 

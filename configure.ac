@@ -11,11 +11,15 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIRS([m4])
 m4_include(m4/python.m4)
 m4_include(m4/hdf5.m4)
-#m4_include(m4/boost.m4)
+
+# add third_party headers
+TOP_SOURCE_DIR=`pwd`
+THIRD_PARTY_CFLAGS="-isystem$TOP_SOURCE_DIR/third_party"
+AC_SUBST([THIRD_PARTY_CFLAGS])
 
 # Add picky CXXFLAGS
-# CXX14_FLAGS="-std=c++17 -mtune=generic -g -O0"
-CXX14_FLAGS="-std=c++17 -mtune=native -O2"
+CXX14_FLAGS="-std=c++17 -mtune=generic -g -O0"
+# CXX14_FLAGS="-std=c++17 -mtune=native -O2"
 PICKY_CXXFLAGS="-Wall -Wextra -Weffc++ -Wno-non-virtual-dtor -Werror"
 AC_SUBST([CXX14_FLAGS])
 AC_SUBST([PICKY_CXXFLAGS])
@@ -31,12 +35,6 @@ AC_PROG_CXX
 AM_PROG_LIBTOOL
 
 # set the compiler version
-AC_CHECK_PROG(GCC7_CHECK, gcc-7, yes)
-if test x"$GCC7_CHECK" != x"yes" ; then
-    AC_MSG_ERROR([Please install gcc-7 before installing.])
-fi
-AC_SUBST([CC], [gcc-7])
-
 AC_CHECK_PROG(GPP7_CHECK, g++-7, yes)
 if test x"$GPP7_CHECK" != x"yes" ; then
     AC_MSG_ERROR([Please install g++-7 before installing.])
@@ -60,7 +58,6 @@ AC_SUBST([ASFLAGS])
 # Checks for libraries.
 PKG_CHECK_MODULES([JPEG], [libturbojpeg])
 AX_CHECK_HDF5_SERIAL()
-
 PKG_CHECK_MODULES([AVFORMAT], [libavformat])
 PKG_CHECK_MODULES([AVCODEC], [libavcodec])
 PKG_CHECK_MODULES([AVUTIL], [libavutil])
@@ -75,14 +72,6 @@ AC_CHECK_FILE([/usr/include/eigen3/unsupported/Eigen/CXX11/Tensor], [
     AC_SUBST([EIGEN3_UNSUPPORTED_CFLAGS])],
     [AC_MSG_ERROR([Missing eigen3 'Tensor' header. Something does not seem right...])
 ])
-
-# Checks for header files.
-
-# Checks for typedefs, structures, and compiler characteristics.
-
-# Checks for library functions.
-
-# define macros for checking python libraries
 
 # check for python libraries
 AC_PATH_PROG([PYTHON],[python3])

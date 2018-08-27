@@ -1,6 +1,7 @@
-AM_CPPFLAGS = -I$(srcdir)/../../src/codec 
+AM_CPPFLAGS = $(CXX14_FLAGS) $(THIRD_PARTY_CFLAGS) \
+              -I$(srcdir)/../../src/codec 
 
-AM_CXXFLAGS = $(PICKY_CXXFLAGS) $(CXX14_FLAGS) \
+AM_CXXFLAGS = $(PICKY_CXXFLAGS) \
               -L$(srcdir)/../../src/codec/ -lcodec 
 
 bin_PROGRAMS = arith_encode arith_decode

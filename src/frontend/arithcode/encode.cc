@@ -4,7 +4,7 @@
 #include <streambuf>
 #include <string>
 
-#include "arithmetic_coder.hh"
+#include "codec/arithmetic_coder.hh"
 
 int main(int argc, char* argv[]) {
   if (argc != 3) {

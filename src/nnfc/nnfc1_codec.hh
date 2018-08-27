@@ -6,8 +6,8 @@
 #include <cstdint>
 #include <vector>
 
+#include "nn/tensor.hh"
 #include "nnfc_CXXAPI.hh"
-#include "tensor.hh"
 
 namespace nnfc {
 

@@ -6,7 +6,7 @@
 #include "codec/arithmetic_coder.hh"
 #include "codec/fastdct.hh"
 #include "codec/utils.hh"
-#include "tensor.hh"
+#include "nn/tensor.hh"
 
 #include "nnfc2_codec.hh"
 
@@ -101,7 +101,7 @@ static_assert(ZIGZAG_LENGTH == JPEG_QUANTIZATION_LENGTH);
 static constexpr int32_t DCT_MIN = -64;
 static constexpr int32_t DCT_MAX = 64;
 
-nnfc::NNFC2Encoder::NNFC2Encoder() : quality_(45) {}
+nnfc::NNFC2Encoder::NNFC2Encoder() : quality_(48) {}
 
 nnfc::NNFC2Encoder::~NNFC2Encoder() {}
 
@@ -119,24 +119,23 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
   const float range = max - min;
 
   // quantize to 8-bits
-  Eigen::Tensor<float, 3, Eigen::RowMajor> q1_input = (255.f *
-  (t_input.tensor() - min)) / range;
+  Eigen::Tensor<float, 3, Eigen::RowMajor> q1_input =
+      (255.f * (t_input.tensor() - min)) / range;
   // Eigen::Tensor<float, 3, Eigen::RowMajor> q1_input =
   //     (127.f * (t_input.tensor() - min)) / range;
   // Eigen::Tensor<float, 3, Eigen::RowMajor> q1_input = (63.f *
   // (t_input.tensor() - min)) / range - 32.f;
   nn::Tensor<float, 3> q_input(q1_input);
-  
-  nn::Tensor<int16_t, 3> dct_in(q_input.dimension(0),
-                                q_input.dimension(1),
+
+  nn::Tensor<int16_t, 3> dct_in(q_input.dimension(0), q_input.dimension(1),
                                 q_input.dimension(2));
 
   // round to nearest
   for (size_t channel = 0; channel < dim0; channel++) {
     for (size_t row = 0; row < dim1; row++) {
       for (size_t col = 0; col < dim2; col++) {
-          const float value = std::round(q_input(channel, row, col));
-          dct_in(channel, row, col) = static_cast<int16_t>(value);
+        const float value = std::round(q_input(channel, row, col));
+        dct_in(channel, row, col) = static_cast<int16_t>(value);
       }
     }
   }
@@ -150,9 +149,9 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
   assert(quality_ <= 100);
   const float scale = quality_ < 50 ? 50.f / quality_ : (100.f - quality_) / 50;
 
-  codec::DummyArithmeticEncoder encoder;
-  // codec::ArithmeticEncoder<codec::SimpleAdaptiveModel> encoder(DCT_MAX -
-  //                                                              DCT_MIN + 1);
+  // codec::DummyArithmeticEncoder encoder;
+  codec::ArithmeticEncoder<codec::SimpleAdaptiveModel> encoder(DCT_MAX -
+                                                               DCT_MIN + 1);
 
   // arithmetic encode and serialize data
   for (size_t channel = 0; channel < dim0; channel++) {
@@ -316,9 +315,9 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
                                   input_size - 3 * sizeof(uint64_t) -
                                   2 * sizeof(float) - 1 * sizeof(int32_t));
 
-  // codec::ArithmeticDecoder<codec::SimpleAdaptiveModel> decoder(
-  //     encoding_, DCT_MAX - DCT_MIN + 1);
-  codec::DummyArithmeticDecoder decoder(encoding_);
+  codec::ArithmeticDecoder<codec::SimpleAdaptiveModel> decoder(
+      encoding_, DCT_MAX - DCT_MIN + 1);
+  // codec::DummyArithmeticDecoder decoder(encoding_);
 
   // undo arithmetic encoding and deserialize
   for (size_t channel = 0; channel < dim0; channel++) {
@@ -347,7 +346,7 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
           // }
           // if (value >= DCT_MAX) {
           //     value = DCT_MAX;
-          // }          
+          // }
           // assert(value >= DCT_MIN);
           // assert(value <= DCT_MAX);
 

@@ -1,8 +1,9 @@
-AM_CPPFLAGS = $(CXX14_FLAGS) $(JPEG_CFLAGS) \
+AM_CPPFLAGS = $(CXX14_FLAGS) $(THIRD_PARTY_CFLAGS) \
+              $(JPEG_CFLAGS) \
               $(EIGEN3_CFLAGS) $(EIGEN3_UNSUPPORTED_CFLAGS) \
               $(AVFORMAT_CFLAGS) $(AVCODEC_CFLAGS) $(AVUTIL_CFLAGS) \
               $(SWSCALE_CFLAGS) \
-              -I$(srcdir)/../nn/ -I$(srcdir)/..
+              -I$(srcdir)/..
 
 AM_CXXFLAGS = $(PICKY_CXXFLAGS) -fPIC \
               -L$(srcdir)/../nn -L$(srcdir)/../codec \

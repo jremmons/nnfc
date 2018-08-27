@@ -3,8 +3,8 @@
 #include <iostream>
 #include <vector>
 
+#include "nn/tensor.hh"
 #include "swizzler.hh"
-#include "tensor.hh"
 
 nnfc::RGBSwizzlerEncoder::RGBSwizzlerEncoder() {}
 

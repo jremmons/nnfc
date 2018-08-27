@@ -7,8 +7,8 @@
 
 #include "codec/mpeg.hh"
 #include "codec/swizzle.hh"
+#include "nn/tensor.hh"
 #include "nnfc_CXXAPI.hh"
-#include "tensor.hh"
 
 namespace nnfc {
 

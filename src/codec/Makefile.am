@@ -1,4 +1,5 @@
-AM_CPPFLAGS = $(CXX14_FLAGS) $(JPEG_CFLAGS) \
+AM_CPPFLAGS = $(CXX14_FLAGS) $(THIRD_PARTY_CFLAGS) \
+              $(JPEG_CFLAGS) \
               $(EIGEN3_CFLAGS) $(EIGEN3_UNSUPPORTED_CFLAGS) \
               -I$(srcdir)/..
 
@@ -6,7 +7,7 @@ AM_CXXFLAGS = $(PICKY_CXXFLAGS) -fPIC
 
 SUFFIXES = .asm
 .asm.o:
-	$(AS) $(ASFLAGS) -I$(srcdir)/../asm/ $<
+	$(AS) $(ASFLAGS) $<
 
 noinst_LIBRARIES = libcodec.a
 

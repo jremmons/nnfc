@@ -1,8 +1,10 @@
 SUBDIRS = arithcode
 
-AM_CPPFLAGS = $(CXX14_FLAGS) $(JPEG_INCLUDE) \
+AM_CPPFLAGS = $(CXX14_FLAGS) $(THIRD_PARTY_CFLAGS) \
+              $(JPEG_INCLUDE) \
               $(EIGEN3_CFLAGS) $(EIGEN3_UNSUPPORTED_CFLAGS) \
               $(HDF5_CFLAGS) $(HDF5_CPPFLAGS) \
+              -I$(srcdir)/../src/ \
               -I$(srcdir)/../src/nn \
               -I$(srcdir)/../src/nnfc
 

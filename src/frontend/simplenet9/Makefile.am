@@ -1,12 +1,12 @@
-AM_CPPFLAGS = -I$(srcdir)/../../nn -I$(srcdir)/../../nnfc \
+AM_CPPFLAGS = $(CXX14_FLAGS) $(THIRD_PARTY_CFLAGS) \
               $(JPEG_CFLAGS) \
               $(HDF5_CFLAGS) $(HDF5_CPPFLAGS) \
-              $(EIGEN3_CFLAGS) $(EIGEN3_UNSUPPORTED_CFLAGS) 
+              $(EIGEN3_CFLAGS) $(EIGEN3_UNSUPPORTED_CFLAGS) \
+              -I$(srcdir)/../../
 
-AM_CXXFLAGS = $(PICKY_CXXFLAGS) $(CXX14_FLAGS) \
+AM_CXXFLAGS = $(PICKY_CXXFLAGS) \
               $(HDF5_LDFLAGS) $(HDF5_LIBS) \
-              -L$(srcdir)/../../nn/ -lnn \
-              -L$(srcdir)/../../nnfc/ -L$(srcdir)/../../nnfc/.libs
+              -L$(srcdir)/../../nn/ -lnn
 
 bin_PROGRAMS = simplenet9
 

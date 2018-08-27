@@ -7,7 +7,8 @@ all-local:
 check-local:
 
 clean-local:
-	python3 setup.py clean --all
+    CC="$(CXX)" \
+    python3 setup.py clean --all
 	rm -rf ./nnfc/_ext
 
 install-data-local:

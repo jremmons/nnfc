@@ -12,8 +12,8 @@ extern "C" {
 #include <turbojpeg.h>
 
 #include "codec/mpeg.hh"
+#include "nn/tensor.hh"
 #include "nnfc_CXXAPI.hh"
-#include "tensor.hh"
 
 namespace nnfc {
 

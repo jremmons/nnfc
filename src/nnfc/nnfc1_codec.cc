@@ -11,8 +11,8 @@
 #include <vector>
 
 #include "codec/utils.hh"
+#include "nn/tensor.hh"
 #include "nnfc1_codec.hh"
-#include "tensor.hh"
 
 using namespace std;
 

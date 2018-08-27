@@ -1,13 +1,13 @@
 #include <bitset>
 #include <cmath>
+#include <cstdlib>
 #include <iomanip>
 #include <iostream>
-#include <cstdlib>
 
 //#include "../codec/tjdct/jsimd.hh"
-#include "../codec/fastdct.hh"
+#include "codec/fastdct.hh"
 //#include "../codec/utils.hh"
-#include "../nn/tensor.hh"
+#include "nn/tensor.hh"
 
 // alignas(16) static int16_t buffer[64] = {0};
 // alignas(16) static int16_t coef[64] = {0};
@@ -59,15 +59,18 @@ int main() {
 
   // for (int i = 0; i < 8; i++) {
   //   for (int j = 0; j < 8; j++) {
-  //     //std::cout << std::setfill(' ') << std::setw(4) << coef[8 * i + j] << " ";
-  //     std::cout << std::setfill(' ') << std::setw(4) << buffer[8 * i + j] << " ";
+  //     //std::cout << std::setfill(' ') << std::setw(4) << coef[8 * i + j] <<
+  //     " ";
+  //     std::cout << std::setfill(' ') << std::setw(4) << buffer[8 * i + j] <<
+  //     " ";
   //   }
   //   std::cout << "\n";
   // }
   // std::cout << "\n";
 
   // // for (int i = 0; i < 64; i++) {
-  // //     std::cout << std::setfill(' ') << std::setw(4) << divisors[i] << " ";
+  // //     std::cout << std::setfill(' ') << std::setw(4) << divisors[i] << "
+  // ";
   // //     std::cout << "\n";
   // // }
   // // std::cout << "\n";
@@ -94,62 +97,61 @@ int main() {
   // std::cout << "\n";
 
   const int size = 16;
-  nn::Tensor<int16_t, 3> input(1,size,size);
+  nn::Tensor<int16_t, 3> input(1, size, size);
   codec::FastDCT dct;
   codec::FastIDCT idct;
-  
+
   for (int i = 0; i < size; i++) {
-      for (int j = 0; j < size; j++) {
-          //input(0,i,j) = (255 / 15) * (i + j / 2);
-          input(0,i,j) = std::rand()% 255;
-          std::cout <<  std::setfill(' ') << std::setw(6) << input(0,i,j) <<
-          " ";
-      }
-      std::cout << "\n";
+    for (int j = 0; j < size; j++) {
+      // input(0,i,j) = (255 / 15) * (i + j / 2);
+      input(0, i, j) = std::rand() % 255;
+      std::cout << std::setfill(' ') << std::setw(6) << input(0, i, j) << " ";
+    }
+    std::cout << "\n";
   }
   std::cout << "\n";
 
   nn::Tensor<int16_t, 3> dct_output = dct(input);
-  //nn::Tensor<float, 3> dct = codec::utils::dct(input);
+  // nn::Tensor<float, 3> dct = codec::utils::dct(input);
 
   for (int i = 0; i < size; i++) {
-      for (int j = 0; j < size; j++) {
-          std::cout << std::setfill(' ') << std::setw(6) << dct_output(0,i,j) << " ";
-      }
-      std::cout << "\n";
+    for (int j = 0; j < size; j++) {
+      std::cout << std::setfill(' ') << std::setw(6) << dct_output(0, i, j)
+                << " ";
+    }
+    std::cout << "\n";
   }
   std::cout << "\n";
 
   nn::Tensor<uint8_t, 3> idct_output = idct(dct_output);
-  //nn::Tensor<float, 3> idct = codec::utils::idct(dct);
+  // nn::Tensor<float, 3> idct = codec::utils::idct(dct);
 
   for (int i = 0; i < size; i++) {
-      for (int j = 0; j < size; j++) {
-          std::cout << std::setfill(' ') << std::setw(6) << (int)idct_output(0,i,j) << " ";
-      }
-      std::cout << "\n";
+    for (int j = 0; j < size; j++) {
+      std::cout << std::setfill(' ') << std::setw(6)
+                << (int)idct_output(0, i, j) << " ";
+    }
+    std::cout << "\n";
   }
   std::cout << "\n";
 
   for (int i = 0; i < size; i++) {
-      for (int j = 0; j < size; j++) {
-          std::cout <<  std::setfill(' ') << std::setw(6) << input(0,i,j) <<
-          " ";
-      }
-      std::cout << "\n";
+    for (int j = 0; j < size; j++) {
+      std::cout << std::setfill(' ') << std::setw(6) << input(0, i, j) << " ";
+    }
+    std::cout << "\n";
   }
   std::cout << "\n";
 
   std::cout << "diff \n";
   for (int i = 0; i < size; i++) {
-      for (int j = 0; j < size; j++) {
-          std::cout <<  std::setfill(' ') << std::setw(4) << input(0,i,j) - (int)idct_output(0,i,j) <<
-          " ";
-      }
-      std::cout << "\n";
+    for (int j = 0; j < size; j++) {
+      std::cout << std::setfill(' ') << std::setw(4)
+                << input(0, i, j) - (int)idct_output(0, i, j) << " ";
+    }
+    std::cout << "\n";
   }
   std::cout << "\n";
 
-  
   return 0;
 }

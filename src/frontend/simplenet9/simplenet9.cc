@@ -11,9 +11,9 @@
 #include <fstream>
 #include <streambuf>
 
-#include "layers.hh"
-#include "net.hh"
-#include "tensor.hh"
+#include "nn/layers.hh"
+#include "nn/net.hh"
+#include "nn/tensor.hh"
 
 // assumptions
 static_assert(sizeof(uint8_t) == sizeof(char),

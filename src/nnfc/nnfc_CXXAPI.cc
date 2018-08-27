@@ -8,6 +8,8 @@
 #include <typeinfo>
 #include <vector>
 
+#include "nn/tensor.hh"
+
 #include "jpeg_codec.hh"
 #include "jpeg_image_codec.hh"
 #include "mpeg_codec.hh"
