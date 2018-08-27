@@ -2,6 +2,7 @@
 #include <cmath>
 #include <iomanip>
 #include <iostream>
+#include <cstdlib>
 
 //#include "../codec/tjdct/jsimd.hh"
 #include "../codec/fastdct.hh"
@@ -92,14 +93,16 @@ int main() {
   // }
   // std::cout << "\n";
 
-  nn::Tensor<int16_t, 3> input(1,8,8);
+  const int size = 16;
+  nn::Tensor<int16_t, 3> input(1,size,size);
   codec::FastDCT dct;
   codec::FastIDCT idct;
   
-  for (int i = 0; i < 8; i++) {
-      for (int j = 0; j < 8; j++) {
-          input(0,i,j) = (255 / 15) * (i + j);
-          std::cout <<  std::setfill(' ') << std::setw(4) << input(0,i,j) <<
+  for (int i = 0; i < size; i++) {
+      for (int j = 0; j < size; j++) {
+          //input(0,i,j) = (255 / 15) * (i + j / 2);
+          input(0,i,j) = std::rand()% 255;
+          std::cout <<  std::setfill(' ') << std::setw(6) << input(0,i,j) <<
           " ";
       }
       std::cout << "\n";
@@ -109,9 +112,9 @@ int main() {
   nn::Tensor<int16_t, 3> dct_output = dct(input);
   //nn::Tensor<float, 3> dct = codec::utils::dct(input);
 
-  for (int i = 0; i < 8; i++) {
-      for (int j = 0; j < 8; j++) {
-          std::cout << std::setfill(' ') << std::setw(4) << dct_output(0,i,j) << " ";
+  for (int i = 0; i < size; i++) {
+      for (int j = 0; j < size; j++) {
+          std::cout << std::setfill(' ') << std::setw(6) << dct_output(0,i,j) << " ";
       }
       std::cout << "\n";
   }
@@ -120,19 +123,26 @@ int main() {
   nn::Tensor<uint8_t, 3> idct_output = idct(dct_output);
   //nn::Tensor<float, 3> idct = codec::utils::idct(dct);
 
-  for (int i = 0; i < 8; i++) {
-      for (int j = 0; j < 8; j++) {
-          std::cout << std::setfill(' ') << std::setw(4) << (int)idct_output(0,i,j) << " ";
+  for (int i = 0; i < size; i++) {
+      for (int j = 0; j < size; j++) {
+          std::cout << std::setfill(' ') << std::setw(6) << (int)idct_output(0,i,j) << " ";
       }
       std::cout << "\n";
   }
   std::cout << "\n";
 
+  for (int i = 0; i < size; i++) {
+      for (int j = 0; j < size; j++) {
+          std::cout <<  std::setfill(' ') << std::setw(6) << input(0,i,j) <<
+          " ";
+      }
+      std::cout << "\n";
+  }
+  std::cout << "\n";
 
   std::cout << "diff \n";
-  for (int i = 0; i < 8; i++) {
-      for (int j = 0; j < 8; j++) {
-          input(0,i,j) = (255 / 15) * (i + j);
+  for (int i = 0; i < size; i++) {
+      for (int j = 0; j < size; j++) {
           std::cout <<  std::setfill(' ') << std::setw(4) << input(0,i,j) - (int)idct_output(0,i,j) <<
           " ";
       }
