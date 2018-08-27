@@ -98,10 +98,10 @@ static constexpr int JPEG_QUANTIZATION_LENGTH =
 static_assert(ZIGZAG_LENGTH == JPEG_QUANTIZATION_LENGTH);
 
 // inclusive range of values the DCT coefficients can take on
-static constexpr int32_t DCT_MIN = -256;
-static constexpr int32_t DCT_MAX = 256;
+static constexpr int32_t DCT_MIN = -64;
+static constexpr int32_t DCT_MAX = 64;
 
-nnfc::NNFC2Encoder::NNFC2Encoder() : quality_(98) {}
+nnfc::NNFC2Encoder::NNFC2Encoder() : quality_(45) {}
 
 nnfc::NNFC2Encoder::~NNFC2Encoder() {}
 
@@ -136,40 +136,23 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
     for (size_t row = 0; row < dim1; row++) {
       for (size_t col = 0; col < dim2; col++) {
           const float value = std::round(q_input(channel, row, col));
-          assert(value < DCT_MAX);
-          assert(value >= DCT_MIN);
           dct_in(channel, row, col) = static_cast<int16_t>(value);
       }
     }
   }
 
   // do the dct
-  nn::Tensor<int16_t, 3> dct_out(dct_in);
-  // codec::FastDCT dct;
-  // nn::Tensor<int16_t, 3> dct_out = dct(dct_in);
-
-  // codec::FastDCT dct;
-  // codec::FastIDCT idct;
-  // nn::Tensor<int16_t, 3> dct_out_tmp = dct(dct_in);
-  // nn::Tensor<uint8_t, 3> dct_out = idct(dct_out_tmp);
-
-  // std::cout << dct_out.minimum() << std::endl;
-  // std::cout << dct_out.maximum() << std::endl;
-  // nn::Tensor<float, 3> dct_input(
-  //     std::move(codec::utils::dct(q_input, BLOCK_WIDTH)));
-
-  // discretize to int32
-  // Eigen::Tensor<int32_t, 3, Eigen::RowMajor> q3_input =
-  //     dct_input.tensor().cast<int32_t>();
-  //nn::Tensor<int32_t, 3> input(dct_input.tensor().cast<int32_t>());
+  // nn::Tensor<int16_t, 3> dct_out(dct_in);
+  codec::FastDCT dct;
+  nn::Tensor<int16_t, 3> dct_out = dct(dct_in);
 
   assert(quality_ > 0);
   assert(quality_ <= 100);
-  //const float scale = quality_ < 50 ? 50.f / quality_ : (100.f - quality_) / 50;
+  const float scale = quality_ < 50 ? 50.f / quality_ : (100.f - quality_) / 50;
 
+  codec::DummyArithmeticEncoder encoder;
   // codec::ArithmeticEncoder<codec::SimpleAdaptiveModel> encoder(DCT_MAX -
   //                                                              DCT_MIN + 1);
-  codec::DummyArithmeticEncoder encoder;
 
   // arithmetic encode and serialize data
   for (size_t channel = 0; channel < dim0; channel++) {
@@ -181,7 +164,7 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
           const size_t col_offset =
               BLOCK_WIDTH * block_col + ZIGZAG_ORDER[i][1];
 
-          float scalef = 1; //scale * JPEG_QUANTIZATION[i];
+          float scalef = scale * JPEG_QUANTIZATION[i];
           if (scalef < 1) {
             scalef = 1;
           }
@@ -326,7 +309,7 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
 
   assert(quality > 0);
   assert(quality <= 100);
-  //const float scale = quality < 50 ? 50.f / quality : (100.f - quality) / 50;
+  const float scale = quality < 50 ? 50.f / quality : (100.f - quality) / 50;
 
   std::vector<char> encoding_(reinterpret_cast<const char *>(input.data()),
                               reinterpret_cast<const char *>(input.data()) +
@@ -351,15 +334,22 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
           assert(symbol < (DCT_MAX - DCT_MIN + 1));
           int32_t element = symbol + DCT_MIN;
 
-          float scalef = 1; //scale * JPEG_QUANTIZATION[i];
+          float scalef = scale * JPEG_QUANTIZATION[i];
           if (scalef < 1) {
             scalef = 1;
           }
 
           const float value = scalef * element;
 
-          assert(value >= DCT_MIN);
-          assert(value < DCT_MAX);
+          // clip if necessary
+          // if (value < DCT_MIN) {
+          //     value = DCT_MIN;
+          // }
+          // if (value >= DCT_MAX) {
+          //     value = DCT_MAX;
+          // }          
+          // assert(value >= DCT_MIN);
+          // assert(value <= DCT_MAX);
 
           fp_output(channel, row_offset, col_offset) = std::round(value);
         }
@@ -368,9 +358,9 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
   }
 
   // undo the dct
-  nn::Tensor<int16_t, 3> idct_output(fp_output);
-  // codec::FastIDCT idct;
-  // nn::Tensor<uint8_t, 3> idct_output = idct(fp_output);
+  // nn::Tensor<int16_t, 3> idct_output(fp_output);
+  codec::FastIDCT idct;
+  nn::Tensor<uint8_t, 3> idct_output = idct(fp_output);
   // std::cout << (int)idct_output.minimum() << std::endl;
   // std::cout << (int)idct_output.maximum() << std::endl;
   // nn::Tensor<float, 3> idct_output(
