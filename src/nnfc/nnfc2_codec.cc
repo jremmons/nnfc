@@ -3,6 +3,8 @@
 #include <iostream>
 #include <vector>
 
+#include <chrono>
+
 #include "codec/arithmetic_coder.hh"
 #include "codec/fastdct.hh"
 #include "codec/utils.hh"
@@ -149,10 +151,13 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
   assert(quality_ <= 100);
   const float scale = quality_ < 50 ? 50.f / quality_ : (100.f - quality_) / 50;
 
-  codec::DummyArithmeticEncoder encoder;
-  // codec::ArithmeticEncoder<codec::SimpleAdaptiveModel> encoder(DCT_MAX -
-  //                                                              DCT_MIN + 1);
+  // codec::DummyArithmeticEncoder encoder;
+  codec::ArithmeticEncoder<codec::SimpleAdaptiveModel> encoder(DCT_MAX -
+                                                               DCT_MIN + 1);
 
+  double time = 0;
+  size_t count = 0;
+  
   // arithmetic encode and serialize data
   for (size_t channel = 0; channel < dim0; channel++) {
     for (size_t block_row = 0; block_row < dim1 / BLOCK_WIDTH; block_row++) {
@@ -178,11 +183,19 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
           const int symbol = element - DCT_MIN;
           assert(symbol >= 0);
           assert(symbol < (DCT_MAX - DCT_MIN + 1));
+
+          auto t1 = std::chrono::high_resolution_clock::now();
           encoder.encode_symbol(static_cast<uint32_t>(symbol));
+          auto t2 = std::chrono::high_resolution_clock::now();
+          count += 1;
+          time += std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1).count();          
         }
       }
     }
   }
+
+  // std::cout << "total time [encode] (count=" << time  << "): " << time << std::endl;
+  // std::cout << "avg time [encode]: " << time / count << std::endl;
 
   std::vector<char> encoding = encoder.finish();
 
@@ -315,10 +328,13 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
                                   input_size - 3 * sizeof(uint64_t) -
                                   2 * sizeof(float) - 1 * sizeof(int32_t));
 
-  // codec::ArithmeticDecoder<codec::SimpleAdaptiveModel> decoder(
-  //     encoding_, DCT_MAX - DCT_MIN + 1);
-  codec::DummyArithmeticDecoder decoder(encoding_);
+  codec::ArithmeticDecoder<codec::SimpleAdaptiveModel> decoder(
+      encoding_, DCT_MAX - DCT_MIN + 1);
+  // codec::DummyArithmeticDecoder decoder(encoding_);
 
+  double time = 0;
+  size_t count = 0;
+  
   // undo arithmetic encoding and deserialize
   for (size_t channel = 0; channel < dim0; channel++) {
     for (size_t block_row = 0; block_row < dim1 / BLOCK_WIDTH; block_row++) {
@@ -329,7 +345,12 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
           const size_t col_offset =
               BLOCK_WIDTH * block_col + ZIGZAG_ORDER[i][1];
 
+          auto t1 = std::chrono::high_resolution_clock::now();
           uint32_t symbol = decoder.decode_symbol();
+          auto t2 = std::chrono::high_resolution_clock::now();
+          count += 1;
+          time += std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1).count();          
+
           assert(symbol < (DCT_MAX - DCT_MIN + 1));
           int32_t element = symbol + DCT_MIN;
 
@@ -355,6 +376,9 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
       }
     }
   }
+
+  // std::cout << "total time [decode] (count=" << time  << "): " << time << std::endl;
+  // std::cout << "avg time [decode]: " << time / count << std::endl;
 
   // undo the dct
   // nn::Tensor<int16_t, 3> idct_output(fp_output);
