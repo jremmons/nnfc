@@ -405,7 +405,7 @@ class ArithmeticDecoder {
         break;
       }
     }
-
+    
     // debugging
     // if (not sym_set) {
     //     std::cerr << std::bitset<64>(low_) << std::endl;
@@ -431,6 +431,146 @@ class ArithmeticDecoder {
     assert(sym < std::numeric_limits<uint64_t>::max());
     assert(high_ > low_);
     const uint32_t symbol = sym;
+
+    if (symbol == model_.finished_symbol()) {
+      done_ = true;
+      return symbol;
+    }
+
+    model_.consume_symbol(symbol);
+
+    while (true) {
+      // if the MSB of both numbers match, then shift out a bit
+      // into the vector and shift out all `pending bits`.
+      if (((high_ ^ low_) & arithmetic_coder::top_mask) == 0) {
+        shift();
+
+        low_ = (low_ << 1) & arithmetic_coder::working_bits_mask;
+        high_ = ((high_ << 1) & arithmetic_coder::working_bits_mask) | 0x1;
+
+        assert(high_ <= arithmetic_coder::working_bits_max);
+        assert(low_ <= arithmetic_coder::working_bits_max);
+        assert(high_ > low_);
+      }
+      // the second highest bit of `high` is a 1 and the second
+      // highest bit of `low` is 0, then the `low` and `high` are
+      // converging. To handle this, we `underflow` and shift `high`
+      // and `low`. The value true value of the shifted bits will be
+      // determined once the MSB bits match after consuming more
+      // symbols.
+      else if ((low_ & ~high_ & arithmetic_coder::second_mask) != 0) {
+        underflow();
+
+        low_ = (low_ << 1) & (arithmetic_coder::working_bits_mask >> 1);
+        high_ = ((high_ << 1) & (arithmetic_coder::working_bits_mask >> 1)) |
+                arithmetic_coder::top_mask | 1;
+
+        assert(high_ <= arithmetic_coder::working_bits_max);
+        assert(low_ <= arithmetic_coder::working_bits_max);
+        assert(high_ > low_);
+      } else {
+        break;
+      }
+    }
+
+    return symbol;
+  }
+
+  inline bool done() const { return done_; }
+};
+
+//////////////////////////////////////////////////////////////////////
+// Fast Arithmetic Decoder
+//////////////////////////////////////////////////////////////////////
+template <class ProbabilityModel>
+class FastArithmeticDecoder {
+ private:
+  ProbabilityModel model_;
+  InfiniteBitVector data_;
+
+  uint64_t high_;
+  uint64_t low_;
+  uint64_t value_;
+
+  size_t bit_idx_;
+  bool done_;
+
+  inline void shift() {
+    // grab the MSB of `low` (will be the same as `high`)
+    const uint8_t bit = (low_ >> (arithmetic_coder::num_working_bits - 1));
+    assert(bit <= 0x1);
+    assert(bit == (high_ >> (arithmetic_coder::num_working_bits - 1)));
+    assert((!!(high_ & arithmetic_coder::top_mask)) == bit);
+
+    assert(((value_ & arithmetic_coder::top_mask) >>
+            (arithmetic_coder::num_working_bits - 1)) == bit);
+
+    uint8_t bitvector_bit = 0;
+    if (bit_idx_ < data_.size()) {
+      bitvector_bit = static_cast<uint64_t>(data_.get_bit(bit_idx_)) & 0x1;
+    }
+    value_ =
+        ((value_ << 1) & arithmetic_coder::working_bits_mask) | bitvector_bit;
+    assert(value_ <= arithmetic_coder::working_bits_max);
+    bit_idx_++;
+  }
+
+  inline void underflow() {
+    uint64_t bitvector_bit = 0;
+    if (bit_idx_ < data_.size()) {
+      bitvector_bit = static_cast<uint64_t>(data_.get_bit(bit_idx_)) & 0x1;
+    }
+    value_ = (value_ & arithmetic_coder::top_mask) |
+             ((value_ << 1) & (arithmetic_coder::working_bits_mask >> 1)) |
+             bitvector_bit;
+    bit_idx_++;
+    assert(value_ <= arithmetic_coder::working_bits_max);
+  }
+
+ public:
+  template <typename... ProbModelArgs>
+  FastArithmeticDecoder(std::vector<char> data, const ProbModelArgs... args)
+      : model_(args...),
+        data_(data),
+        high_(arithmetic_coder::working_bits_max),
+        low_(arithmetic_coder::working_bits_min),
+        value_(0),
+        bit_idx_(0),
+        done_(false)
+
+  {
+    for (size_t i = 0;
+         i < arithmetic_coder::num_working_bits and i < data_.size(); i++) {
+      value_ |= (static_cast<uint64_t>(data_.get_bit(i))
+                 << (arithmetic_coder::num_working_bits - i - 1));
+      bit_idx_++;
+    }
+    assert(value_ <= arithmetic_coder::working_bits_max);
+  }
+
+  ~FastArithmeticDecoder() {}
+
+  uint32_t decode_symbol() {
+    if (done_) {
+      throw std::runtime_error("done decoding input already.");
+    }
+
+    const uint32_t symbol = model_.find_symbol(high_, low_, value_);
+
+    const uint64_t range = high_ - low_ + 1;
+    assert(range <= arithmetic_coder::max_range);
+    assert(range >= arithmetic_coder::min_range);
+
+    const std::pair<uint64_t, uint64_t> sym_prob = model_.symbol_numerator(symbol);
+    const uint32_t denominator = model_.denominator();
+    const uint64_t sym_high = low_ + (sym_prob.second * range) / denominator - 1;
+    const uint64_t sym_low = low_ + (sym_prob.first * range) / denominator;
+    
+    high_ = sym_high;
+    low_ = sym_low;
+        
+    assert(symbol < std::numeric_limits<uint64_t>::max());
+    assert(high_ > low_);
 
     if (symbol == model_.finished_symbol()) {
       done_ = true;
