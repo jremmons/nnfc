@@ -9,8 +9,8 @@
 #include <string>
 #include <vector>
 
-#include "tensor.hh"
-#include "nnfc_CXXAPI.hh"
+#include "nn/tensor.hh"
+#include "nnfc/nnfc_CXXAPI.hh"
 
 #ifndef NODEBUG
 #define _NNFC_DEBUG

@@ -9,9 +9,9 @@
 #include <iostream>
 #include <string>
 
-#include "nnfc_CXXAPI.hh"
 #include "common.hh"
-#include "tensor.hh"
+#include "nn/tensor.hh"
+#include "nnfc/nnfc_CXXAPI.hh"
 
 #include "nnfc_encoder.hh"
 

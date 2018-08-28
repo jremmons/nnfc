@@ -2,7 +2,7 @@
 #define _NNFC_ENCODER
 #include <Python.h>
 
-#include "nnfc_CXXAPI.hh"
+#include "nnfc/nnfc_CXXAPI.hh"
 
 typedef struct {
 
