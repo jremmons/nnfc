@@ -11,7 +11,7 @@ SUFFIXES = .asm
 
 noinst_LIBRARIES = libcodec.a
 
-libcodec_a_SOURCES = arithmetic_encoder.hh \
+libcodec_a_SOURCES = arithmetic_coder.hh arithmetic_coder_common.hh arithmetic_probability_model.hh \
                      fastdct.hh fastdct.cc \
                      jpeg.hh jpeg.cc \
                      mpeg.hh mpeg.cc \

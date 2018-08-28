@@ -8,6 +8,8 @@
 
 #include <json.hh>
 
+#include "arithmetic_coder_common.hh"
+
 namespace codec {
 
 class SimpleModel {
@@ -114,24 +116,29 @@ class FastAdaptiveModel {
 
     inline uint32_t find_symbol(const uint64_t high, const uint64_t low, const uint64_t value) const {
 
-        // goal: make this faster with a good data structure
+        // goal: make this faster with an interval tree...
+        // 
         
         // const uint64_t range = high - low + 1;
+        // const uint64_t scaled_value = (range * (value - low)) / denominator();
+        // ...
         
-        // for (uint64_t sym = 0; sym < size(); sym++) {
-        //   const std::pair<uint64_t, uint64_t> sym_prob =
-        //       symbol_numerator(sym);
-        //   const uint32_t denominator = denominator_;
-        //   assert(sym_prob.second > sym_prob.first);
+        const uint64_t range = high - low + 1;
+        
+        for (uint64_t sym = 0; sym < size(); sym++) {
+          const std::pair<uint64_t, uint64_t> sym_prob =
+              symbol_numerator(sym);
+          const uint32_t denominator = denominator_;
+          assert(sym_prob.second > sym_prob.first);
        
-        //   const uint64_t sym_high = low + (sym_prob.second * range) / denominator - 1;
-        //   const uint64_t sym_low = low + (sym_prob.first * range) / denominator;
+          const uint64_t sym_high = low + (sym_prob.second * range) / denominator - 1;
+          const uint64_t sym_low = low + (sym_prob.first * range) / denominator;
                 
-        //   if (value <= sym_high and value >= sym_low) {
-        //       return sym;
-        //   }
-        // }
-        // return finished_symbol();
+          if (value <= sym_high and value >= sym_low) {
+              return sym;
+          }
+        }
+        return finished_symbol();
     }
     
   inline void consume_symbol(const uint32_t symbol) {
