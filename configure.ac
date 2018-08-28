@@ -17,18 +17,23 @@ TOP_SOURCE_DIR=`pwd`
 THIRD_PARTY_CFLAGS="-isystem$TOP_SOURCE_DIR/third_party"
 AC_SUBST([THIRD_PARTY_CFLAGS])
 
-# Add picky CXXFLAGS
-CXX14_FLAGS="-std=c++17 -mtune=generic -g -O0"
-# CXX14_FLAGS="-std=c++17 -mtune=native -O2"
+# Add compiler flags
+CXX14_FLAGS="-std=c++17"
 PICKY_CXXFLAGS="-Wall -Wextra -Weffc++ -Wno-non-virtual-dtor -Werror"
+OPTIMIZATION_FLAGS="-mtune=generic -g -O0 -fpic"
+# OPTIMIZATION_FLAGS="-mtune=generic -mtune=native -O2 -fpic"
 AC_SUBST([CXX14_FLAGS])
 AC_SUBST([PICKY_CXXFLAGS])
+AC_SUBST([OPTIMIZATION_FLAGS])
 
 # add flags for python wrapper compilation
 PYWRAPPER_EXTRA_CFLAGS="-std=c++17 -Wall -Wextra -Weffc++"
 PYWRAPPER_EXTRA_LDFLAGS=""
+PYOPTIMIZATION_FLAGS="-mtune=generic -g -O0 -fpic"
+#PYOPTIMIZATION_FLAGS="-mtune=generic -O2 -fpic"
 AC_SUBST([PYWRAPPER_EXTRA_CFLAGS])
 AC_SUBST([PYWRAPPER_EXTRA_LDFLAGS])
+AC_SUBST([PYOPTIMIZATION_FLAGS])
 
 # Checks for programs.
 AC_PROG_CXX
