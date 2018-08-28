@@ -20,7 +20,9 @@ class SimpleModel {
  public:
   SimpleModel()
       : numerator_({
-            {0, 11000}, {11000, 11999}, {11999, 12000},
+            {0, 11000},
+            {11000, 11999},
+            {11999, 12000},
         }),
         denominator_(numerator_[numerator_.size() - 1].second) {}
   ~SimpleModel() {}
@@ -114,33 +116,33 @@ class FastAdaptiveModel {
 
   ~FastAdaptiveModel() {}
 
-    inline uint32_t find_symbol(const uint64_t high, const uint64_t low, const uint64_t value) const {
+  inline uint32_t find_symbol(const uint64_t high, const uint64_t low,
+                              const uint64_t value) const {
+    // goal: make this faster with an interval tree...
+    //
 
-        // goal: make this faster with an interval tree...
-        // 
-        
-        // const uint64_t range = high - low + 1;
-        // const uint64_t scaled_value = (range * (value - low)) / denominator();
-        // ...
-        
-        const uint64_t range = high - low + 1;
-        
-        for (uint64_t sym = 0; sym < size(); sym++) {
-          const std::pair<uint64_t, uint64_t> sym_prob =
-              symbol_numerator(sym);
-          const uint32_t denominator = denominator_;
-          assert(sym_prob.second > sym_prob.first);
-       
-          const uint64_t sym_high = low + (sym_prob.second * range) / denominator - 1;
-          const uint64_t sym_low = low + (sym_prob.first * range) / denominator;
-                
-          if (value <= sym_high and value >= sym_low) {
-              return sym;
-          }
-        }
-        return finished_symbol();
+    // const uint64_t range = high - low + 1;
+    // const uint64_t scaled_value = (range * (value - low)) / denominator();
+    // ...
+
+    const uint64_t range = high - low + 1;
+
+    for (uint64_t sym = 0; sym < size(); sym++) {
+      const std::pair<uint64_t, uint64_t> sym_prob = symbol_numerator(sym);
+      const uint32_t denominator = denominator_;
+      assert(sym_prob.second > sym_prob.first);
+
+      const uint64_t sym_high =
+          low + (sym_prob.second * range) / denominator - 1;
+      const uint64_t sym_low = low + (sym_prob.first * range) / denominator;
+
+      if (value <= sym_high and value >= sym_low) {
+        return sym;
+      }
     }
-    
+    return finished_symbol();
+  }
+
   inline void consume_symbol(const uint32_t symbol) {
     denominator_ += 1;
 
@@ -167,6 +169,6 @@ class FastAdaptiveModel {
 
   inline uint32_t finished_symbol() const { return num_symbols_ - 1; }
 };
-}
+}  // namespace codec
 
 #endif  // _CODEC_ARITHMETIC_PROBABILITY_MODELS_HH

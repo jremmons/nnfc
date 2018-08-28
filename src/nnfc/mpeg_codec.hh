@@ -55,6 +55,6 @@ using AVCEncoder = MPEGEncoder<codec::AVCEncoder>;
 using AVCDecoder = MPEGDecoder<codec::AVCDecoder>;
 using HEIFEncoder = MPEGEncoder<codec::HEIFEncoder>;
 using HEIFDecoder = MPEGDecoder<codec::HEIFDecoder>;
-}
+}  // namespace nnfc
 
 #endif  // _NNFC_AVC_CODEC_HH

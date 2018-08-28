@@ -42,6 +42,6 @@ class RGBSwizzlerDecoder {
     return {};
   }
 };
-}
+}  // namespace nnfc
 
 #endif  // _NNFC_SWIZZLER_H

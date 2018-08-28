@@ -38,6 +38,6 @@ class NNFC2Decoder {
     return {};
   }
 };
-}
+}  // namespace nnfc
 
 #endif  // _NNFC_NNFC2_H

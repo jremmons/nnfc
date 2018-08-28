@@ -20,8 +20,10 @@ int main(int argc, char* argv[]) {
   // codec::arith_decode<codec::SimpleModel>(compressed_input);
 
   // codec::ArithmeticDecoder<codec::SimpleModel> decoder(compressed_input);
-  // codec::ArithmeticDecoder<codec::SimpleAdaptiveModel> decoder(compressed_input, 10);
-  codec::FastArithmeticDecoder<codec::FastAdaptiveModel> decoder(compressed_input, 10);
+  // codec::ArithmeticDecoder<codec::SimpleAdaptiveModel>
+  // decoder(compressed_input, 10);
+  codec::FastArithmeticDecoder<codec::FastAdaptiveModel> decoder(
+      compressed_input, 10);
 
   std::vector<char> uncompressed_output;
   while (not decoder.done()) {

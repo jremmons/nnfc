@@ -157,7 +157,7 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
 
   double time = 0;
   size_t count = 0;
-  
+
   // arithmetic encode and serialize data
   for (size_t channel = 0; channel < dim0; channel++) {
     for (size_t block_row = 0; block_row < dim1 / BLOCK_WIDTH; block_row++) {
@@ -188,14 +188,16 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
           encoder.encode_symbol(static_cast<uint32_t>(symbol));
           auto t2 = std::chrono::high_resolution_clock::now();
           count += 1;
-          time += std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1).count();          
+          time +=
+              std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1)
+                  .count();
         }
       }
     }
   }
 
-  // std::cout << "total time [encode] (count=" << time  << "): " << time << std::endl;
-  // std::cout << "avg time [encode]: " << time / count << std::endl;
+  // std::cout << "total time [encode] (count=" << time  << "): " << time <<
+  // std::endl; std::cout << "avg time [encode]: " << time / count << std::endl;
 
   std::vector<char> encoding = encoder.finish();
 
@@ -334,7 +336,7 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
 
   double time = 0;
   size_t count = 0;
-  
+
   // undo arithmetic encoding and deserialize
   for (size_t channel = 0; channel < dim0; channel++) {
     for (size_t block_row = 0; block_row < dim1 / BLOCK_WIDTH; block_row++) {
@@ -349,7 +351,9 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
           uint32_t symbol = decoder.decode_symbol();
           auto t2 = std::chrono::high_resolution_clock::now();
           count += 1;
-          time += std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1).count();          
+          time +=
+              std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1)
+                  .count();
 
           assert(symbol < (DCT_MAX - DCT_MIN + 1));
           int32_t element = symbol + DCT_MIN;
@@ -377,8 +381,8 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
     }
   }
 
-  // std::cout << "total time [decode] (count=" << time  << "): " << time << std::endl;
-  // std::cout << "avg time [decode]: " << time / count << std::endl;
+  // std::cout << "total time [decode] (count=" << time  << "): " << time <<
+  // std::endl; std::cout << "avg time [decode]: " << time / count << std::endl;
 
   // undo the dct
   // nn::Tensor<int16_t, 3> idct_output(fp_output);

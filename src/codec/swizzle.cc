@@ -26,13 +26,15 @@ std::vector<uint8_t> codec::RGBp_to_YUV420p::convert(
 
   uint8_t* src_data[3] = {
       src_frame.data() + height_ * width_,
-      src_frame.data() + 2 * height_ * width_, src_frame.data(),
+      src_frame.data() + 2 * height_ * width_,
+      src_frame.data(),
   };
   int src_linesize[3] = {width_, width_, width_};
 
   std::vector<uint8_t> dest_frame(3 * (height_ * width_ / 2));
   uint8_t* dest_data[3] = {
-      dest_frame.data(), dest_frame.data() + height_ * width_,
+      dest_frame.data(),
+      dest_frame.data() + height_ * width_,
       dest_frame.data() + (height_ * width_) + (height_ * width_ / 4),
   };
   int dest_linesize[3] = {width_, width_ / 2, width_ / 2};
@@ -59,7 +61,8 @@ std::vector<uint8_t> codec::YUV420p_to_RGBp::convert(
   assert(src_frame.size() == static_cast<size_t>(3 * (height_ * width_ / 2)));
 
   uint8_t* src_data[3] = {
-      src_frame.data(), src_frame.data() + height_ * width_,
+      src_frame.data(),
+      src_frame.data() + height_ * width_,
       src_frame.data() + (height_ * width_) + (height_ * width_ / 4),
   };
   int src_linesize[3] = {width_, width_ / 2, width_ / 2};
@@ -67,7 +70,8 @@ std::vector<uint8_t> codec::YUV420p_to_RGBp::convert(
   std::vector<uint8_t> dest_frame(3 * height_ * width_);
   uint8_t* dest_data[3] = {
       dest_frame.data() + height_ * width_,
-      dest_frame.data() + 2 * height_ * width_, dest_frame.data(),
+      dest_frame.data() + 2 * height_ * width_,
+      dest_frame.data(),
   };
   int dest_linesize[3] = {width_, width_, width_};
 

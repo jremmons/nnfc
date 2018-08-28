@@ -19,8 +19,7 @@ static constexpr uint64_t top_mask = static_cast<uint64_t>(1)
 static constexpr uint64_t second_mask = static_cast<uint64_t>(1)
                                         << (num_working_bits - 2);
 static constexpr uint64_t working_bits_mask = working_bits_max;
-}
-}
+}  // namespace arithmetic_coder
+}  // namespace codec
 
 #endif  // _CODEC_ARITHMETIC_CODER_COMMON_HH
-

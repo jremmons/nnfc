@@ -21,6 +21,6 @@ class Net {
   Net operator+=(std::shared_ptr<LayerInterface> layer);
   Tensor<float, 4> forward(Tensor<float, 4> input);
 };
-}
+}  // namespace nn
 
 #endif  // _NN_NET_H

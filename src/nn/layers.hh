@@ -166,6 +166,6 @@ std::shared_ptr<LayerInterface> make_pool_from_hdf5(size_t output_batch_size,
                                                     size_t output_channels,
                                                     size_t output_height,
                                                     size_t output_width);
-}
+}  // namespace nn
 
 #endif  // _NN_LAYERS_H

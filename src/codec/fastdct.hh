@@ -30,6 +30,6 @@ class FastIDCT {
 
   nn::Tensor<uint8_t, 3> operator()(const nn::Tensor<int16_t, 3> input) const;
 };
-}
+}  // namespace codec
 
 #endif  // _CODEC_FASTDCT_HH

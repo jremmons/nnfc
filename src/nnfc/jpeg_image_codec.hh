@@ -48,6 +48,6 @@ class JPEGImageDecoder {
     return {};
   }
 };
-}
+}  // namespace nnfc
 
 #endif  // _NNFC_JPEG_IMAGE_H

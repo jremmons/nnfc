@@ -61,6 +61,6 @@ class YUV422p_to_RGB24 {
   ~YUV422p_to_RGB24();
   std::vector<uint8_t> convert(std::vector<uint8_t>& src_frame);
 };
-}
+}  // namespace codec
 
 #endif  // _CODEC_SWIZZLE_HH

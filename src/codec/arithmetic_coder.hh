@@ -8,8 +8,8 @@
 #include <bitset>
 #include <iostream>
 
-#include "arithmetic_probability_models.hh"
 #include "arithmetic_coder_common.hh"
+#include "arithmetic_probability_models.hh"
 
 namespace codec {
 
@@ -387,7 +387,7 @@ class ArithmeticDecoder {
         break;
       }
     }
-    
+
     // debugging
     // if (not sym_set) {
     //     std::cerr << std::bitset<64>(low_) << std::endl;
@@ -543,14 +543,16 @@ class FastArithmeticDecoder {
     assert(range <= arithmetic_coder::max_range);
     assert(range >= arithmetic_coder::min_range);
 
-    const std::pair<uint64_t, uint64_t> sym_prob = model_.symbol_numerator(symbol);
+    const std::pair<uint64_t, uint64_t> sym_prob =
+        model_.symbol_numerator(symbol);
     const uint32_t denominator = model_.denominator();
-    const uint64_t sym_high = low_ + (sym_prob.second * range) / denominator - 1;
+    const uint64_t sym_high =
+        low_ + (sym_prob.second * range) / denominator - 1;
     const uint64_t sym_low = low_ + (sym_prob.first * range) / denominator;
-    
+
     high_ = sym_high;
     low_ = sym_low;
-        
+
     assert(symbol < std::numeric_limits<uint64_t>::max());
     assert(high_ > low_);
 
@@ -600,6 +602,6 @@ class FastArithmeticDecoder {
 
   inline bool done() const { return done_; }
 };
-}
+}  // namespace codec
 
 #endif  // _CODEC_ARITHMETIC_CODER_HH

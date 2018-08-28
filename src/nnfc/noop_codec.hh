@@ -36,6 +36,6 @@ class NoopDecoder {
     return {};
   }
 };
-}
+}  // namespace nnfc
 
 #endif  // _NNFC_NOOP_H

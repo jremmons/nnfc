@@ -16,6 +16,6 @@ class JPEGEncoder {
   std::vector<uint8_t> encode(std::vector<uint8_t>& image, const size_t width,
                               const size_t height, const size_t channels);
 };
-}
+}  // namespace codec
 
 #endif /* _CODEC_JPEG_HH */

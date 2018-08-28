@@ -42,7 +42,7 @@ std::unique_ptr<EncoderContextInterface> new_encoder(
     std::string encoder_name, constructor_list constructor_parameters);
 std::unique_ptr<DecoderContextInterface> new_decoder(
     std::string decoder_name, constructor_list constructor_parameters);
-}
-}
+}  // namespace cxxapi
+}  // namespace nnfc
 
 #endif  // _NNFC_CXXAPI_H

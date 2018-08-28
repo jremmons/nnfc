@@ -114,6 +114,6 @@ class Tensor {
     return tensor_(indices...);
   }
 };
-}
+}  // namespace nn
 
 #endif  // _NN_TENSOR_H

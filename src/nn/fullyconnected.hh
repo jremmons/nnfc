@@ -12,6 +12,6 @@ void fully_connected_with_bias(const Tensor<float, 4> input,
                                const Tensor<float, 2> weights,
                                const Tensor<float, 1> bias,
                                Tensor<float, 4> output);
-}
+}  // namespace nn
 
 #endif  // _NN_FULLYCONNECTED_H
