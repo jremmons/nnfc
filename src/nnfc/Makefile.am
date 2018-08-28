@@ -5,7 +5,7 @@ AM_CPPFLAGS = $(CXX14_FLAGS) $(THIRD_PARTY_CFLAGS) \
               $(SWSCALE_CFLAGS) \
               -I$(srcdir)/..
 
-AM_CXXFLAGS = $(PICKY_CXXFLAGS) -fPIC \
+AM_CXXFLAGS = $(PICKY_CXXFLAGS) $(OPTIMIZATION_FLAGS) \
               -L$(srcdir)/../nn -L$(srcdir)/../codec \
               -Wl,-Bstatic -l:libcodec.a \
               -Wl,-Bstatic -l:libnn.a \

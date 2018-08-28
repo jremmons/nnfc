@@ -10,11 +10,15 @@ AM_CPPFLAGS = $(CXX14_FLAGS) $(THIRD_PARTY_CFLAGS) \
 
 AM_CXXFLAGS = $(PICKY_CXXFLAGS)
 
-AM_LDFLAGS = -L$(srcdir)/../src/nnfc/.libs \
+AM_LDFLAGS = $(HDF5_LDFLAGS) $(HDF5_LIBS) \
+             $(JPEG_LDFLAGS) \
+             $(AVFORMAT_LDFLAGS) $(AVCODEC_LDFLAGS) $(AVUTIL_LDFLAGS) $(SWSCALE_LDFLAGS) \
+             $(FFTW3F_LDFLAGS) \
+             -L$(srcdir)/../src/codec \
              -L$(srcdir)/../src/nn \
-             -L$(srcdir)/../src/codec
+             -L$(srcdir)/../src/nnfc/.libs
 
-LDADD = -lnnfc -l:libcodec.a -l:libnn.a $(HDF5_LDFLAGS) $(HDF5_LIBS)
+LDADD = -lnnfc -l:libcodec.a -l:libnn.a
 
 check_PROGRAMS = avgpool.bin \
                  batchnorm.bin batchnorm_hl.bin \

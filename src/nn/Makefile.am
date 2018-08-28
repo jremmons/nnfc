@@ -2,9 +2,9 @@ AM_CPPFLAGS = $(CXX14_FLAGS) $(THIRD_PARTY_CFLAGS) \
               $(JPEG_CFLAGS) \
               $(EIGEN3_CFLAGS) $(EIGEN3_UNSUPPORTED_CFLAGS)
 
-AM_CXXFLAGS = $(PICKY_CXXFLAGS) -fpic
+AM_CXXFLAGS = $(PICKY_CXXFLAGS) $(OPTIMIZATION_FLAGS)
 
-noinst_LIBRARIES =  libnn.a
+noinst_LIBRARIES = libnn.a
 
 libnn_a_SOURCES = activation.hh activation.cc \
                   convolution.hh convolution.cc \
