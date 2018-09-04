@@ -120,6 +120,8 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
   const float max = t_input.maximum();
   const float range = max - min;
 
+  auto quantize_t1 = std::chrono::high_resolution_clock::now();
+
   // quantize to 8-bits
   Eigen::Tensor<float, 3, Eigen::RowMajor> q1_input =
       (255.f * (t_input.tensor() - min)) / range;
@@ -141,11 +143,24 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
       }
     }
   }
+  auto quantize_t2 = std::chrono::high_resolution_clock::now();
+  std::cout << "quantize time: "
+            << std::chrono::duration_cast<std::chrono::duration<double>>(
+                   quantize_t2 - quantize_t1)
+                   .count()
+            << std::endl;
 
   // do the dct
   // nn::Tensor<int16_t, 3> dct_out(dct_in);
   codec::FastDCT dct;
+  auto dct_t1 = std::chrono::high_resolution_clock::now();
   nn::Tensor<int16_t, 3> dct_out = dct(dct_in);
+  auto dct_t2 = std::chrono::high_resolution_clock::now();
+  std::cout << "dct time: "
+            << std::chrono::duration_cast<std::chrono::duration<double>>(
+                   dct_t2 - dct_t1)
+                   .count()
+            << std::endl;
 
   assert(quality_ > 0);
   assert(quality_ <= 100);
@@ -155,10 +170,8 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
   codec::ArithmeticEncoder<codec::SimpleAdaptiveModel> encoder(DCT_MAX -
                                                                DCT_MIN + 1);
 
-  double time = 0;
-  size_t count = 0;
-
   // arithmetic encode and serialize data
+  auto encode_t1 = std::chrono::high_resolution_clock::now();
   for (size_t channel = 0; channel < dim0; channel++) {
     for (size_t block_row = 0; block_row < dim1 / BLOCK_WIDTH; block_row++) {
       for (size_t block_col = 0; block_col < dim2 / BLOCK_WIDTH; block_col++) {
@@ -184,23 +197,21 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
           assert(symbol >= 0);
           assert(symbol < (DCT_MAX - DCT_MIN + 1));
 
-          auto t1 = std::chrono::high_resolution_clock::now();
           encoder.encode_symbol(static_cast<uint32_t>(symbol));
-          auto t2 = std::chrono::high_resolution_clock::now();
-          count += 1;
-          time +=
-              std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1)
-                  .count();
         }
       }
     }
   }
-
-  // std::cout << "total time [encode] (count=" << time  << "): " << time <<
-  // std::endl; std::cout << "avg time [encode]: " << time / count << std::endl;
+  auto encode_t2 = std::chrono::high_resolution_clock::now();
+  std::cout << "encode time: "
+            << std::chrono::duration_cast<std::chrono::duration<double>>(
+                   encode_t2 - encode_t1)
+                   .count()
+            << std::endl;
 
   std::vector<char> encoding = encoder.finish();
 
+  auto serialize_t1 = std::chrono::high_resolution_clock::now();
   // add footer
   {
     uint64_t dim0_ = dim0;
@@ -246,6 +257,14 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
   std::vector<uint8_t> encoding_(
       reinterpret_cast<uint8_t *>(encoding.data()),
       reinterpret_cast<uint8_t *>(encoding.data()) + encoding.size());
+
+  auto serialize_t2 = std::chrono::high_resolution_clock::now();
+  std::cout << "serialize time: "
+            << std::chrono::duration_cast<std::chrono::duration<double>>(
+                   serialize_t2 - serialize_t1)
+                   .count()
+            << std::endl;
+
   return encoding_;
 }
 

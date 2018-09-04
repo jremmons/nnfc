@@ -286,13 +286,16 @@ class ArithmeticDecoder {
 
   inline void shift() {
     // grab the MSB of `low` (will be the same as `high`)
-    const uint8_t bit = (low_ >> (arithmetic_coder::num_working_bits - 1));
-    assert(bit <= 0x1);
-    assert(bit == (high_ >> (arithmetic_coder::num_working_bits - 1)));
-    assert((!!(high_ & arithmetic_coder::top_mask)) == bit);
+    // const uint8_t bit = (low_ >> (arithmetic_coder::num_working_bits - 1));
+    assert((low_ >> (arithmetic_coder::num_working_bits - 1)) <= 0x1);
+    assert((low_ >> (arithmetic_coder::num_working_bits - 1)) ==
+           (high_ >> (arithmetic_coder::num_working_bits - 1)));
+    assert((!!(high_ & arithmetic_coder::top_mask)) ==
+           (low_ >> (arithmetic_coder::num_working_bits - 1)));
 
     assert(((value_ & arithmetic_coder::top_mask) >>
-            (arithmetic_coder::num_working_bits - 1)) == bit);
+            (arithmetic_coder::num_working_bits - 1)) ==
+           (low_ >> (arithmetic_coder::num_working_bits - 1)));
 
     uint8_t bitvector_bit = 0;
     if (bit_idx_ < data_.size()) {
@@ -409,7 +412,11 @@ class ArithmeticDecoder {
     //     }
 
     // }
-    assert(sym_set);
+
+    if (not sym_set) {
+      throw std::runtime_error("could not decode symbol from bitstream.");
+    }
+
     assert(sym < std::numeric_limits<uint64_t>::max());
     assert(high_ > low_);
     const uint32_t symbol = sym;

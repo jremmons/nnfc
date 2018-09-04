@@ -10,15 +10,14 @@ void nn::conv2d(const Tensor<float, 4> input, const Tensor<float, 4> kernel,
   assert(output.dimension(1) == kernel.dimension(0));
   assert(input.dimension(1) == kernel.dimension(1));
 
-  const nn::Index h_extent =
-      (input.dimension(2) - kernel.dimension(2) + 2 * zero_padding) / stride +
-      1;
-  const nn::Index w_extent =
-      (input.dimension(3) - kernel.dimension(3) + 2 * zero_padding) / stride +
-      1;
-
-  assert(output.dimension(2) == h_extent);
-  assert(output.dimension(3) == w_extent);
+  assert(h_extent ==
+         (input.dimension(2) - kernel.dimension(2) + 2 * zero_padding) /
+                 stride +
+             1);
+  assert(w_extent ==
+         (input.dimension(3) - kernel.dimension(3) + 2 * zero_padding) /
+                 stride +
+             1);
 
   for (nn::Index i = 0; i < input.dimension(0); i++) {
     for (nn::Index j = 0; j < output.dimension(1); j++) {

@@ -11,8 +11,7 @@ std::shared_ptr<nn::LayerInterface> nn::make_convolution_from_hdf5(
                               output_width);
 
   H5::DataSet kernel_ds = parameter_file.openDataSet(kernel_name.c_str());
-  size_t kernel_ndims = kernel_ds.getSpace().getSimpleExtentNdims();
-  assert(kernel_ndims == 4);
+  assert(kernel_ds.getSpace().getSimpleExtentNdims() == 4);
 
   hsize_t kernel_dims[4];
   kernel_ds.getSpace().getSimpleExtentDims(kernel_dims, nullptr);
@@ -33,8 +32,7 @@ std::shared_ptr<nn::LayerInterface> nn::make_fc_from_hdf5(
                               output_width);
 
   H5::DataSet weights_ds = parameter_file.openDataSet(weights_name.c_str());
-  size_t weights_ndims = weights_ds.getSpace().getSimpleExtentNdims();
-  assert(weights_ndims == 2);
+  assert(weights_ds.getSpace().getSimpleExtentNdims() == 2);
 
   hsize_t weights_dims[2];
   weights_ds.getSpace().getSimpleExtentDims(weights_dims, nullptr);
@@ -54,8 +52,7 @@ std::shared_ptr<nn::LayerInterface> nn::make_fc_with_bias_from_hdf5(
                               output_width);
 
   H5::DataSet weights_ds = parameter_file.openDataSet(weights_name.c_str());
-  size_t weights_ndims = weights_ds.getSpace().getSimpleExtentNdims();
-  assert(weights_ndims == 2);
+  assert(weights_ds.getSpace().getSimpleExtentNdims() == 2);
 
   hsize_t weights_dims[2];
   weights_ds.getSpace().getSimpleExtentDims(weights_dims, nullptr);
@@ -64,8 +61,7 @@ std::shared_ptr<nn::LayerInterface> nn::make_fc_with_bias_from_hdf5(
   weights_ds.read(&weights(0, 0), H5::PredType::NATIVE_FLOAT);
 
   H5::DataSet biases_ds = parameter_file.openDataSet(bias_name.c_str());
-  size_t biases_ndims = biases_ds.getSpace().getSimpleExtentNdims();
-  assert(biases_ndims == 1);
+  assert(biases_ds.getSpace().getSimpleExtentNdims() == 1);
 
   hsize_t biases_size;
   biases_ds.getSpace().getSimpleExtentDims(&biases_size, nullptr);
@@ -89,8 +85,7 @@ std::shared_ptr<nn::LayerInterface> nn::make_batch_norm_from_hdf5(
 
   // load means
   H5::DataSet means_ds = parameter_file.openDataSet(means_name.c_str());
-  size_t means_ndims = means_ds.getSpace().getSimpleExtentNdims();
-  assert(means_ndims == 1);
+  assert(means_ds.getSpace().getSimpleExtentNdims() == 1);
 
   hsize_t means_dims[1];
   means_ds.getSpace().getSimpleExtentDims(means_dims, nullptr);
@@ -100,8 +95,7 @@ std::shared_ptr<nn::LayerInterface> nn::make_batch_norm_from_hdf5(
 
   // load variances
   H5::DataSet variances_ds = parameter_file.openDataSet(variances_name.c_str());
-  size_t variances_ndims = variances_ds.getSpace().getSimpleExtentNdims();
-  assert(variances_ndims == 1);
+  assert(variances_ds.getSpace().getSimpleExtentNdims() == 1);
 
   hsize_t variances_dims[1];
   variances_ds.getSpace().getSimpleExtentDims(variances_dims, nullptr);
@@ -111,8 +105,7 @@ std::shared_ptr<nn::LayerInterface> nn::make_batch_norm_from_hdf5(
 
   // load weight
   H5::DataSet weight_ds = parameter_file.openDataSet(weight_name.c_str());
-  size_t weight_ndims = weight_ds.getSpace().getSimpleExtentNdims();
-  assert(weight_ndims == 1);
+  assert(weight_ds.getSpace().getSimpleExtentNdims() == 1);
 
   hsize_t weight_dims[1];
   weight_ds.getSpace().getSimpleExtentDims(weight_dims, nullptr);
@@ -122,8 +115,7 @@ std::shared_ptr<nn::LayerInterface> nn::make_batch_norm_from_hdf5(
 
   // load bias
   H5::DataSet bias_ds = parameter_file.openDataSet(bias_name.c_str());
-  size_t bias_ndims = bias_ds.getSpace().getSimpleExtentNdims();
-  assert(bias_ndims == 1);
+  assert(bias_ds.getSpace().getSimpleExtentNdims() == 1);
 
   hsize_t bias_dims[1];
   bias_ds.getSpace().getSimpleExtentDims(bias_dims, nullptr);
