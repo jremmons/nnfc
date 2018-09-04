@@ -20,8 +20,8 @@ AC_SUBST([THIRD_PARTY_CFLAGS])
 # Add compiler flags
 CXX14_FLAGS="-std=c++17"
 PICKY_CXXFLAGS="-Wall -Wextra -Weffc++ -Wno-non-virtual-dtor -Werror"
-OPTIMIZATION_FLAGS="-mtune=generic -g -O0 -fpic"
-# OPTIMIZATION_FLAGS="-DNDEBUG -mtune=generic -mtune=native -O2 -fpic"
+# OPTIMIZATION_FLAGS="-mtune=generic -g -O0 -fpic"
+OPTIMIZATION_FLAGS="-DNDEBUG -mtune=native -O2 -fpic"
 AC_SUBST([CXX14_FLAGS])
 AC_SUBST([PICKY_CXXFLAGS])
 AC_SUBST([OPTIMIZATION_FLAGS])
