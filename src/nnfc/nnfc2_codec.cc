@@ -145,10 +145,10 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
   }
   // auto quantize_t2 = std::chrono::high_resolution_clock::now();
   // std::cout << "quantize time: "
-            << std::chrono::duration_cast<std::chrono::duration<double>>(
-                   quantize_t2 - quantize_t1)
-                   .count()
-            << std::endl;
+            // << std::chrono::duration_cast<std::chrono::duration<double>>(
+            //        quantize_t2 - quantize_t1)
+            //        .count()
+            // << std::endl;
 
   // do the dct
   // nn::Tensor<int16_t, 3> dct_out(dct_in);
@@ -157,10 +157,10 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
   nn::Tensor<int16_t, 3> dct_out = dct(dct_in);
   // auto dct_t2 = std::chrono::high_resolution_clock::now();
   // std::cout << "dct time: "
-            << std::chrono::duration_cast<std::chrono::duration<double>>(
-                   dct_t2 - dct_t1)
-                   .count()
-            << std::endl;
+            // << std::chrono::duration_cast<std::chrono::duration<double>>(
+            //        dct_t2 - dct_t1)
+            //        .count()
+            // << std::endl;
 
   assert(quality_ > 0);
   assert(quality_ <= 100);
@@ -204,10 +204,10 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
   }
   // auto encode_t2 = std::chrono::high_resolution_clock::now();
   // std::cout << "encode time: "
-            << std::chrono::duration_cast<std::chrono::duration<double>>(
-                   encode_t2 - encode_t1)
-                   .count()
-            << std::endl;
+            // << std::chrono::duration_cast<std::chrono::duration<double>>(
+            //        encode_t2 - encode_t1)
+            //        .count()
+            // << std::endl;
 
   std::vector<char> encoding = encoder.finish();
 
@@ -260,10 +260,10 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
 
   // auto serialize_t2 = std::chrono::high_resolution_clock::now();
   // std::cout << "serialize time: "
-            << std::chrono::duration_cast<std::chrono::duration<double>>(
-                   serialize_t2 - serialize_t1)
-                   .count()
-            << std::endl;
+            // << std::chrono::duration_cast<std::chrono::duration<double>>(
+            //        serialize_t2 - serialize_t1)
+            //        .count()
+            // << std::endl;
 
   return encoding_;
 }
