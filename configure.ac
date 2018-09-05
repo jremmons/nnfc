@@ -21,7 +21,8 @@ AC_SUBST([THIRD_PARTY_CFLAGS])
 CXX14_FLAGS="-std=c++17"
 PICKY_CXXFLAGS="-Wall -Wextra -Weffc++ -Wno-non-virtual-dtor -Werror"
 # OPTIMIZATION_FLAGS="-mtune=generic -g -O0 -fpic"
-OPTIMIZATION_FLAGS="-DNDEBUG -mtune=native -O2 -fpic"
+# OPTIMIZATION_FLAGS="-march=generic -mtune=generic -O2 -fpic"
+OPTIMIZATION_FLAGS="-DNDEBUG -march=native -mtune=native -Ofast -fpic"
 AC_SUBST([CXX14_FLAGS])
 AC_SUBST([PICKY_CXXFLAGS])
 AC_SUBST([OPTIMIZATION_FLAGS])
@@ -29,8 +30,9 @@ AC_SUBST([OPTIMIZATION_FLAGS])
 # add flags for python wrapper compilation
 PYWRAPPER_EXTRA_CFLAGS="-std=c++17 -Wall -Wextra -Weffc++"
 PYWRAPPER_EXTRA_LDFLAGS=""
-PYOPTIMIZATION_FLAGS="-mtune=generic -g -O0 -fpic"
-#PYOPTIMIZATION_FLAGS="-DNDEBUG -mtune=generic -O2 -fpic"
+# PYOPTIMIZATION_FLAGS="-march=generic -mtune=generic -g -O0 -fpic"
+# PYOPTIMIZATION_FLAGS="-march=generic -mtune=generic -O2 -fpic"
+PYOPTIMIZATION_FLAGS="-DNDEBUG -march=native -mtune=native -Ofast -fpic"
 AC_SUBST([PYWRAPPER_EXTRA_CFLAGS])
 AC_SUBST([PYWRAPPER_EXTRA_LDFLAGS])
 AC_SUBST([PYOPTIMIZATION_FLAGS])
