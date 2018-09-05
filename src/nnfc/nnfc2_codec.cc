@@ -120,7 +120,7 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
   const float max = t_input.maximum();
   const float range = max - min;
 
-  auto quantize_t1 = std::chrono::high_resolution_clock::now();
+  // auto quantize_t1 = std::chrono::high_resolution_clock::now();
 
   // quantize to 8-bits
   Eigen::Tensor<float, 3, Eigen::RowMajor> q1_input =
@@ -143,8 +143,8 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
       }
     }
   }
-  auto quantize_t2 = std::chrono::high_resolution_clock::now();
-  std::cout << "quantize time: "
+  // auto quantize_t2 = std::chrono::high_resolution_clock::now();
+  // std::cout << "quantize time: "
             << std::chrono::duration_cast<std::chrono::duration<double>>(
                    quantize_t2 - quantize_t1)
                    .count()
@@ -153,10 +153,10 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
   // do the dct
   // nn::Tensor<int16_t, 3> dct_out(dct_in);
   codec::FastDCT dct;
-  auto dct_t1 = std::chrono::high_resolution_clock::now();
+  // auto dct_t1 = std::chrono::high_resolution_clock::now();
   nn::Tensor<int16_t, 3> dct_out = dct(dct_in);
-  auto dct_t2 = std::chrono::high_resolution_clock::now();
-  std::cout << "dct time: "
+  // auto dct_t2 = std::chrono::high_resolution_clock::now();
+  // std::cout << "dct time: "
             << std::chrono::duration_cast<std::chrono::duration<double>>(
                    dct_t2 - dct_t1)
                    .count()
@@ -171,7 +171,7 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
                                                                DCT_MIN + 1);
 
   // arithmetic encode and serialize data
-  auto encode_t1 = std::chrono::high_resolution_clock::now();
+  // auto encode_t1 = std::chrono::high_resolution_clock::now();
   for (size_t channel = 0; channel < dim0; channel++) {
     for (size_t block_row = 0; block_row < dim1 / BLOCK_WIDTH; block_row++) {
       for (size_t block_col = 0; block_col < dim2 / BLOCK_WIDTH; block_col++) {
@@ -202,8 +202,8 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
       }
     }
   }
-  auto encode_t2 = std::chrono::high_resolution_clock::now();
-  std::cout << "encode time: "
+  // auto encode_t2 = std::chrono::high_resolution_clock::now();
+  // std::cout << "encode time: "
             << std::chrono::duration_cast<std::chrono::duration<double>>(
                    encode_t2 - encode_t1)
                    .count()
@@ -211,7 +211,7 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
 
   std::vector<char> encoding = encoder.finish();
 
-  auto serialize_t1 = std::chrono::high_resolution_clock::now();
+  // auto serialize_t1 = std::chrono::high_resolution_clock::now();
   // add footer
   {
     uint64_t dim0_ = dim0;
@@ -258,8 +258,8 @@ std::vector<uint8_t> nnfc::NNFC2Encoder::forward(
       reinterpret_cast<uint8_t *>(encoding.data()),
       reinterpret_cast<uint8_t *>(encoding.data()) + encoding.size());
 
-  auto serialize_t2 = std::chrono::high_resolution_clock::now();
-  std::cout << "serialize time: "
+  // auto serialize_t2 = std::chrono::high_resolution_clock::now();
+  // std::cout << "serialize time: "
             << std::chrono::duration_cast<std::chrono::duration<double>>(
                    serialize_t2 - serialize_t1)
                    .count()
@@ -353,8 +353,8 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
       encoding_, DCT_MAX - DCT_MIN + 1);
   // codec::DummyArithmeticDecoder decoder(encoding_);
 
-  double time = 0;
-  size_t count = 0;
+  // double time = 0;
+  // size_t count = 0;
 
   // undo arithmetic encoding and deserialize
   for (size_t channel = 0; channel < dim0; channel++) {
@@ -366,13 +366,13 @@ nn::Tensor<float, 3> nnfc::NNFC2Decoder::forward(
           const size_t col_offset =
               BLOCK_WIDTH * block_col + ZIGZAG_ORDER[i][1];
 
-          auto t1 = std::chrono::high_resolution_clock::now();
+          // auto t1 = std::chrono::high_resolution_clock::now();
           uint32_t symbol = decoder.decode_symbol();
-          auto t2 = std::chrono::high_resolution_clock::now();
-          count += 1;
-          time +=
-              std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1)
-                  .count();
+          // auto t2 = std::chrono::high_resolution_clock::now();
+          // count += 1;
+          // time +=
+          //     std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1)
+          //         .count();
 
           assert(symbol < (DCT_MAX - DCT_MIN + 1));
           int32_t element = symbol + DCT_MIN;
