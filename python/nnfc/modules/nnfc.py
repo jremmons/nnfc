@@ -6,6 +6,20 @@ from torch.autograd import Function
 
 from .._ext import nnfc_codec
 
+def apply_encoder(inputs, encoder_name='noop_encoder', encoder_params_dict={}):
+
+        encoder = nnfc_codec.EncoderContext(encoder_name, encoder_params_dict)
+
+        outputs = encoder.forward(inputs)
+        return outputs
+
+def apply_decoder(inputs, decoder_name='noop_decoder', decoder_params_dict={}):
+
+        decoder = nnfc_codec.DecoderContext(decoder_name, decoder_params_dict)
+
+        outputs = decoder.forward(inputs)
+        return outputs
+    
 class CompressionLayer(Module):
 
     class CompressionLayerFunc(Function):
