@@ -16,7 +16,7 @@ libdir=$DIR/../python/build/$(ls $DIR/../python/build/ | grep 'lib')
 
 export PYTHONPATH=$(readlink -f $libdir):$PYTHONPATH
 
-export NNFC_TEST_TMPDIR=/tmp/nnfc_test_tmpdir
+export NNFC_TEST_TMPDIR=/tmp/nnfc_test_tmpdir_$(whoami)
 mkdir -p $NNFC_TEST_TMPDIR
 
 exec "$@"
