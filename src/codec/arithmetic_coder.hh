@@ -266,6 +266,11 @@ class ArithmeticEncoder {
 
     return data_.vector();
   }
+
+  std::string dump_model() {
+      return model_.dump_model();
+  }
+
 };
 
 //////////////////////////////////////////////////////////////////////

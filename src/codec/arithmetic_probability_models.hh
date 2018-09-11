@@ -58,13 +58,45 @@ class SimpleAdaptiveModel {
     }
   }
 
-  // SimpleAdaptiveModel(const std::string probabilities_json)
-  //     : num_symbols_(), numerator_(), denominator_() {
-  //   nlohmann::json model_json = nlohmann::json::parse(probabilities_json);
-  // }
+  SimpleAdaptiveModel(const std::string probabilities_json)
+      : num_symbols_(nlohmann::json::parse(probabilities_json).at("num_symbols")),
+        numerator_(),
+        denominator_() {
+
+      nlohmann::json model_json = nlohmann::json::parse(probabilities_json);
+
+      const uint32_t denominator = model_json.at("denominator");
+      denominator_ = denominator;
+
+      // allocate symbols
+      numerator_.resize(num_symbols_+1);
+
+      // load the symbol probabilities from the symbol file
+      for (size_t sym = 0; sym < num_symbols_; sym++) {
+
+          const std::string key_lower = std::string("sym_") + std::to_string(sym) + std::string("_lower");
+          const std::string key_upper = std::string("sym_") + std::to_string(sym) + std::string("_upper");
+
+          const uint32_t lower = model_json.at(key_lower);
+          const uint32_t upper = model_json.at(key_upper);
+
+          numerator_[sym].first = lower;
+          numerator_[sym].second = upper;
+      }
+
+      // set the end of message symbol
+      const std::string key_lower = std::string("sym_end_lower");
+      const std::string key_upper = std::string("sym_end_upper");
+      
+      const uint32_t lower = model_json.at(key_lower);
+      const uint32_t upper = model_json.at(key_upper);
+      
+      numerator_[num_symbols_].first = lower;
+      numerator_[num_symbols_].second = upper;      
+  }
 
   ~SimpleAdaptiveModel() {}
-
+    
   inline void consume_symbol(const uint32_t symbol) {
     denominator_ += 1;
 
@@ -90,6 +122,27 @@ class SimpleAdaptiveModel {
   inline uint32_t size() const { return num_symbols_; }
 
   inline uint32_t finished_symbol() const { return num_symbols_ - 1; }
+
+  std::string dump_model() {
+      
+      nlohmann::json j;
+
+      j["num_symbols"] = num_symbols_ - 1;
+      j["denominator"] = denominator_;
+
+      for (size_t sym = 0; sym < num_symbols_-1; sym++) {
+          const std::string key_lower = std::string("sym_") + std::to_string(sym) + std::string("_lower");
+          const std::string key_upper = std::string("sym_") + std::to_string(sym) + std::string("_upper");
+
+          j[key_lower] = numerator_[sym].first;
+          j[key_upper] = numerator_[sym].second;
+      }
+      
+      j["sym_end_lower"] = numerator_[num_symbols_-1].first;
+      j["sym_end_upper"] = numerator_[num_symbols_-1].second;
+
+      return j.dump();
+  }
 };
 
 class FastAdaptiveModel {
