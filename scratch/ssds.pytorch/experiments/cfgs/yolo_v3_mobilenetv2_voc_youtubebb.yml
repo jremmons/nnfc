@@ -43,10 +43,10 @@ DATASET:
   DATASET: 'youtubebb'
   DATASET_DIR: './data/youtubebb'
   TRAIN_SETS: []
-  TEST_SETS:  [[2007, 'test']]
+  TEST_SETS:  [['2007', 'test']]
   PROB: 0.6
 
-EXP_DIR: './experiments/models/yolo_v3_mobilenetv2_youtubebb'
-LOG_DIR: './experiments/models/yolo_v3_mobilenetv2_youtubebb'
+EXP_DIR: './experiments/models/yolo_v3_mobilenetv2_voc_youtubebb'
+LOG_DIR: './experiments/models/yolo_v3_mobilenetv2_voc_youtubebb'
 RESUME_CHECKPOINT: './weights/yolo/mobilenet_v2_yolo_v3_voc_75.8.pth'
 PHASE: ['test']
